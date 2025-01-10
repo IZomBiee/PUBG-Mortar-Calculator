@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "mortar-calculator"
+version = "0.0.1"
+description = "A tool to calculate the range of a shot or to automatically fire a mortar."
+authors = ["IZomBie <patrik009009@gmail.com>"]
+license = "You can youse everything."
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+opencv-python = "^4.10.0.84"
+keyboard = "^0.13.5"
+pyqt6 = "^6.8.0"
+mss = "^10.0.0"
+screeninfo = "^0.8.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
