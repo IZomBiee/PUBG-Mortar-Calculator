@@ -22,7 +22,7 @@ class Window(QMainWindow):
         return get_monitors()[monitor]
 
     def draw_preview(self, frame):
-        frame = cv2.resize(frame, (200, 200))
+        frame = cv2.resize(frame, (400, 400))
         if len(frame.shape) == 2:
             frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
         else:
@@ -35,7 +35,7 @@ class Window(QMainWindow):
                        frame.strides[0],
                        QImage.Format.Format_RGB888)
                 ))
-    
+
     def take_screenshot(self):
         with mss() as sct:
             frame = sct.grab((0, 0,
@@ -47,15 +47,19 @@ class Window(QMainWindow):
 
     def sample_card(self):
         print("Getting screen...")
-        self.last_frame = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-01\TslGame_uN9BkO6oZl.jpg")
+        self.last_frame = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-01\TslGame_WvdkKjAjRf.jpg")
         Grid().line_threshold = self.LineThresholdSlider.value()
         Grid().line_min_lenth = self.MinLineLenthSlider.value()
         Grid().canny_threshold1 = self.Threshold1Slider.value()
         Grid().canny_threshold2 = self.Threshold2Slider.value()
-        Grid().detect_lines(self.last_frame)
+        Grid().line_max_gap = self.MaxLineGapSlider.value()
+        processed_frame = Grid().process_frame(self.last_frame)
+        Grid().detect_lines(processed_frame)
+        processed_frame = cv2.cvtColor(processed_frame, cv2.COLOR_GRAY2BGR)
         # Grid().detect_lines(self.take_screenshot())
-        Grid().draw_lines(self.last_frame)
-        self.draw_preview(self.last_frame)
+        Grid().draw_lines(processed_frame)
+        print(f"Grid spacein is {Grid().get_grid_spaceing()}")
+        self.draw_preview(processed_frame)
 
 
     def calculate(self):

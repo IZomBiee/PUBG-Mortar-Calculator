@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mortar-calculator"
-version = "0.0.2"
+version = "0.0.3"
 description = "A tool to calculate the range of a shot or to automatically fire a mortar."
 authors = ["IZomBie <patrik009009@gmail.com>"]
 license = "You can youse everything."
