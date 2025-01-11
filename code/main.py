@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QApplication
 from window import Window
 import sys
 
-grid = Grid(1000, 100, 100)
+grid = Grid()
 
 while True:
     app = QApplication(sys.argv)

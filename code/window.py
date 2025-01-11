@@ -47,8 +47,9 @@ class Window(QMainWindow):
 
     def sample_card(self):
         print("Getting screen...")
-        self.last_frame = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-01\TslGame_WvdkKjAjRf.jpg")
-        Grid().min_lenth = self.MinLineLenthSlider.value()
+        self.last_frame = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-01\TslGame_uN9BkO6oZl.jpg")
+        Grid().line_threshold = self.LineThresholdSlider.value()
+        Grid().line_min_lenth = self.MinLineLenthSlider.value()
         Grid().canny_threshold1 = self.Threshold1Slider.value()
         Grid().canny_threshold2 = self.Threshold2Slider.value()
         Grid().detect_lines(self.last_frame)
