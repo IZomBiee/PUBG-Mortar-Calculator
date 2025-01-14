@@ -14,15 +14,40 @@ class App(customtkinter.CTk):
         self.title("PUBG-Morta-Calculator")
         # self.geometry(f"{1500}x{1500}")
 
-        # Preview
         self.last_preview_path = None
         self.last_profile = None
+
+        # Preview frame
+        self.preview_frame = customtkinter.CTkFrame(self)
+        self.preview_frame.grid(row=0, column=0)
+
         self.last_preview_image = np.zeros((512, 512, 3), dtype=np.uint8)
-        self.preview_label = customtkinter.CTkLabel(self,
+        self.preview_label = customtkinter.CTkLabel(self.preview_frame,
             image=customtkinter.CTkImage(Image.fromarray(self.last_preview_image),
                                          Image.fromarray(self.last_preview_image),
                                          self.last_preview_image.shape), text='')
         self.preview_label.grid(row=0, column=0)
+
+        self.preview_grid_frame = customtkinter.CTkFrame(self.preview_frame)
+        self.preview_grid_frame.grid(row=1, column=0)
+        
+        self.preview_grid_labeld = customtkinter.CTkLabel(self.preview_grid_frame, text='Calculated Grid Gap: ')
+        self.preview_grid_labeld.grid(row=1, column=0)
+
+        self.preview_grid_label = customtkinter.CTkLabel(self.preview_grid_frame, text='None')
+        self.preview_grid_label.grid(row=1, column=1)
+
+        self.preview_player_mark_location_labeld = customtkinter.CTkLabel(self.preview_grid_frame, text='Player Mark: ')
+        self.preview_player_mark_location_labeld.grid(row=2, column=0)
+
+        self.preview_player_mark_location_label = customtkinter.CTkLabel(self.preview_grid_frame, text='')
+        self.preview_player_mark_location_label.grid(row=2, column=1)
+
+        self.preview_player_location_labeld = customtkinter.CTkLabel(self.preview_grid_frame, text='Player: ')
+        self.preview_player_location_labeld.grid(row=3, column=0)
+
+        self.preview_player_location_label = customtkinter.CTkLabel(self.preview_grid_frame, text='')
+        self.preview_player_location_label.grid(row=3, column=1)
 
         # Right widget
         self.right_frame = customtkinter.CTkFrame(self, fg_color='transparent')
@@ -135,15 +160,35 @@ class App(customtkinter.CTk):
         self.player_label = customtkinter.CTkLabel(self.player_frame, text='Player Color Settings')
         self.player_label.grid(row=0, column=0)
         
-        self.player_color_combobox = customtkinter.CTkComboBox(self.player_frame, state="readonly", values=[])
+        self.player_color_combobox = customtkinter.CTkComboBox(self.player_frame, state="readonly",
+                                                               values=['orange', 'yellow'],
+                                                               command=self.on_player_color_combobox)
         self.player_color_combobox.set('')
         self.player_color_combobox.grid(row=1, column=0)
 
-        self.player_mark = customtkinter.CTkLabel(self.player_frame, text='')
-        self.player_mark.grid(row=1, column=1)
+        self.player_mark_label = customtkinter.CTkLabel(self.player_frame, text='')
+        self.player_mark_label.grid(row=1, column=1)
 
-        self.player_icon = customtkinter.CTkLabel(self.player_frame, text='')
-        self.player_icon.grid(row=1, column=2)
+        self.player_icon_label = customtkinter.CTkLabel(self.player_frame, text='')
+        self.player_icon_label.grid(row=1, column=2)
+
+        self.load_player_color('orange')
+
+    def on_player_color_combobox(self, value):
+        self.load_player_color(value)
+
+    def load_player_color(self, color:str):
+        self.player_mark_image = cv2.imread(f'sample/player_images/{color}_mark.png')
+        self.player_image = cv2.imread(f'sample/player_images/{color}_player.png')
+        self.player_icon_label.configure(image=customtkinter.CTkImage(
+                                        Image.fromarray(cv2.cvtColor(self.player_image, cv2.COLOR_BGR2RGB)),
+                                        Image.fromarray(cv2.cvtColor(self.player_image, cv2.COLOR_BGR2RGB)),
+                                        self.player_image.shape))
+
+        self.player_mark_label.configure(image=customtkinter.CTkImage(
+                                        Image.fromarray(cv2.cvtColor(self.player_mark_image, cv2.COLOR_BGR2RGB)),
+                                        Image.fromarray(cv2.cvtColor(self.player_mark_image, cv2.COLOR_BGR2RGB)),
+                                        self.player_mark_image.shape))
 
     def create_new_profile(self):
         dialog = customtkinter.CTkInputDialog(text="Write a profile name")
@@ -191,19 +236,56 @@ class App(customtkinter.CTk):
             frame = tools.cv2_to_pillow(frame, cv2.COLOR_BGRA2RGB)
         frame = customtkinter.CTkImage(frame, frame, size)
         self.preview_label.configure(image=frame)
-
+        
     def calculate(self):
         frame = self.last_preview_image.copy()
         processed_frame = Grid().process_frame(frame, self.image_threshold1_slider.get(), self.image_threshold2_slider.get())
         lines = Grid().detect_lines(processed_frame, self.image_line_min_lenth_slider.get(),
                             self.image_line_threshold_slider.get(), self.image_line_max_gap_slider.get())
         processed_frame = cv2.cvtColor(processed_frame, cv2.COLOR_GRAY2BGR)
+        player_position=Grid().detect_player(frame, self.player_image)
+        mark_position = Grid().detect_mark(frame, self.player_mark_image)
+        self.preview_player_mark_location_label.configure(text=f'{mark_position[0]} {mark_position[1]}')
+        self.preview_player_location_label.configure(text=f'{player_position[0]} {player_position[1]}')
+        
         if self.preview_checkbox.get():
+            cv2.circle(frame,player_position, 15, (0, 255, 255), 15)
+            cv2.circle(frame,mark_position, 15, (255, 0, 255), 15)
             Grid().draw_lines(frame, lines)
             self.draw_preview(frame)
         else:
             Grid().draw_lines(processed_frame, lines)
             self.draw_preview(processed_frame)
 
-        print("Gap ", Grid().get_grid_spaceing(lines))
+        grid_gap = Grid().get_grid_spaceing(lines)
+        self.preview_grid_label.configure(text=f'{grid_gap[0]} x {grid_gap[1]}')
+    
+    def calculate_screen(self):
+        frame = tools.take_screenshot()
+        self.last_preview_image = frame
+        processed_frame = Grid().process_frame(frame, self.image_threshold1_slider.get(), self.image_threshold2_slider.get())
+        lines = Grid().detect_lines(processed_frame, self.image_line_min_lenth_slider.get(),
+                            self.image_line_threshold_slider.get(), self.image_line_max_gap_slider.get())
+        processed_frame = cv2.cvtColor(processed_frame, cv2.COLOR_GRAY2BGR)
+        player_position=Grid().detect_player(frame, self.player_image)
+        mark_position = Grid().detect_mark(frame, self.player_mark_image)
+        self.preview_player_mark_location_label.configure(text=f'{mark_position[0]} {mark_position[1]}')
+        self.preview_player_location_label.configure(text=f'{player_position[0]} {player_position[1]}')
+        
+        if self.preview_checkbox.get():
+            cv2.circle(frame,player_position, 15, (0, 255, 255), 15)
+            cv2.circle(frame,mark_position, 15, (255, 0, 255), 15)
+            Grid().draw_lines(frame, lines)
+            self.draw_preview(frame)
+        else:
+            Grid().draw_lines(processed_frame, lines)
+            self.draw_preview(processed_frame)
+
+        grid_gap = Grid().get_grid_spaceing(lines)
+        self.preview_grid_label.configure(text=f'{grid_gap[0]} x {grid_gap[1]}')
+        distance = Grid().get_distance(player_position, mark_position)
+        distance = round(distance/grid_gap[0]*100)
+        if self.dictor_checkbox.get():
+            tools.text_to_speech(distance)
+        print(f"AN ENEMY! {distance} meters away!")
         

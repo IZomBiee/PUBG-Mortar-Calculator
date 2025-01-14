@@ -11,7 +11,7 @@ def listen_for_keys(app: App):
     while True:
         try:
             if keyboard.is_pressed(app.get_calculate_key()):
-                 app.calculate()
+                 app.calculate_screen()
         except ValueError: time.sleep(1)
         time.sleep(0.1)
 

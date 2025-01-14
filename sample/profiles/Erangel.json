@@ -1,7 +1,7 @@
 {
-    "canny_threshold1": 45,
-    "canny_threshold2": 82,
-    "line_threshold": 800,
-    "line_lenth": 1920,
+    "canny_threshold1": 48,
+    "canny_threshold2": 84,
+    "line_threshold": 1040,
+    "line_lenth": 0,
     "max_gap": 196
 }

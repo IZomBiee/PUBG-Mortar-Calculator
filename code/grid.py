@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from collections import Counter
 import tools
+import math
 
 
 @tools.singleton
@@ -39,8 +40,14 @@ class Grid:
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
         return max_loc
     
-    def detect_player(self, frame,):
-        ...
+    def detect_player(self, frame, player_image):
+        return self.match_template(frame, player_image)
+    
+    def detect_mark(self, frame, mark_image):
+        return self.match_template(frame, mark_image)
+    
+    def get_distance(self, first_point:tuple[int, int], second_point:tuple[int, int]):
+        return math.sqrt(((second_point[0]-first_point[0])**2)+((second_point[1]-first_point[1])**2))
     
     def draw_lines(self, frame, lines, color=(0, 255, 0), trickness=5):
         if lines is not None:
@@ -91,7 +98,7 @@ class Grid:
         if lines is not None:
             for line in lines:
                 x0, y0, x1, y1 = line
-                if x0 < 10:
+                if x0 < 100:
                     horizontal_lines.append(line)
                 else: vertical_lines.append(line)
         
@@ -111,7 +118,9 @@ class Grid:
             x2, y2, x3, y3 = vertical_lines[i+1]
             vertical_gaps.append(x0-x2)
         
-        return (self.mode(horizontal_gaps), self.mode(vertical_gaps))
+        return (abs(self.mode(horizontal_gaps)) if self.mode(horizontal_gaps) is not None else 0,
+                abs(self.mode(vertical_gaps)) if self.mode(vertical_gaps) is not None else 0)
+
             
 
 

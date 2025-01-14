@@ -1,11 +1,31 @@
 import cv2
 import tkinter
+import pyttsx3
 import os
 import json
 import numpy as np
 from mss import mss
 from screeninfo import get_monitors, common
 from PIL import Image
+
+def text_to_speech(text, voice_id=None, rate=150, volume=1.0):
+    # Initialize the TTS engine
+    engine = pyttsx3.init()
+
+    # Set properties
+    engine.setProperty('rate', rate)  # Speed of speech
+    engine.setProperty('volume', volume)  # Volume (0.0 to 1.0)
+
+    # Set the voice
+    voices = engine.getProperty('voices')
+    if voice_id:
+        engine.setProperty('voice', voice_id)
+    else:
+        engine.setProperty('voice', voices[0].id)  # Default voice
+
+    # Speak the text
+    engine.say(str(text))
+    engine.runAndWait()
 
 def cv2_to_pillow(frame, cv2_color_key:int=None) -> Image:
     if cv2_color_key != None:
@@ -15,11 +35,11 @@ def cv2_to_pillow(frame, cv2_color_key:int=None) -> Image:
 def get_monitor_properties(monitor=0) -> common.Monitor:
     return get_monitors()[monitor]
 
-def take_screenshot(self):
+def take_screenshot():
     with mss() as sct:
         frame = sct.grab((0, 0,
-                            self.get_monitor_size().width,
-                            self.get_monitor_size().height))
+                            get_monitor_properties().width,
+                            get_monitor_properties().height))
         frame = np.array(frame)
         return frame
 
