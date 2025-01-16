@@ -147,7 +147,7 @@ class App(customtkinter.CTk):
         self.calculate_hotkey_label = customtkinter.CTkLabel(self.settings_frame, text='Hotkey:')
         self.calculate_hotkey_label.grid(row=3, column=0)
 
-        self.calculate_hotkey_entry = customtkinter.CTkEntry(self.settings_frame)
+        self.calculate_hotkey_entry = customtkinter.CTkEntry(self.settings_frame, placeholder_text="Example ctrl+2")
         self.calculate_hotkey_entry.grid(row=3, column=1)
 
         self.calculate_button = customtkinter.CTkButton(self.settings_frame, text='Calculate', command=self.calculate)
@@ -176,6 +176,7 @@ class App(customtkinter.CTk):
 
     def on_player_color_combobox(self, value):
         self.load_player_color(value)
+        self.calculate()
 
     def load_player_color(self, color:str):
         self.player_mark_image = cv2.imread(f'sample/player_images/{color}_mark.png')

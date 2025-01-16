@@ -54,6 +54,10 @@ class SettingsLoader:
         if self["last_preview_path"] != None:
             self.app.load_image_to_preview(self["last_preview_path"])
         
+        self.app.calculate_hotkey_entry.insert(0, self["hotkey"])
+        self.app.load_player_color(self["last_color"])
+        self.app.player_color_combobox.set(self["last_color"])
+        
     def save_current(self):
         self.settings = {
             "last_profile_name":self.app.profile_combobox.get(),
@@ -65,7 +69,9 @@ class SettingsLoader:
             "canny_threshold2_max":self.app.image_threshold2_slider._to,
             "line_threshold_max":self.app.image_line_threshold_slider._to,
             "line_lenth_max":self.app.image_line_min_lenth_slider._to,
-            "max_gap_max":self.app.image_line_max_gap_slider._to
+            "max_gap_max":self.app.image_line_max_gap_slider._to,
+            "hotkey":self.app.calculate_hotkey_entry.get(),
+            "last_color":self.app.player_color_combobox.get()
         }
         self._save()
 

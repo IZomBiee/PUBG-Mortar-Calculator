@@ -42,7 +42,9 @@ base_settings = {
     "canny_threshold2_max":300,
     "line_threshold_max":4000,
     "line_lenth_max":4000,
-    "max_gap_max":200
+    "max_gap_max":200,
+    "hotkey":"ctrl+k",
+    "last_color":"orange"
 }
 settings_loader = SettingsLoader(app, 'settings.json', base_settings)
 
