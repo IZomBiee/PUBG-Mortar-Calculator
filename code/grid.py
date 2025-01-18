@@ -4,8 +4,6 @@ from collections import Counter
 import tools
 import math
 
-
-@tools.singleton
 class Grid:  
     def process_frame(self, frame, threshold1, threshold2):
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -55,6 +53,8 @@ class Grid:
                 cv2.line(frame, (x0, y0), (x1, y1), color, trickness)
 
     def merge_lines(self, lines, threshold=30):
+        if lines is None or len(lines) <= 1:
+            return
         merged_lines = []
         used = [False] * len(lines)
 
@@ -118,8 +118,8 @@ class Grid:
             x2, y2, x3, y3 = vertical_lines[i+1]
             vertical_gaps.append(x0-x2)
         
-        return (abs(self.mode(horizontal_gaps)) if self.mode(horizontal_gaps) is not None else 0,
-                abs(self.mode(vertical_gaps)) if self.mode(vertical_gaps) is not None else 0)
+        return (abs(self.mode(horizontal_gaps)) if self.mode(horizontal_gaps) is not None else None,
+                abs(self.mode(vertical_gaps)) if self.mode(vertical_gaps) is not None else None)
 
             
 

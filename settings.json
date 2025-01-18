@@ -1,14 +1,9 @@
 {
-    "last_profile_name": "Erangel",
-    "last_preview_path": "C:/Users/patri/Pictures/Screenshots/2025-01/TslGame_UjKKW8qwOo.jpg",
-    "autoshooting": 0,
-    "dictor": 1,
-    "draw_lines": 1,
-    "canny_threshold1_max": 300,
-    "canny_threshold2_max": 300,
-    "line_threshold_max": 4000,
-    "line_lenth_max": 4000,
-    "max_gap_max": 200,
+    "last_profile_name": "default",
+    "last_preview_path": "C:/Users/patri/Pictures/Screenshots/2025-01/TslGame_WvdkKjAjRf.jpg",
+    "autoshooting": 1,
+    "dictor": 0,
+    "draw_lines": 0,
     "hotkey": "ctrl+k",
     "last_color": "yellow"
 }
