@@ -1,9 +1,11 @@
 {
     "last_profile_name": "default",
-    "last_preview_path": "C:/Users/patri/Pictures/Screenshots/2025-01/TslGame_WvdkKjAjRf.jpg",
+    "last_preview_path": "C:/Users/patri/Pictures/Screenshots/2025-01/Timeline 1_01_16_06_09.jpg",
     "autoshooting": 1,
     "dictor": 0,
-    "draw_lines": 0,
+    "draw_lines": 1,
+    "show_gray": 0,
     "hotkey": "ctrl+k",
-    "last_color": "yellow"
+    "mark_is_cursor": 1,
+    "last_color": "orange"
 }

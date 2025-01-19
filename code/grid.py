@@ -24,28 +24,42 @@ class Grid:
         return self.merge_lines(processed_lines)
     
     def match_template(self, frame, template):
+        import cv2
+        
+        # Convert frame to grayscale if it is in color
         if len(frame.shape) == 3:
             frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         else:
             frame_gray = frame
 
+        # Convert template to grayscale if it is in color
         if len(template.shape) == 3:
             template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
         else:
             template_gray = template
-            
+
+        # Perform template matching
         result = cv2.matchTemplate(frame_gray, template_gray, cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-        return max_loc
-    
+
+        # Calculate the center of the matched region
+        template_height, template_width = template_gray.shape[:2]
+        center_x = max_loc[0] + template_width // 2
+        center_y = max_loc[1] + template_height // 2
+
+        return (center_x, center_y)
+
     def detect_player(self, frame, player_image):
         return self.match_template(frame, player_image)
     
     def detect_mark(self, frame, mark_image):
         return self.match_template(frame, mark_image)
     
-    def get_distance(self, first_point:tuple[int, int], second_point:tuple[int, int]):
-        return math.sqrt(((second_point[0]-first_point[0])**2)+((second_point[1]-first_point[1])**2))
+    def get_distance(self, first_point:tuple[int, int], second_point:tuple[int, int], grid_gap:list[int, int]=None):
+        if grid_gap is not None:
+            return math.sqrt(((second_point[0]-first_point[0])**2)/grid_gap[0]*100+((second_point[1]-first_point[1])**2)/grid_gap[1]*100)
+        else:
+            return math.sqrt(((second_point[0]-first_point[0])**2)+((second_point[1]-first_point[1])**2))
     
     def draw_lines(self, frame, lines, color=(0, 255, 0), trickness=5):
         if lines is not None:

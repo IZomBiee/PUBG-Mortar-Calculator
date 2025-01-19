@@ -2,6 +2,7 @@ import customtkinter
 import keyboard
 import threading
 import time
+import mouse
 from grid import Grid
 from app import App
 from settings_loader import SettingsLoader
@@ -38,11 +39,13 @@ base_profile = {
 profile_loader = ProfileLoader(app, 'profiles.json', base_profile)
 
 base_settings = {
-    "last_profile_name":None,
+    "last_profile_name":"default",
     "last_preview_path":None,
     "autoshooting":False,
     "dictor":False,
     "draw_lines":True,
+    "show_gray":False,
+    "mark_is_cursor":False,
     "hotkey":"ctrl+k",
     "last_color":"orange"
 }

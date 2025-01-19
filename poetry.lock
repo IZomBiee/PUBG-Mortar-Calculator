@@ -130,6 +130,16 @@ files = [
 pyobjc = {version = "*", markers = "sys_platform == \"darwin\""}
 
 [[package]]
+name = "mouse"
+version = "0.7.1"
+description = "Hook and simulate mouse events on Windows and Linux"
+optional = false
+python-versions = "*"
+files = [
+    {file = "mouse-0.7.1-py2.py3-none-any.whl", hash = "sha256:d34bb9548890089fcb11988400e26f55c624e6c7b741fff75fedfdfbd37c0016"},
+]
+
+[[package]]
 name = "mss"
 version = "10.0.0"
 description = "An ultra fast cross-platform multiple screenshots module in pure python using ctypes."
@@ -3407,4 +3417,4 @@ pyobjc-framework-Cocoa = {version = "*", markers = "sys_platform == \"darwin\""}
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.13"
-content-hash = "392b7644fd27b223535dc980fd8a073a832b494b64e9c0cd922f0dfe3b9a266a"
+content-hash = "27c6852391a5e06bce86436c110ee12f11210e3e419831f980eeea680ef0e9f5"
