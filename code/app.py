@@ -16,18 +16,18 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.title("PUBG-Morta-Calculator")
-        self.geometry(f"{1500}x{1500}")
 
         self.last_preview_path = None
         self.last_image = None
-        self.player_image = None
-        self.mark_image = None
+
+        self.hsv_min = None
+        self.hsv_max = None
 
         # Preview Frame
         self.preview_frame = customtkinter.CTkFrame(self)
         self.preview_frame.grid(row=0, column=0)
 
-        self.preview_image = CustomImage(self.preview_frame, (1000, 512))
+        self.preview_image = CustomImage(self.preview_frame, (1024, 800))
         self.preview_image.grid(row=0, column=0)
 
         # Calculation Frame 
@@ -154,12 +154,14 @@ class App(customtkinter.CTk):
                                                        command=self.on_detection_color_combobox)
         self.detection_color_combobox.grid(row=1, column=0)
 
-        self.detection_mark_image = CustomImage(self.detection_frame, (52, 52))
-        self.detection_mark_image.grid(row=1, column=1)
+        self.detection_min_area_slider = CustomSlider(self.detection_frame, 'Min Area', 0, 10000, 100, 
+                                                      self.process_preview_image, return_value=False)
+        self.detection_min_area_slider.grid(row=2, column=0)
+        
+        self.detection_max_area_slider = CustomSlider(self.detection_frame, 'Max Area', 0, 10000, 100,
+                                                      self.process_preview_image, return_value=False)
+        self.detection_max_area_slider.grid(row=3, column=0)
 
-        self.detection_player_image = CustomImage(self.detection_frame, (52, 52))
-        self.detection_player_image.grid(row=1, column=2)
-    
     def on_preview_image_load(self, path:str=None):
         if path is None:
             path = tools.get_image_path()
@@ -176,12 +178,8 @@ class App(customtkinter.CTk):
         self.process_preview_image()
 
     def load_player_color(self, color:str):
-        self.mark_image = cv2.imread(f'sample/player_images/{color}_mark.png')
-        self.player_image = cv2.imread(f'sample/player_images/{color}_player.png')
-        
-        self.detection_player_image.set_cv2(self.player_image)
-        self.detection_mark_image.set_cv2(self.mark_image)
-
+        self.hsv_max = SettingsLoader()['colors'][color+'_max']
+        self.hsv_min = SettingsLoader()['colors'][color+'_min']
         self.process_preview_image()
 
     def create_new_profile(self):
@@ -213,15 +211,16 @@ class App(customtkinter.CTk):
                                     self.processing_max_gap_slider.get())
         lines = Grid().merge_lines(lines, 30)
 
-        if self.player_image is not None:
-            player_position = Grid().detect_player(image, self.player_image)
-        else: player_position = None
+        if self.hsv_min is not None:
+            player_position, mark_position = Grid().get_marks(image, self.hsv_min, self.hsv_max,
+                                                              self.detection_min_area_slider.get(),
+                                                              self.detection_max_area_slider.get())
+        else:
+            player_position = None
+            mark_position = None
 
         if combat_mode and self.general_settings_mark_is_cursor_checkbox.get():
             mark_position = mouse.get_position()
-        elif self.mark_image is not None:
-            mark_position = Grid().detect_mark(image, self.mark_image)
-        else:mark_position = None
 
         processed_image = cv2.cvtColor(processed_image, cv2.COLOR_GRAY2BGR)
         if self.processing_show_gray_checkbox.get():

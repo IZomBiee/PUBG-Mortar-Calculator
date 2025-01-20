@@ -47,7 +47,19 @@ base_settings = {
     "show_gray":False,
     "mark_is_cursor":False,
     "hotkey":"ctrl+k",
-    "last_color":"orange"
+    "last_color":"orange",
+    "colors":{
+        'orange_min':(0, 118, 130),
+        'orange_max':(14, 255, 255),
+        'yellow_min':(29, 130, 130),
+        'yellow_max':(50, 241, 255),
+        'blue_min':(80, 90, 90),
+        'blue_max':(130, 201, 255),
+        'green_min':(31, 104, 57),
+        'green_max':(101, 231, 158)
+    },
+    "min_area":100,
+    "max_area":300,
 }
 settings_loader = SettingsLoader(app, profile_loader, 'settings.json', base_settings)
 settings_loader.load_settings()

@@ -1,11 +1,55 @@
 {
     "last_profile_name": "default",
-    "last_preview_path": "C:/Users/patri/Pictures/Screenshots/2025-01/Timeline 1_01_16_06_09.jpg",
-    "autoshooting": 1,
+    "last_preview_path": "C:/Users/patri/Pictures/Screenshots/2025-01/Timeline 1_01_12_20_19.jpg",
+    "autoshooting": 0,
     "dictor": 0,
-    "draw_lines": 1,
+    "draw_lines": 0,
     "show_gray": 0,
     "hotkey": "ctrl+k",
-    "mark_is_cursor": 1,
-    "last_color": "orange"
+    "mark_is_cursor": 0,
+    "last_color": "blue",
+    "colors": {
+        "orange_min": [
+            0,
+            118,
+            130
+        ],
+        "orange_max": [
+            14,
+            255,
+            255
+        ],
+        "yellow_min": [
+            29,
+            130,
+            130
+        ],
+        "yellow_max": [
+            50,
+            241,
+            255
+        ],
+        "blue_min": [
+            80,
+            90,
+            90
+        ],
+        "blue_max": [
+            130,
+            201,
+            255
+        ],
+        "green_min": [
+            31,
+            104,
+            57
+        ],
+        "green_max": [
+            101,
+            231,
+            158
+        ]
+    },
+    "min_area": 1100,
+    "max_area": 2200
 }

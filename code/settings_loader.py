@@ -43,6 +43,18 @@ class SettingsLoader:
             "hotkey":self.app.general_settings_hotkey_entry.get(),
             "mark_is_cursor":self.app.general_settings_mark_is_cursor_checkbox.get(),
             "last_color":self.app.detection_color_combobox.get(),
+            "colors":{
+            'orange_min':(0, 118, 130),
+            'orange_max':(14, 255, 255),
+            'yellow_min':(29, 130, 130),
+            'yellow_max':(50, 241, 255),
+            'blue_min':(80, 90, 90),
+            'blue_max':(130, 201, 255),
+            'green_min':(31, 104, 57),
+            'green_max':(101, 231, 158)
+            },
+            "min_area":self.app.detection_min_area_slider.get(),
+            "max_area":self.app.detection_max_area_slider.get(),
         }
         self._save()
 
@@ -57,6 +69,9 @@ class SettingsLoader:
                 self.profile_loader.set_profile('default')
                 self.app.profile_combobox.set('default')
         else: self.app.profile_combobox.set('default')
+
+        self.app.detection_min_area_slider.set(self['min_area'])
+        self.app.detection_max_area_slider.set(self['max_area'])
 
         self.app.processing_draw_lines_checkbox.select() if self.settings['draw_lines'] else self.app.processing_draw_lines_checkbox.deselect()
         self.app.processing_show_gray_checkbox.select() if self.settings['show_gray'] else self.app.processing_show_gray_checkbox.deselect()

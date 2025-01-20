@@ -24,43 +24,60 @@ class Grid:
         return self.merge_lines(processed_lines)
     
     def match_template(self, frame, template):
-        import cv2
-        
-        # Convert frame to grayscale if it is in color
         if len(frame.shape) == 3:
             frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         else:
             frame_gray = frame
-
-        # Convert template to grayscale if it is in color
         if len(template.shape) == 3:
             template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
         else:
             template_gray = template
-
-        # Perform template matching
         result = cv2.matchTemplate(frame_gray, template_gray, cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 
-        # Calculate the center of the matched region
         template_height, template_width = template_gray.shape[:2]
         center_x = max_loc[0] + template_width // 2
         center_y = max_loc[1] + template_height // 2
 
         return (center_x, center_y)
+    
+    def hsv_threshold(self, frame, min_hsv, max_hsv, min_contour_area, max_contour_area):
+        hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        
+        mask = cv2.inRange(hsv_image, tuple(min_hsv), tuple(max_hsv))
+        mask = cv2.GaussianBlur(mask, (31, 31), -1)
+        ret, mask = cv2.threshold(mask, 20, 255, cv2.THRESH_BINARY)
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    def detect_player(self, frame, player_image):
-        return self.match_template(frame, player_image)
-    
-    def detect_mark(self, frame, mark_image):
-        return self.match_template(frame, mark_image)
-    
-    def get_distance(self, first_point:tuple[int, int], second_point:tuple[int, int], grid_gap:list[int, int]=None):
-        if grid_gap is not None:
-            return math.sqrt(((second_point[0]-first_point[0])**2)/grid_gap[0]*100+((second_point[1]-first_point[1])**2)/grid_gap[1]*100)
-        else:
-            return math.sqrt(((second_point[0]-first_point[0])**2)+((second_point[1]-first_point[1])**2))
-    
+        centroids = []
+
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if min_contour_area <= area <= max_contour_area:
+                moments = cv2.moments(contour)
+                if moments['m00'] != 0:
+                    cx = int(moments['m10'] / moments['m00'])
+                    cy = int(moments['m01'] / moments['m00'])
+                    centroids.append((cx, cy))
+
+        return centroids
+
+    def get_marks(self, frame, hsv_min, hsv_max, min_area, max_area) -> list:
+        marks = self.hsv_threshold(frame, hsv_min, hsv_max, min_area, max_area)
+        for mark in marks.copy():
+            x, y = mark
+            if x < 400 and y > frame.shape[0]-400:
+                marks.pop(marks.index(mark))
+        
+        if len(marks) >= 2:
+            return [marks[0], marks[1]]
+        return [None, None]
+
+    def get_distance(self, first_point:list[int, int], second_point:list[int, int], grid_grap:list[int, int]):
+        delta_y = abs(first_point[0] - second_point[0])/grid_grap[0]*100
+        delta_x = abs(first_point[1] - second_point[1])/grid_grap[1]*100
+        return math.sqrt(delta_x**2+delta_y**2)
+
     def draw_lines(self, frame, lines, color=(0, 255, 0), trickness=5):
         if lines is not None:
             for x0, y0, x1, y1 in lines:
@@ -131,7 +148,7 @@ class Grid:
             x0, y0, x1, y1 = vertical_lines[i]
             x2, y2, x3, y3 = vertical_lines[i+1]
             vertical_gaps.append(x0-x2)
-        
+
         return (abs(self.mode(horizontal_gaps)) if self.mode(horizontal_gaps) is not None else None,
                 abs(self.mode(vertical_gaps)) if self.mode(vertical_gaps) is not None else None)
 
