@@ -2,8 +2,6 @@ import customtkinter
 import keyboard
 import threading
 import time
-import mouse
-from pubg_mortar_calculator.grid_detector import GridDetector
 from pubg_mortar_calculator.app import App
 from pubg_mortar_calculator.settings_loader import SettingsLoader
 
@@ -35,6 +33,7 @@ base_settings = {
     "hotkey":"ctrl+k",
     "last_color":"orange",  
     "max_area":300,
+    "add_to_test_samples":False
 }
 settings_loader = SettingsLoader(app, 'settings.json', base_settings)
 settings_loader.load_settings()

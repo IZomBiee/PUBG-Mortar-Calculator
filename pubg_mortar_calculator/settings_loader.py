@@ -39,6 +39,7 @@ class SettingsLoader:
             "show_gray":self.app.processing_show_gray_checkbox.get(),
             "hotkey":self.app.general_settings_hotkey_entry.get(),
             "last_color":self.app.detection_color_combobox.get(),
+            "add_to_test_samples":self.app.general_settings_add_to_test_samples_checkbox.get(),
         }
         self._save()
 
@@ -52,5 +53,9 @@ class SettingsLoader:
         self.app.general_settings_dictor_checkbox.select() if self['autoshooting'] else self.app.general_settings_dictor_checkbox.deselect()
         if self.settings['last_preview_path'] is not None:
             self.app.on_preview_image_load(self.settings['last_preview_path'])
+        self.app.general_settings_add_to_test_samples_checkbox.select() \
+        if self.settings['add_to_test_samples'] else \
+            self.app.general_settings_add_to_test_samples_checkbox.deselect()
+        
 
 

@@ -1,7 +1,8 @@
 import customtkinter
 import cv2
-import threading
+import mouse
 import time
+import json
 from pubg_mortar_calculator import utils
 from pubg_mortar_calculator.custom_widgets import *
 from pubg_mortar_calculator.grid_detector import GridDetector
@@ -82,7 +83,7 @@ class App(customtkinter.CTk):
         self.general_settings_frame.grid(row=2, column=0)
 
         self.general_settings_title_label = customtkinter.CTkLabel(self.general_settings_frame, text='General Settings')
-        self.general_settings_title_label.grid(row=0, column=1)
+        self.general_settings_title_label.grid(row=0, column=0, columnspan=2)
 
         self.general_settings_autoshooting_checkbox = customtkinter.CTkCheckBox(self.general_settings_frame, text="Autoshooting")
         self.general_settings_autoshooting_checkbox.grid(row=1, column=0)
@@ -91,8 +92,11 @@ class App(customtkinter.CTk):
         self.general_settings_dictor_checkbox.grid(row=1, column=1)
 
         self.general_settings_mark_is_cursor_checkbox = customtkinter.CTkCheckBox(self.general_settings_frame, text="Mark Is Cursor")
-        self.general_settings_mark_is_cursor_checkbox.grid(row=1, column=2)
+        self.general_settings_mark_is_cursor_checkbox.grid(row=2, column=0)
         
+        self.general_settings_add_to_test_samples_checkbox = customtkinter.CTkCheckBox(self.general_settings_frame, text="Add To Test Samples")
+        self.general_settings_add_to_test_samples_checkbox.grid(row=2, column=1)
+
         self.general_settings_calculate_hotkey_describe_label = customtkinter.CTkLabel(self.general_settings_frame, text='Hotkey:') 
         self.general_settings_calculate_hotkey_describe_label.grid(row=3, column=0)
 
@@ -125,6 +129,21 @@ class App(customtkinter.CTk):
     def get_calculate_key(self):
         return self.general_settings_hotkey_entry.get()
     
+    def add_test_sample(self, image:np.ndarray, player_cord:list[int, int],
+                        mark_cord:list[int, int], grid_gap:list[int, int], color:str):
+
+        image_name = f'{round(time.time(), 1)}'
+        cv2.imwrite(f'tests/test_samples/{image_name}.png', image)
+
+        with open(f'tests/test_samples/{image_name}.json', 'w') as file:
+            json.dump({
+                'image_name':f'{image_name}.png',
+                'mark_cord':mark_cord,
+                'player_cord':player_cord,
+                'grid_gap':grid_gap,
+                'color':color
+            }, file)
+            
     def process_preview_image(self, combat_mode=False):
         print(f'------------- CALCULATION IN {"COMBAT"if combat_mode else "PREVIEW"} MODE -------------')
         if combat_mode:
@@ -143,10 +162,16 @@ class App(customtkinter.CTk):
 
         mark_detector = MarkDetector(self.detection_color_combobox.get(), 35)
         player_cord, mark_cord = mark_detector.get_cords(frame)
+        if combat_mode and self.general_settings_mark_is_cursor_checkbox.get():
+            mark_cord = mouse.get_position()
         self.calculation_mark_cordinates_label.configure(text=f'{mark_cord}')
         self.calculation_player_cordinates_label.configure(text=f'{player_cord}')
         print(f'PLAYER POSITION: {player_cord}')
         print(f'MARK POSITION: {mark_cord}')
+
+        if self.general_settings_add_to_test_samples_checkbox.get() and combat_mode:
+            self.add_test_sample(frame, player_cord, mark_cord, grid_gap,
+                                 self.detection_color_combobox.get())
 
         if self.processing_show_gray_checkbox.get():
             frame = cv2.resize(grid_detector._process_frame(frame),
