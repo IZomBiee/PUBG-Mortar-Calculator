@@ -12,7 +12,7 @@ class MarkDetector:
         
         mask = cv2.inRange(hsv_image, tuple(self.hsv_min), tuple(self.hsv_max))
         mask[mask.shape[0]-400:mask.shape[0], 0:400] = np.zeros((400, 400))
-        mask = cv2.GaussianBlur(mask, (41, 41), -1)
+        mask = cv2.GaussianBlur(mask, (15, 15), -1)
         ret, mask = cv2.threshold(mask, 15, 255, cv2.THRESH_BINARY)
         return mask
 
@@ -32,7 +32,7 @@ class MarkDetector:
 
         player_cord = [None, None]
         mark_cord = [None, None]
-
+        
         for contour in contours:
             (x,y),radius = cv2.minEnclosingCircle(contour)
             cx, cy = int(x), int(y)
@@ -56,18 +56,18 @@ class MarkDetector:
                 self.hsv_min = [29,130,130]
                 self.hsv_max = [50,241,255]
             case 'blue':
-                self.hsv_min = [34, 50, 149]
-                self.hsv_max = [144, 227, 245]
+                self.hsv_min = [79, 88, 129]
+                self.hsv_max = [137, 224, 255]
             case 'green':
                 self.hsv_min = [81,83,101]
                 self.hsv_max = [155, 195, 255]
 
 if __name__ == '__main__':
-    mark_detector = MarkDetector('yellow', 35)
-    image = cv2.imread(r"tests/test_samples/TslGame_UjKKW8qwOo.jpg")
+    mark_detector = MarkDetector('blue', 35)
+    image = cv2.imread(r"tests/test_samples/1737891249.2.png")
     player_cord, mark_cord = mark_detector.get_cords(image)
-    # image = cv2.cvtColor(mark_detector._process_image(image), cv2.COLOR_GRAY2BGR)
-    cv2.circle(image, player_cord, 5, (0, 0, 255), 5)
-    cv2.circle(image, mark_cord, 5, (255, 0, 0), 5)
+    image = cv2.cvtColor(mark_detector._process_image(image), cv2.COLOR_GRAY2BGR)
+    cv2.circle(image, player_cord, 40, (0, 0, 255), 5)
+    cv2.circle(image, mark_cord, 40, (255, 0, 0), 5)
     cv2.imshow('Welcome to hell', cv2.resize(image, (1000, 1000)))
     cv2.waitKey(0)

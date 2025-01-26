@@ -1,6 +1,7 @@
 import customtkinter
 import tkinter
 import numpy as np
+import mouse
 import cv2
 from PIL import Image
 
@@ -103,8 +104,8 @@ class CustomImage:
         else:
             self.set_cv2(image_array_or_path)
 
-    def grid(self, row=0, column=0):
-        self.label.grid(row=row, column=column)
+    def grid(self, row=0, column=0, **kwargs):
+        self.label.grid(row=row, column=column, **kwargs)
 
     def set_path(self, path:str) -> np.ndarray:
         image = cv2.imread(path)
@@ -115,11 +116,11 @@ class CustomImage:
         self.image = array
 
         if self.save_aspect_ratio:
-            self.image = self.resize_with_aspect_ratio(self.image, self.size)
+            self.resized_image = self.resize_with_aspect_ratio(self.image, self.size)
         else:
-            self.image = cv2.resize(self.image, self.size, interpolation=cv2.INTER_AREA)
+            self.resized_image = cv2.resize(self.image, self.size, interpolation=cv2.INTER_AREA)
 
-        self.label.configure(image=customtkinter.CTkImage(None, self._cv2_to_pillow(self.image), self.size))
+        self.label.configure(image=customtkinter.CTkImage(None, self._cv2_to_pillow(self.resized_image), self.size))
         return self.image
         
     def _cv2_to_pillow(self, frame, cv2_color_key:int=cv2.COLOR_BGR2RGB) -> Image:
@@ -130,6 +131,35 @@ class CustomImage:
     def get_current(self) -> np.ndarray:
         return self.image
     
+    def get_mouse_pos(self, real_position=False) -> None | list[int, int]:
+        mouse_x, mouse_y = mouse.get_position()
+
+        widget_x = self.label.winfo_rootx()
+        widget_y = self.label.winfo_rooty()
+        widget_width = self.label.winfo_width()
+        widget_height = self.label.winfo_height()
+
+        relative_x = mouse_x - widget_x
+        relative_y = mouse_y - widget_y
+
+        if relative_x > widget_width or relative_y > widget_height:
+            return None
+        elif relative_x < 0 or relative_y < 0:
+            return None
+        else:
+            if not real_position:
+                image_width = self.image.shape[1]
+                image_height = self.image.shape[0]
+
+                scale_x = image_width / widget_width
+                scale_y = image_height / widget_height
+
+                scaled_x = int(relative_x * scale_x)
+                scaled_y = int(relative_y * scale_y)
+                return [scaled_x, scaled_y]
+            else:
+                return [relative_x, relative_y]
+
     @staticmethod
     def resize_with_aspect_ratio(image: np.ndarray, output_size: list[int, int]):
         original_height, original_width = image.shape[:2]
