@@ -47,7 +47,7 @@ class CustomCombobox:
         self.return_value = return_value
         self.combobox = customtkinter.CTkComboBox(self.master, command=self.on_combobox, state=state, values=list(values), **kwargs)
         if current_value is not None:
-            self.add_value(current_value)
+            self.add_values(current_value)
         
     def grid(self, row=0, column=0, **kwargs):
         self.combobox.grid(row=row, column=column, **kwargs)
