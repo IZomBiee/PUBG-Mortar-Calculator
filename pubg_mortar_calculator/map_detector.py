@@ -15,6 +15,7 @@ class MapDetector:
 
         contours = self._find_contours(mask)
         
+        if len(contours) < 2: return False
         (x, y), radius = cv2.minEnclosingCircle(contours[1])
         if self.clock_radious-0.3 < radius*max(self.multiplier) or radius*max(self.multiplier) > self.clock_radious+0.3:
             return False
