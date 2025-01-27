@@ -25,7 +25,7 @@ class GridDetector:
         self.max_resolution = frame.shape[0] if frame.shape[0] > frame.shape[1] else frame.shape[1]
         self.multiplier = [frame.shape[1]/self.max_resolution, frame.shape[0]/self.max_resolution]
         self.param_coffiecent = self.max_resolution/self.reference_resolution
-        frame = cv2.resize(frame, (self.max_resolution, self.max_resolution))
+        frame = cv2.resize(frame, (self.max_resolution, self.max_resolution), interpolation=cv2.INTER_AREA)
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         canny_frame = cv2.Canny(gray_frame, self.canny_threshold1,
                                 self.canny_threshold2, apertureSize=self.aperture_size)
@@ -141,7 +141,7 @@ class GridDetector:
         return math.sqrt(delta_x**2+delta_y**2)
 
 if __name__ == '__main__':
-    image = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-01\python_afxyA2izOL.jpg")
+    image = cv2.imread(r"tests\test_samples\1737919221.7.png")
     grid_detector = GridDetector(20, 40, 1700, 250, 3840)
     grid_detector.detect_lines(image)
     grid_detector.draw_lines(image)
