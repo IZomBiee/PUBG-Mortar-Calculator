@@ -109,8 +109,10 @@ class CustomImage:
 
     def set_path(self, path:str) -> np.ndarray:
         image = cv2.imread(path)
-        self.set_cv2(image)
-        return image
+        if image is not None:
+            self.set_cv2(image)
+            return image
+        return None
 
     def set_cv2(self, array) -> np.ndarray:
         self.image = array
@@ -161,7 +163,7 @@ class CustomImage:
                 return [relative_x, relative_y]
 
     @staticmethod
-    def resize_with_aspect_ratio(image: np.ndarray, output_size: list[int, int]):
+    def resize_with_aspect_ratio(image: np.ndarray, output_size: list[int, int]) -> np.ndarray:
         original_height, original_width = image.shape[:2]
         target_width, target_height = output_size
 

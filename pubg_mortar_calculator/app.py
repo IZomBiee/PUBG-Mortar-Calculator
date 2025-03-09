@@ -7,7 +7,7 @@ from pubg_mortar_calculator import utils
 from pubg_mortar_calculator.custom_widgets import *
 from pubg_mortar_calculator.grid_detector import GridDetector
 from pubg_mortar_calculator.mark_detector import MarkDetector
-from pubg_mortar_calculator.map_detector import MapDetector
+from pubg_mortar_calculator.sample_loader import SampleLoader
 
 @utils.singleton
 class App(customtkinter.CTk):
@@ -115,6 +115,9 @@ class App(customtkinter.CTk):
                                                        values=['orange', 'yellow', 'blue', 'green'],
                                                        command=self.process_preview_image, return_value=False)
         self.detection_color_combobox.grid(row=1, column=0)
+        
+        self.mark_detector = MarkDetector([3840, 2160])
+        self.sample_loader = SampleLoader()
 
     def on_preview_image_load(self, path:str=None):
         if path is None:
@@ -129,22 +132,6 @@ class App(customtkinter.CTk):
 
     def get_calculate_key(self):
         return self.general_settings_hotkey_entry.get()
-    
-    def add_test_sample(self, image:np.ndarray, player_cord:list[int, int],
-                        mark_cord:list[int, int], grid_gap:list[int, int], color:str, minimap:int):
-
-        image_name = f'{round(time.time(), 1)}'
-        cv2.imwrite(f'tests/test_samples/{image_name}.png', image)
-
-        with open(f'tests/test_samples/{image_name}.json', 'w') as file:
-            json.dump({
-                'image_name':f'{image_name}.png',
-                'mark_cord':mark_cord,
-                'player_cord':player_cord,
-                'grid_gap':grid_gap,
-                'color':color,
-                'minimap':minimap,
-            }, file)
             
     def process_preview_image(self, combat_mode=False):
         print(f'------------- CALCULATION IN {"COMBAT"if combat_mode else "PREVIEW"} MODE -------------')
@@ -156,18 +143,14 @@ class App(customtkinter.CTk):
 
         frame = self.last_image.copy()
 
-        map_detector = MapDetector([3840, 2160])
-        is_minimap = map_detector.is_minimap(frame)
-        print(f'MINIMAP: {is_minimap}')
-
-        grid_detector = GridDetector(20, 40, 1700, 250, 3840)
+        grid_detector = GridDetector()
         grid_detector.detect_lines(frame)
         grid_gap = grid_detector.get_grid_gap()
+            
         self.calculation_grid_gap_label.configure(text=f'{grid_gap}')
         print(f"GRID GAP: {grid_gap}")
 
-        mark_detector = MarkDetector(self.detection_color_combobox.get(), 35)
-        player_cord, mark_cord = mark_detector.get_cords(frame)
+        player_cord, mark_cord = self.mark_detector.get_cords(frame, self.detection_color_combobox.get())
         if combat_mode and self.general_settings_mark_is_cursor_checkbox.get():
             mark_cord = mouse.get_position()
         self.calculation_mark_cordinates_label.configure(text=f'{mark_cord}')
@@ -176,8 +159,8 @@ class App(customtkinter.CTk):
         print(f'MARK POSITION: {mark_cord}')
 
         if self.general_settings_add_to_test_samples_checkbox.get() and combat_mode:
-            self.add_test_sample(frame, player_cord, mark_cord, grid_gap,
-                                 self.detection_color_combobox.get(), is_minimap)
+            self.sample_loader.add(frame, player_cord, mark_cord, grid_gap,
+                                   self.detection_color_combobox.get(), None)
 
         if self.processing_show_gray_checkbox.get():
             frame = cv2.resize(grid_detector._process_frame(frame),
@@ -187,14 +170,18 @@ class App(customtkinter.CTk):
         if self.processing_draw_lines_checkbox.get():
             grid_detector.draw_lines(frame)
         
-        if not None in player_cord:
+        if player_cord is not None:
             cv2.circle(frame, player_cord, 15, (255, 0, 0), 5)
-        if not None in mark_cord:
+        if mark_cord is not None:
             cv2.circle(frame, mark_cord, 15, (0, 0, 255), 5)
 
-        if not None in player_cord and not None in mark_cord and not None in grid_gap:
+        try:
             distance = round(grid_detector.get_distance(player_cord, mark_cord, grid_gap))
-        else: distance = None
+        except ZeroDivisionError:
+            distance = 0
+        except TypeError:
+            distance = 0
+            
         self.calculation_distance_label.configure(text=f'{distance}')
         print(f'DISTANCE: {distance}')
 

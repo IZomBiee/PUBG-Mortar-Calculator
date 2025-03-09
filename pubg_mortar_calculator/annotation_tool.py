@@ -14,8 +14,8 @@ class AnnotationTool(CTk):
         self.current_sample_label = CTkLabel(self, text='0/0')
         self.current_sample_label.grid(row=0, column=1, columnspan=2)
 
-        self.grid_x_slider = CustomSlider(self, 'Grid X', 0, 400, 200, 400, command=self.grid_x)
-        self.grid_y_slider = CustomSlider(self, 'Grid Y', 0, 400, 200, 400, command=self.grid_y)
+        self.grid_x_slider = CustomSlider(self, 'Grid X', 0, 400, 200, 400)
+        self.grid_y_slider = CustomSlider(self, 'Grid Y', 0, 400, 200, 400)
         self.grid_x_slider.grid(row=3, column=0)
         self.grid_y_slider.grid(row=4, column=0)
 
@@ -30,20 +30,8 @@ class AnnotationTool(CTk):
         
         self.player_change_button = CTkButton(self, text='Change Player Position', command=self.change_player_position)
         self.player_change_button.grid(row=3, column=3)
-
-        self.color_combobox = CustomCombobox(self, None, ['orange', 'yellow', 'blue', 'green'], command=self.on_color_combobox)
-        self.color_combobox.grid(row=4, column=3)
-
-        self.is_minimap = CTkCheckBox(self, text='Is Minimap?', command=lambda:self.minimap(self.is_minimap.get()))
-        self.is_minimap.grid(row=5, column=3)
         self.on_startup()
     
-    def on_color_combobox(self, value:str):
-        self.samples[self.current_sample]['color'] = value
-    
-    def minimap(self, value:bool):
-        self.samples[self.current_sample]['minimap'] = value
-
     def left(self):
         if self.current_sample-1 < 0: 
             self.set_sample(len(self.samples)-1)
@@ -55,14 +43,6 @@ class AnnotationTool(CTk):
             self.set_sample(0)
         else:
             self.set_sample(self.current_sample+1)
-    
-    def grid_x(self, value:int):
-        self.samples[self.current_sample]['grid_gap'][0] = value
-        self.preview_current_sample()
-    
-    def grid_y(self, value:int):
-        self.samples[self.current_sample]['grid_gap'][1] = value
-        self.preview_current_sample()
 
     def change_player_position(self):
         time.sleep(0.3)
@@ -95,9 +75,11 @@ class AnnotationTool(CTk):
     
     def preview_current_sample(self):
         image = cv2.imread(f'tests/test_samples/{self.samples[self.current_sample]['image_name']}')
-        self.draw_grid_on_image(image, self.samples[self.current_sample]['grid_gap'])
-        cv2.circle(image, self.samples[self.current_sample]['mark_cord'], 30, (255, 0, 0), 5)
-        cv2.circle(image, self.samples[self.current_sample]['player_cord'], 30, (0, 0, 255), 5)
+        try:
+            self.draw_grid_on_image(image, self.samples[self.current_sample]['grid_gap'])
+            cv2.circle(image, self.samples[self.current_sample]['mark_cord'], 30, (255, 0, 0), 5)
+            cv2.circle(image, self.samples[self.current_sample]['player_cord'], 30, (0, 0, 255), 5)
+        except TypeError:pass
         self.preview_image.set_cv2(image)
 
     def draw_grid_on_image(self, image, grid_gap):
@@ -123,13 +105,11 @@ class AnnotationTool(CTk):
         self.save_current_sample()
         self.current_sample = index
         self.preview_current_sample()
-        self.grid_x_slider.set(self.samples[index]['grid_gap'][0])
-        self.grid_y_slider.set(self.samples[index]['grid_gap'][1])
-        self.current_sample_label.configure(text=f'{self.current_sample+1}/{len(self.samples)}')
-        self.color_combobox.set(self.samples[index]['color'])
         try:
-            self.is_minimap.select() if self.samples[index]['minimap'] else self.is_minimap.deselect()
-        except KeyError:self.samples[index]['minimap'] = 0
+            self.grid_x_slider.set(self.samples[index]['grid_gap'][0])
+            self.grid_y_slider.set(self.samples[index]['grid_gap'][1])
+        except TypeError:pass
+        self.current_sample_label.configure(text=f'{self.current_sample+1}/{len(self.samples)}')
         
         
         

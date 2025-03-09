@@ -32,7 +32,6 @@ base_settings = {
     "mark_is_cursor":False,
     "hotkey":"ctrl+k",
     "last_color":"orange",  
-    "max_area":300,
     "add_to_test_samples":False
 }
 settings_loader = SettingsLoader(app, 'settings.json', base_settings)
