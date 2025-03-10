@@ -1,30 +1,53 @@
 import cv2
 import numpy as np
 import json
+import os
 
 from datetime import datetime
 class SampleLoader:
     def __init__(self):
         self.samples_path = 'tests/test_samples/'
+        self.samples = []
     
-    def add(self, frame:np.ndarray, player_position:list[int, int],
+    def add(self, player_position:list[int, int],
                 mark_position:list[int, int], grid_gap:list[int, int],
-                color:str, map_borders:list[int, int, int, int]):
-        time = str(datetime.now())
+                color:str, map_state:str, frame:np.ndarray=None, name:str=None):
+        
+        if name is None:
+            time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        else: time = name
 
-        cv2.imwrite(time+'.png', frame)
+        if frame is not None:
+            cv2.imwrite(self.samples_path+time+'.png', frame)
 
         with open(self.samples_path+time+'.json', 'w') as file:
             json.dump({
-                'frame_path':self.samples_path+time+'.png',
+                'name': time,
                 'player_position':player_position,
                 'mark_position':mark_position,
                 'grid_gap':grid_gap,
                 'color':color,
-                'map_borders':map_borders
+                'map_state':map_state,
             }, file)
 
+    def change(self, name:str, data:dict):
+        if not name.endswith('.json'): name += '.json'
+        try:
+            with open(self.samples_path+name, 'r') as file:
+                previous_data = json.load(file)
+        except FileNotFoundError:
+            previous_data = {}
+
+        with open(self.samples_path+name, 'w') as file:
+            for key in data.keys():
+                previous_data[key] = data[key]
+            json.dump(previous_data, file)
+
     def load(self, name:str) -> dict:
-        with open(self.samples_path+name, 'r') as file:
+        with open(self.samples_path+name+'.json', 'r') as file:
             return json.load(file)
-        
+
+if __name__ == '__main__':
+    sample_loader = SampleLoader()
+    # sample_loader.add(np.array((255, 255, 3)), (0, 0), (0, 0), (52, 52), 'red', 'full')
+    # sample_loader.change('2025-03-10_17-29-25.json', {'name':"Why so sireous"})

@@ -22,18 +22,22 @@ class GridDetector:
         self.vertical_lines = []
         self.horizontal_lines = []
 
-    def _process_frame(self, frame:np.ndarray) -> np.ndarray:
-        max_resolution = frame.shape[0] if frame.shape[0] > frame.shape[1] else frame.shape[1]
-        self.multiplier = [frame.shape[1]/max_resolution, frame.shape[0]/max_resolution]
-        self.param_coffiecent = max_resolution/self.reference_resolution
-        frame = cv2.resize(frame, (max_resolution, max_resolution), interpolation=cv2.INTER_AREA)
+    def process_frame(self, frame:np.ndarray) -> np.ndarray:
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         canny_frame = cv2.Canny(gray_frame, self.canny_threshold1,
                                 self.canny_threshold2, apertureSize=self.aperture_size)
-        return canny_frame
+        
+        return self.normalize_frame(canny_frame)
     
+    def normalize_frame(self, frame:np.ndarray) -> np.ndarray:
+        max_resolution = frame.shape[0] if frame.shape[0] > frame.shape[1] else frame.shape[1]
+        self.multiplier = [frame.shape[1]/max_resolution, frame.shape[0]/max_resolution]
+        self.param_coffiecent = max_resolution/self.reference_resolution
+        frame = cv2.resize(frame, (max_resolution, max_resolution), interpolation=cv2.INTER_NEAREST)
+        return frame
+
     def detect_lines(self, frame:np.ndarray):
-        frame = self._process_frame(frame)
+        frame = self.process_frame(frame)
         lines = cv2.HoughLinesP(frame, 1, np.pi / 2,
                                int(self.line_threshold*self.param_coffiecent), maxLineGap=int(self.max_gap*self.param_coffiecent))
 
@@ -46,8 +50,8 @@ class GridDetector:
             processed_lines.append((int(line[0]),
                                     int(line[1]), int(line[2]), int(line[3])))
         
-        merged_lines = self._merge_lines(processed_lines)
-        self.horizontal_lines, self.vertical_lines = self._separate_lines(merged_lines)
+        merged_lines = self.merge_lines(processed_lines)
+        self.horizontal_lines, self.vertical_lines = self.separate_lines(merged_lines)
     
     def get_minimap_frame(self, frame: np.ndarray, large=False) -> np.ndarray:
         h, w = frame.shape[:2]
@@ -73,7 +77,7 @@ class GridDetector:
             cv2.line(frame, (int(x0*self.multiplier[0]), int(y0*self.multiplier[1])),
                      (int(x1*self.multiplier[0]), int(y1*self.multiplier[1])), horizontal_lines_color, trickness)
 
-    def _merge_lines(self, lines:list[int]) -> list[int]:
+    def merge_lines(self, lines:list[int]) -> list[int]:
         merged_lines = []
         used = [False] * len(lines)
 
@@ -103,13 +107,13 @@ class GridDetector:
 
         return merged_lines
     
-    def _mode(self, data):
+    def mode(self, data):
         frequency = Counter(data)
         max_count = max(frequency.values())
         modes = [key for key, count in frequency.items() if count == max_count]
         return sum(modes) / len(modes) if len(modes) > 1 else modes[0]
 
-    def _separate_lines(self, lines:list[int]) -> list[list[int], list[int]]:
+    def separate_lines(self, lines:list[int]) -> list[list[int], list[int]]:
         horizontal_lines = []
         vertical_lines = []
 
@@ -144,10 +148,10 @@ class GridDetector:
             vertical_gaps.append(gap)
 
         if len(horizontal_gaps):
-            mode_horizontal_gap = int(self._mode(horizontal_gaps))
+            mode_horizontal_gap = int(self.mode(horizontal_gaps))
         else: mode_horizontal_gap = None
         if len(vertical_gaps):
-            mode_vertical_gap = int(self._mode(vertical_gaps))
+            mode_vertical_gap = int(self.mode(vertical_gaps))
         else: mode_vertical_gap = None
         return [mode_horizontal_gap, mode_vertical_gap]
 
@@ -159,7 +163,7 @@ class GridDetector:
         return math.sqrt(delta_x**2+delta_y**2)
 
 if __name__ == '__main__':
-    image = cv2.imread(r"tests/test_samples/1738000757.8.png")
+    image = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-03\TslGame_6Dn0g521Gr.jpg")
     grid_detector = GridDetector()
     grid_detector.detect_lines(image)
     grid_detector.draw_lines(image)

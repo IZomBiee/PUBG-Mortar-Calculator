@@ -11,7 +11,7 @@ def listen_for_keys(app: App):
             if keyboard.is_pressed(app.get_calculate_key()):
                  app.process_preview_image(combat_mode=True)
         except ValueError: time.sleep(1)
-        time.sleep(0.1)
+        time.sleep(0.05)
 
 def on_closing():
     settings_loader.save_current_settings()
@@ -24,11 +24,9 @@ app.protocol("WM_DELETE_WINDOW", on_closing)
 
 base_settings = {
     "last_preview_path":None,
-    "autoshooting":0,
     "dictor":1,
     "draw_lines":1,
     "show_gray":0,
-    "mark_is_cursor":0,
     "hotkey":"ctrl+k",
     "last_color":"orange",  
     "add_to_test_samples":0

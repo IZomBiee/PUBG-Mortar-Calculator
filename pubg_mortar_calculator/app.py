@@ -86,14 +86,8 @@ class App(customtkinter.CTk):
         self.general_settings_title_label = customtkinter.CTkLabel(self.general_settings_frame, text='General Settings')
         self.general_settings_title_label.grid(row=0, column=0, columnspan=2)
 
-        self.general_settings_autoshooting_checkbox = customtkinter.CTkCheckBox(self.general_settings_frame, text="Autoshooting")
-        self.general_settings_autoshooting_checkbox.grid(row=1, column=0)
-
         self.general_settings_dictor_checkbox = customtkinter.CTkCheckBox(self.general_settings_frame, text="Dictor")
         self.general_settings_dictor_checkbox.grid(row=1, column=1)
-
-        self.general_settings_mark_is_cursor_checkbox = customtkinter.CTkCheckBox(self.general_settings_frame, text="Mark Is Cursor")
-        self.general_settings_mark_is_cursor_checkbox.grid(row=2, column=0)
         
         self.general_settings_add_to_test_samples_checkbox = customtkinter.CTkCheckBox(self.general_settings_frame, text="Add To Test Samples")
         self.general_settings_add_to_test_samples_checkbox.grid(row=2, column=1)
@@ -151,29 +145,10 @@ class App(customtkinter.CTk):
         print(f"GRID GAP: {grid_gap}")
 
         player_cord, mark_cord = self.mark_detector.get_cords(frame, self.detection_color_combobox.get())
-        if combat_mode and self.general_settings_mark_is_cursor_checkbox.get():
-            mark_cord = mouse.get_position()
         self.calculation_mark_cordinates_label.configure(text=f'{mark_cord}')
         self.calculation_player_cordinates_label.configure(text=f'{player_cord}')
         print(f'PLAYER POSITION: {player_cord}')
         print(f'MARK POSITION: {mark_cord}')
-
-        if self.general_settings_add_to_test_samples_checkbox.get() and combat_mode:
-            self.sample_loader.add(frame, player_cord, mark_cord, grid_gap,
-                                   self.detection_color_combobox.get(), None)
-
-        if self.processing_show_gray_checkbox.get():
-            frame = cv2.resize(grid_detector._process_frame(frame),
-                               (utils.get_monitor_properties().width, utils.get_monitor_properties().height))
-            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-
-        if self.processing_draw_lines_checkbox.get():
-            grid_detector.draw_lines(frame)
-        
-        if player_cord is not None:
-            cv2.circle(frame, player_cord, 15, (255, 0, 0), 5)
-        if mark_cord is not None:
-            cv2.circle(frame, mark_cord, 15, (0, 0, 255), 5)
 
         try:
             distance = round(grid_detector.get_distance(player_cord, mark_cord, grid_gap))
@@ -185,8 +160,25 @@ class App(customtkinter.CTk):
         self.calculation_distance_label.configure(text=f'{distance}')
         print(f'DISTANCE: {distance}')
 
-        self.preview_image.set_cv2(frame)
+        if self.general_settings_add_to_test_samples_checkbox.get() and combat_mode and distance != 0:
+            self.sample_loader.add(player_cord, mark_cord, grid_gap,
+                                   self.detection_color_combobox.get(), "full", frame=frame)
 
+        if self.processing_show_gray_checkbox.get():
+            frame = cv2.resize(grid_detector.process_frame(frame),
+                               (utils.get_monitor_properties().width, utils.get_monitor_properties().height))
+            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        
+        if self.processing_draw_lines_checkbox.get():
+            grid_detector.draw_lines(frame)
+        
+        if player_cord is not None:
+            cv2.circle(frame, player_cord, 15, (255, 0, 0), 5)
+        if mark_cord is not None:
+            cv2.circle(frame, mark_cord, 15, (0, 0, 255), 5)
+
+        self.preview_image.set_cv2(frame)
+            
         if self.general_settings_dictor_checkbox.get() and combat_mode:
             utils.text_to_speech(str(distance))
 
