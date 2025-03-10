@@ -18,6 +18,9 @@ class App(customtkinter.CTk):
         self.last_preview_path = None
         self.last_image = None
 
+        self.is_full_map = False
+        self.is_large_minimap = False
+
         # Preview Frame
         self.preview_frame = customtkinter.CTkFrame(self)
         self.preview_frame.grid(row=0, column=0)
@@ -126,7 +129,28 @@ class App(customtkinter.CTk):
 
     def get_calculate_key(self):
         return self.general_settings_hotkey_entry.get()
-            
+
+    def get_full_map_toggle_key(self):
+        return 'm'
+    
+    def get_large_minimap_toggle_key(self):
+        return 'n'
+    
+    def toggle_minimap(self, set:bool=None):
+        if set == None:
+            self.is_large_minimap = not self.is_large_minimap
+        else:
+            self.is_large_minimap = set
+        print(self.is_large_minimap)
+
+    def toggle_map(self, set:bool=None):
+        if set == None:
+            self.is_full_map = not self.is_full_map
+        else:
+            self.is_full_map = set
+        print(self.is_full_map)
+        
+
     def process_preview_image(self, combat_mode=False):
         print(f'------------- CALCULATION IN {"COMBAT"if combat_mode else "PREVIEW"} MODE -------------')
         if combat_mode:
@@ -138,6 +162,10 @@ class App(customtkinter.CTk):
         frame = self.last_image.copy()
 
         grid_detector = GridDetector()
+
+        if not self.is_full_map and combat_mode:
+            frame = grid_detector.get_minimap_frame(frame, self.is_large_minimap)
+
         grid_detector.detect_lines(frame)
         grid_gap = grid_detector.get_grid_gap()
             
@@ -162,7 +190,9 @@ class App(customtkinter.CTk):
 
         if self.general_settings_add_to_test_samples_checkbox.get() and combat_mode and distance != 0:
             self.sample_loader.add(player_cord, mark_cord, grid_gap,
-                                   self.detection_color_combobox.get(), "full", frame=frame)
+                                   self.detection_color_combobox.get(),
+                                   "full" if self.is_full_map else "large" if self.is_large_minimap else "small",
+                                   frame=frame)
 
         if self.processing_show_gray_checkbox.get():
             frame = cv2.resize(grid_detector.process_frame(frame),

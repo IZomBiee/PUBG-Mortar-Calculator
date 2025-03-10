@@ -6,15 +6,19 @@ class MarkDetector:
         self.hsv_min = None
         self.hsv_max = None
         self.max_radius = max_radius
+        self.multiplier = [1, 1]
+        self.avg_multiplier = 1
         self.reference_resolution = reference_resolution
 
     def _process_image(self, frame:np.ndarray) -> np.ndarray:
-        multiplier = [self.reference_resolution[0]/frame.shape[1], self.reference_resolution[0]/frame.shape[0]]
-
+        self.multiplier = [frame.shape[1]/self.reference_resolution[0], frame.shape[0]/self.reference_resolution[1]]
+        self.avg_multiplier = sum(self.multiplier)/2
         hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
         mask = cv2.inRange(hsv_image, tuple(self.hsv_min), tuple(self.hsv_max))
-        mask[mask.shape[0]-400:mask.shape[0], 0:400] = np.zeros((400, 400))
+        mask[mask.shape[0]-int(400*self.avg_multiplier):mask.shape[0],
+             0:int(400*self.avg_multiplier)] = np.zeros((int(400*self.avg_multiplier),
+                                                         int(400*self.avg_multiplier)))
         mask = cv2.GaussianBlur(mask, (15, 15), -1)
         ret, mask = cv2.threshold(mask, 15, 255, cv2.THRESH_BINARY)
         return mask
@@ -24,10 +28,7 @@ class MarkDetector:
 
         sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
         
-        thresholded_contours = []
-        for contour in sorted_contours:
-            thresholded_contours.append(contour)
-        return thresholded_contours
+        return sorted_contours
 
     def get_cords(self, frame:np.ndarray, color:str=None) -> list[list[int, int]]:
         if color is not None:
@@ -55,14 +56,13 @@ class MarkDetector:
 
         return player_cord, mark_cord
     
-    @staticmethod
-    def draw_point(frame: np.ndarray, position: list[int, int], title: str, color: list = (255, 0, 0)):
-        radius = max(2, frame.shape[1] // 100)
-        thickness = max(1, frame.shape[1] // 1000)
+    def draw_point(self, frame: np.ndarray, position: list[int, int], title: str, color: list = (255, 0, 0)): 
+        radius = int(40*self.avg_multiplier)
+        thickness = int(12*self.avg_multiplier)
 
         cv2.circle(frame, position, radius, color, thickness)
 
-        font_scale = max(0.5, frame.shape[1] / 1000)
+        font_scale = 3*self.avg_multiplier
         font_thickness = max(1, int(font_scale * 3))
 
         text_size = cv2.getTextSize(title, cv2.FONT_HERSHEY_SIMPLEX, font_scale, font_thickness)[0]
@@ -82,7 +82,7 @@ class MarkDetector:
                 self.hsv_min = [8, 106, 123]
                 self.hsv_max = [17, 238, 231]
             case 'yellow':
-                self.hsv_min = [29,130,130]
+                self.hsv_min = [19,130,130]
                 self.hsv_max = [50,241,255]
             case 'blue':
                 self.hsv_min = [79, 88, 129]
@@ -91,12 +91,29 @@ class MarkDetector:
                 self.hsv_min = [81,83,101]
                 self.hsv_max = [155, 195, 255]
 
+def get_minimap_frame(frame: np.ndarray, large=False) -> np.ndarray:
+    h, w = frame.shape[:2]
+    if large:
+        safe_w = int(w * 0.26)
+        safe_h = int(h * 0.465)
+    else:
+        safe_w = int(w * 0.16)
+        safe_h = int(h * 0.28)
+    return frame[h-safe_h:h, w-safe_w:w]
+
 if __name__ == '__main__':
     mark_detector = MarkDetector([3840, 2160])
-    image = cv2.imread(r"tests/test_samples/1737891350.0.png")
-    player_cord, mark_cord = mark_detector.get_cords(image, 'blue')
-    mark_detector.draw_point(image, player_cord, 'Player')
-    mark_detector.draw_point(image, mark_cord, 'Mark', (0, 0, 255))
+    image = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-03\TslGame_aPdfDhh2ZA.jpg")
+    image = get_minimap_frame(image, False)
+    player_cord, mark_cord = mark_detector.get_cords(image, 'yellow')
+    print(player_cord, mark_cord)
+    try:
+        mark_detector.draw_point(image, player_cord, 'Player')
+    except TypeError:pass
 
-    cv2.imshow('Welcome to hell', cv2.resize(image, (1000, 1000)))
+    try:
+        mark_detector.draw_point(image, mark_cord, 'Mark')
+    except TypeError:pass
+
+    cv2.imshow('Welcome to hell', cv2.resize(image, (image.shape[1], image.shape[0])))
     cv2.waitKey(0)

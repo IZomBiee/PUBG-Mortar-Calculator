@@ -37,13 +37,11 @@ class GridDetector:
 
     def detect_lines(self, frame:np.ndarray):
         frame = self.process_frame(frame)
-
         lines = cv2.HoughLinesP(frame, 1, np.pi / 2,
                                int(self.line_threshold*self.avg_multiplier), maxLineGap=int(self.max_gap*self.avg_multiplier))
 
         if lines is None:
             lines = []
-
         processed_lines = []
         for line in lines:
             line = line[0]
@@ -59,11 +57,11 @@ class GridDetector:
         h, w = frame.shape[:2]
         if large:
             safe_w = int(w * 0.26)
-            safe_h = int(h * 0.5)
+            safe_h = int(h * 0.465)
         else:
-            safe_w = int(w * 0.17)
-            safe_h = int(h * 0.3)
-        return frame[safe_h:h, safe_w:w]
+            safe_w = int(w * 0.16)
+            safe_h = int(h * 0.28)
+        return frame[h-safe_h:h, w-safe_w:w]
 
     def draw_lines(self, frame:np.ndarray, vertical_lines_color=(255, 0, 0), horizontal_lines_color=(0, 0, 255), trickness:int=5):
         trickness = int((trickness*self.avg_multiplier)+0.49)
@@ -136,13 +134,13 @@ class GridDetector:
         for i in range(0, len(self.horizontal_lines)-1):
             x0, y0, x1, y1 = self.horizontal_lines[i]
             x2, y2, x3, y3 = self.horizontal_lines[i+1]
-            gap = int(abs(y0-y2)* self.multiplier[1])
+            gap = int(abs(y0-y2)* self.normalize_multiplier[1])
             horizontal_gaps.append(gap)
 
         for i in range(0, len(self.vertical_lines)-1):
             x0, y0, x1, y1 = self.vertical_lines[i]
             x2, y2, x3, y3 = self.vertical_lines[i+1]
-            gap = int(abs(x0-x2)* self.multiplier[0])
+            gap = int(abs(x0-x2)* self.normalize_multiplier[0])
             vertical_gaps.append(gap)
 
         if len(horizontal_gaps):
@@ -161,13 +159,13 @@ class GridDetector:
         return math.sqrt(delta_x**2+delta_y**2)
 
 if __name__ == '__main__':
-    image = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-03\TslGame_6Dn0g521Gr.jpg")
-    image = cv2.resize(image, (1920, 1080))
+    image = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-03\TslGame_esjtQiCnqH.jpg")
     grid_detector = GridDetector()
+    image = grid_detector.get_minimap_frame(image, True)
 
     grid_detector.detect_lines(image)
     grid_detector.draw_lines(image)
 
     print(f'Grid Gap: {grid_detector.get_grid_gap()}')
-    cv2.imshow('Welcome to hell', cv2.resize(image, (image.shape[1]//4, image.shape[0]//4)))
+    cv2.imshow('Welcome to hell', cv2.resize(image, (image.shape[1], image.shape[0])))
     cv2.waitKey(0)
