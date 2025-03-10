@@ -23,16 +23,15 @@ app = App()
 app.protocol("WM_DELETE_WINDOW", on_closing)
 
 base_settings = {
-    "last_profile_name":"default",
     "last_preview_path":None,
-    "autoshooting":False,
-    "dictor":False,
-    "draw_lines":True,
-    "show_gray":False,
-    "mark_is_cursor":False,
+    "autoshooting":0,
+    "dictor":1,
+    "draw_lines":1,
+    "show_gray":0,
+    "mark_is_cursor":0,
     "hotkey":"ctrl+k",
     "last_color":"orange",  
-    "add_to_test_samples":False
+    "add_to_test_samples":0
 }
 settings_loader = SettingsLoader(app, 'settings.json', base_settings)
 settings_loader.load_settings()

@@ -36,33 +36,15 @@ class GridDetector:
         frame = self._process_frame(frame)
         lines = cv2.HoughLinesP(frame, 1, np.pi / 2,
                                int(self.line_threshold*self.param_coffiecent), maxLineGap=int(self.max_gap*self.param_coffiecent))
-        
-        resize_lines = False
-        if lines is None or len(lines) < 16:
-            frame = self.get_minimap_frame(frame, True)
-            frame = cv2.resize(frame, (int(frame.shape[0]*self.multiplier[0]), int(frame.shape[1]*self.multiplier[1])), interpolation=cv2.INTER_AREA)
 
-            lines = cv2.HoughLinesP(frame, 1, np.pi / 2,
-                               int(self.line_threshold/2.3/self.param_coffiecent), maxLineGap=int(self.max_gap*self.param_coffiecent))
-            resize_lines = True
-
-            if lines is None or len(lines) < 8:
-                frame = self.get_minimap_frame(frame, False)
-                lines = cv2.HoughLinesP(frame, 1, np.pi / 2,
-                               int(self.line_threshold/3.7/self.param_coffiecent), maxLineGap=int(self.max_gap*self.param_coffiecent))
-            
-                if lines is None:
-                    lines = []
+        if lines is None:
+            lines = []
 
         processed_lines = []
         for line in lines:
             line = line[0]
-            if resize_lines:
-                processed_lines.append((int(line[0]/self.multiplier[0]),
-                                        int(line[1]/self.multiplier[1]), int(line[2]/self.multiplier[0]), int(line[3]/self.multiplier[1])))
-            else:
-                processed_lines.append((int(line[0]),
-                                        int(line[1]), int(line[2]), int(line[3])))
+            processed_lines.append((int(line[0]),
+                                    int(line[1]), int(line[2]), int(line[3])))
         
         merged_lines = self._merge_lines(processed_lines)
         self.horizontal_lines, self.vertical_lines = self._separate_lines(merged_lines)
@@ -74,7 +56,7 @@ class GridDetector:
             safe_w = int(w * 0.26)
             safe_h = int(h * 0.5)
         else:
-            safe_w = int(w * 0.2)
+            safe_w = int(w * 0.17)
             safe_h = int(h * 0.3)
         mask[:] = 0
         mask[h - safe_h :, w - safe_w :] = 255
@@ -160,9 +142,7 @@ class GridDetector:
             x2, y2, x3, y3 = self.vertical_lines[i+1]
             gap = int(abs(x0-x2)* self.multiplier[0])
             vertical_gaps.append(gap)
-        
-        print(horizontal_gaps)
-        print(vertical_gaps)
+
         if len(horizontal_gaps):
             mode_horizontal_gap = int(self._mode(horizontal_gaps))
         else: mode_horizontal_gap = None
@@ -179,8 +159,7 @@ class GridDetector:
         return math.sqrt(delta_x**2+delta_y**2)
 
 if __name__ == '__main__':
-    image = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-03\TslGame_bbogDsaGzD.jpg")
-    # image = cv2.imread(r"tests\test_samples\1737919221.7.png")
+    image = cv2.imread(r"tests/test_samples/1738000757.8.png")
     grid_detector = GridDetector()
     grid_detector.detect_lines(image)
     grid_detector.draw_lines(image)
