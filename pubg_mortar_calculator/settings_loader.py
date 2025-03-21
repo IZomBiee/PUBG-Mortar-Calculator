@@ -34,26 +34,42 @@ class SettingsLoader:
         self.settings = {
             "last_preview_path":self.app.last_preview_path,
             "dictor":self.app.general_settings_dictor_checkbox.get(),
-            "draw_lines":self.app.processing_draw_lines_checkbox.get(),
-            "show_gray":self.app.processing_show_gray_checkbox.get(),
-            "hotkey":self.app.general_settings_hotkey_entry.get(),
-            "last_color":self.app.detection_color_combobox.get(),
+            "draw_grid_lines":self.app.grid_settings_draw_grid_lines_checkbox.get(),
+            "line_threshold":self.app.grid_settings_line_threshold_slider.get(),
+            "line_gap":self.app.grid_settings_line_gap_slider.get(),
+            "merge_threshold":self.app.grid_settings_merge_threshold_slider.get(),
+            "show_processed_image":self.app.processing_show_processed_image_checkbox.get(),
+            "canny1_threshold":self.app.processing_canny1_threshold_slider.get(),
+            "canny2_threshold":self.app.processing_canny2_threshold_slider.get(),
+            "calculation_key":self.app.general_settings_calculation_key_entry.get(),
+            "last_color":self.app.mark_color_combobox.get(),
+            "draw_marks":self.app.mark_draw_checkbox.get(),
             "add_to_test_samples":self.app.general_settings_add_to_test_samples_checkbox.get(),
         }
         self._save()
 
     def load_settings(self):
-        self.app.processing_draw_lines_checkbox.select() if self.settings['draw_lines'] else self.app.processing_draw_lines_checkbox.deselect()
-        self.app.processing_show_gray_checkbox.select() if self.settings['show_gray'] else self.app.processing_show_gray_checkbox.deselect()
+        self.app.grid_settings_draw_grid_lines_checkbox.select() if self.settings['draw_grid_lines'] else self.app.grid_settings_draw_grid_lines_checkbox.deselect()
+        self.app.processing_show_processed_image_checkbox.select() if self.settings['show_processed_image'] else self.app.processing_show_processed_image_checkbox.deselect()
         self.app.general_settings_dictor_checkbox.select() if self.settings['dictor'] else self.app.general_settings_dictor_checkbox.deselect()
-        self.app.general_settings_hotkey_entry.insert(0, self.settings['hotkey'])
+        self.app.general_settings_calculation_key_entry.insert(0, self.settings['calculation_key'])
         if self.settings['last_color'] != '':
-            self.app.detection_color_combobox.set(self.settings['last_color'])
-        if self.settings['last_preview_path'] is not None:
-            self.app.on_preview_image_load(self.settings['last_preview_path'])
+            self.app.mark_color_combobox.set(self.settings['last_color'])
         self.app.general_settings_add_to_test_samples_checkbox.select() \
         if self.settings['add_to_test_samples'] else \
             self.app.general_settings_add_to_test_samples_checkbox.deselect()
+
+        self.app.mark_draw_checkbox.select() \
+        if self.settings['draw_marks'] else \
+            self.app.mark_draw_checkbox.deselect()
+
+        self.app.processing_canny1_threshold_slider.set(self.settings['canny1_threshold'])
+        self.app.processing_canny2_threshold_slider.set(self.settings['canny2_threshold'])
+        self.app.grid_settings_line_threshold_slider.set(self.settings['line_threshold'])
+        self.app.grid_settings_line_gap_slider.set(self.settings['line_gap'])
+        self.app.grid_settings_merge_threshold_slider.set(self.settings['merge_threshold'])
         
+        if self.settings['last_preview_path'] is not None:
+            self.app.on_preview_image_load(self.settings['last_preview_path'])
 
 

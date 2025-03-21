@@ -27,9 +27,9 @@ class CustomSlider:
                 self.command(*self.command_args)
 
     def grid(self, row=0, column=0, **kwargs):
-        self.slider.grid(row=row, column=column+1)
-        self.label.grid(row=row, column=column+2)
-        self.describe_label.grid(row=row, column=column, **kwargs)
+        self.slider.grid(row=row, column=column+1, padx=(5, 5))
+        self.label.grid(row=row, column=column+2, padx=(5, 15))
+        self.describe_label.grid(row=row, column=column, padx=(5, 5), **kwargs)
     
     def set(self, value:int):
         self.slider.set(value)

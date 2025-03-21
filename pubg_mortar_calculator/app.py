@@ -18,9 +18,6 @@ class App(customtkinter.CTk):
         self.last_preview_path = None
         self.last_image = None
 
-        self.is_full_map = False
-        self.is_large_minimap = False
-
         # Preview Frame
         self.preview_frame = customtkinter.CTkFrame(self)
         self.preview_frame.grid(row=0, column=0)
@@ -65,53 +62,94 @@ class App(customtkinter.CTk):
 
         # Processing Frame
         self.processing_frame = customtkinter.CTkFrame(self.right_frame)
-        self.processing_frame.grid(row=1, column=0, pady=10)
+        self.processing_frame.grid(row=1, column=0, pady=10, padx=5)
         
         self.processing_title_label = customtkinter.CTkLabel(self.processing_frame, text="Image Processing Settings")
-        self.processing_title_label.grid(row=0, column=1)
-
-        self.processing_draw_lines_checkbox = customtkinter.CTkCheckBox(self.processing_frame, text='Draw Lines',
-                                                          command=self.process_preview_image)
-        self.processing_draw_lines_checkbox.grid(row=6, column=0)
+        self.processing_title_label.grid(row=0, column=0, columnspan=3)
 
         self.processing_load_example_button = customtkinter.CTkButton(self.processing_frame, text='Load Example Image',
                                                       command=self.on_preview_image_load)
-        self.processing_load_example_button.grid(row=6, column=1)
+        self.processing_load_example_button.grid(row=6, column=0, padx=(10, 0))
 
-        self.processing_show_gray_checkbox = customtkinter.CTkCheckBox(self.processing_frame, text='Show Gray',
+        self.processing_show_processed_image_checkbox = customtkinter.CTkCheckBox(self.processing_frame, text='Show Processed Image',
                                                           command=self.process_preview_image)
-        self.processing_show_gray_checkbox.grid(row=6, column=2)
+        self.processing_show_processed_image_checkbox.grid(row=6, column=1, columnspan=2)
+
+        self.processing_canny1_threshold_slider = CustomSlider(self.processing_frame, "Canny 1 Threshold", 0, 300,
+                                                               number_of_steps=100, command=self.process_preview_image, return_value=False)
+        self.processing_canny1_threshold_slider.grid(row=7, column=0)
+
+        self.processing_canny2_threshold_slider = CustomSlider(self.processing_frame, "Canny 2 Threshold", 0, 300,
+                                                               number_of_steps=100, command=self.process_preview_image, return_value=False)
+        self.processing_canny2_threshold_slider.grid(row=8, column=0)
+
+        # Grid Settings Frame
+        self.grid_settings_frame = customtkinter.CTkFrame(self.right_frame)
+        self.grid_settings_frame.grid(row=2, column=0, padx=5)
+
+        self.grid_settings_title_label = customtkinter.CTkLabel(self.grid_settings_frame, text="Grid Settings")
+        self.grid_settings_title_label.grid(row=0, column=0, columnspan=3)
+
+        self.grid_settings_fullsize_map_checkbox = customtkinter.CTkCheckBox(self.grid_settings_frame, text='Is Fullsize Map?',
+                                                          command=self.process_preview_image)
+        self.grid_settings_fullsize_map_checkbox.grid(row=1, column=0, padx=(5, 0))
+
+        self.grid_settings_draw_grid_lines_checkbox = customtkinter.CTkCheckBox(self.grid_settings_frame, text='Draw Grid Lines',
+                                                          command=self.process_preview_image)
+        self.grid_settings_draw_grid_lines_checkbox.grid(row=1, column=1)
+
+        self.grid_settings_large_minimap_checkbox = customtkinter.CTkCheckBox(self.grid_settings_frame, text='Is Large Minimap?',
+                                                          command=self.process_preview_image)
+        self.grid_settings_large_minimap_checkbox.grid(row=1, column=2, padx=(0, 5))
+
+        self.grid_settings_line_threshold_slider = CustomSlider(self.grid_settings_frame, "Line Threshold", 500, 2500,
+                                                                number_of_steps=300, command=self.process_preview_image, return_value=False)
+        self.grid_settings_line_threshold_slider.grid(row=2, column=0)
+
+        self.grid_settings_line_gap_slider = CustomSlider(self.grid_settings_frame, "Line Gap", 50, 500,
+                                                                number_of_steps=100, command=self.process_preview_image, return_value=False)
+        self.grid_settings_line_gap_slider.grid(row=3, column=0)
+
+        self.grid_settings_merge_threshold_slider = CustomSlider(self.grid_settings_frame, "Merge Threshold", 0, 100,
+                                                                number_of_steps=50, command=self.process_preview_image, return_value=False)
+        self.grid_settings_merge_threshold_slider.grid(row=4, column=0)
 
         # General Settings Frame
         self.general_settings_frame = customtkinter.CTkFrame(self.right_frame)
-        self.general_settings_frame.grid(row=2, column=0)
+        self.general_settings_frame.grid(row=3, column=0, pady=10)
 
         self.general_settings_title_label = customtkinter.CTkLabel(self.general_settings_frame, text='General Settings')
         self.general_settings_title_label.grid(row=0, column=0, columnspan=2)
 
         self.general_settings_dictor_checkbox = customtkinter.CTkCheckBox(self.general_settings_frame, text="Dictor")
-        self.general_settings_dictor_checkbox.grid(row=1, column=1)
+        self.general_settings_dictor_checkbox.grid(row=1, column=0)
         
         self.general_settings_add_to_test_samples_checkbox = customtkinter.CTkCheckBox(self.general_settings_frame, text="Add To Test Samples")
-        self.general_settings_add_to_test_samples_checkbox.grid(row=2, column=1)
+        self.general_settings_add_to_test_samples_checkbox.grid(row=1, column=1, padx=(0, 5))
 
-        self.general_settings_calculate_hotkey_describe_label = customtkinter.CTkLabel(self.general_settings_frame, text='Hotkey:') 
-        self.general_settings_calculate_hotkey_describe_label.grid(row=3, column=0)
+        self.general_settings_calculate_hotkey_describe_label = customtkinter.CTkLabel(self.general_settings_frame, text='Calculation Hotkey:') 
+        self.general_settings_calculate_hotkey_describe_label.grid(row=3, column=0, padx=5, pady=5)
 
-        self.general_settings_hotkey_entry = customtkinter.CTkEntry(self.general_settings_frame, placeholder_text="Example ctrl+2")
-        self.general_settings_hotkey_entry.grid(row=3, column=1)
+        self.general_settings_calculation_key_entry = customtkinter.CTkEntry(self.general_settings_frame, placeholder_text="Example ctrl+2")
+        self.general_settings_calculation_key_entry.grid(row=3, column=1)
 
-        # Player Frame
-        self.detection_frame = customtkinter.CTkFrame(self.right_frame)
-        self.detection_frame.grid(row=3, column=0)
+        # Mark Frame
+        self.mark_frame = customtkinter.CTkFrame(self.right_frame)
+        self.mark_frame.grid(row=4, column=0)
 
-        self.detection_title_label = customtkinter.CTkLabel(self.detection_frame, text='Player Color Settings')
-        self.detection_title_label.grid(row=0, column=0)
+        self.mark_title_label = customtkinter.CTkLabel(self.mark_frame, text='Mark Detection Settings')
+        self.mark_title_label.grid(row=0, column=0, columnspan=3)
+
+        self.mark_draw_checkbox = customtkinter.CTkCheckBox(self.mark_frame, text="Draw Marks Location",
+                                                            command=self.process_preview_image)
+        self.mark_draw_checkbox.grid(row=1, column=0, columnspan=2)
         
-        self.detection_color_combobox = CustomCombobox(self.detection_frame,
-                                                       values=['orange', 'yellow', 'blue', 'green'],
+        self.mark_color_title_label = customtkinter.CTkLabel(self.mark_frame, text="Mark Color: ")
+        self.mark_color_title_label.grid(row=2, column=0)
+
+        self.mark_color_combobox = CustomCombobox(self.mark_frame, values=['orange', 'yellow', 'blue', 'green'],
                                                        command=self.process_preview_image, return_value=False)
-        self.detection_color_combobox.grid(row=1, column=0)
+        self.mark_color_combobox.grid(row=2, column=1)
         
         self.mark_detector = MarkDetector([3840, 2160])
         self.sample_loader = SampleLoader()
@@ -128,7 +166,7 @@ class App(customtkinter.CTk):
             self.process_preview_image()
 
     def get_calculate_key(self):
-        return self.general_settings_hotkey_entry.get()
+        return self.general_settings_calculation_key_entry.get()
 
     def get_full_map_toggle_key(self):
         return 'm'
@@ -138,17 +176,20 @@ class App(customtkinter.CTk):
     
     def toggle_minimap(self, set:bool=None):
         if set == None:
-            self.is_large_minimap = not self.is_large_minimap
+            self.grid_settings_large_minimap_checkbox.toggle()
         else:
-            self.is_large_minimap = set
-        print(self.is_large_minimap)
+            if set:
+                self.grid_settings_large_minimap_checkbox.select()
+            else: self.grid_settings_large_minimap_checkbox.deselect()
 
     def toggle_map(self, set:bool=None):
         if set == None:
-            self.is_full_map = not self.is_full_map
+            self.grid_settings_fullsize_map_checkbox.toggle()
         else:
-            self.is_full_map = set
-        print(self.is_full_map)
+            if set:
+                self.grid_settings_fullsize_map_checkbox.select()
+            else: self.grid_settings_fullsize_map_checkbox.deselect()
+
         
 
     def process_preview_image(self, combat_mode=False):
@@ -161,10 +202,16 @@ class App(customtkinter.CTk):
 
         frame = self.last_image.copy()
 
-        grid_detector = GridDetector()
+        grid_detector = GridDetector(self.processing_canny1_threshold_slider.get(),
+                                     self.processing_canny2_threshold_slider.get(),
+                                     self.grid_settings_line_threshold_slider.get(),
+                                     self.grid_settings_line_gap_slider.get(),
+                                     self.grid_settings_merge_threshold_slider.get(),
+                                     [3840, 2160]
+                                     )
 
-        if not self.is_full_map and combat_mode:
-            frame = grid_detector.get_minimap_frame(frame, self.is_large_minimap)
+        if not self.grid_settings_fullsize_map_checkbox.get():
+            frame = grid_detector.get_minimap_frame(frame, self.grid_settings_large_minimap_checkbox.get())
 
         grid_detector.detect_lines(frame)
         grid_gap = grid_detector.get_grid_gap()
@@ -172,7 +219,7 @@ class App(customtkinter.CTk):
         self.calculation_grid_gap_label.configure(text=f'{grid_gap}')
         print(f"GRID GAP: {grid_gap}")
 
-        player_cord, mark_cord = self.mark_detector.get_cords(frame, self.detection_color_combobox.get())
+        player_cord, mark_cord = self.mark_detector.get_cords(frame, self.mark_color_combobox.get())
         self.calculation_mark_cordinates_label.configure(text=f'{mark_cord}')
         self.calculation_player_cordinates_label.configure(text=f'{player_cord}')
         print(f'PLAYER POSITION: {player_cord}')
@@ -190,22 +237,24 @@ class App(customtkinter.CTk):
 
         if self.general_settings_add_to_test_samples_checkbox.get() and combat_mode and distance != 0:
             self.sample_loader.add(player_cord, mark_cord, grid_gap,
-                                   self.detection_color_combobox.get(),
-                                   "full" if self.is_full_map else "large" if self.is_large_minimap else "small",
+                                   self.mark_color_combobox.get(),
+                                   "full" if self.grid_settings_fullsize_map_checkbox.get() else "large" if \
+                                   self.grid_settings_large_minimap_checkbox.get() else "small",
                                    frame=frame)
 
-        if self.processing_show_gray_checkbox.get():
-            frame = cv2.resize(grid_detector.process_frame(frame),
-                               (utils.get_monitor_properties().width, utils.get_monitor_properties().height))
-            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        if self.processing_show_processed_image_checkbox.get():
+            frame = cv2.cvtColor(grid_detector.process_frame(frame), cv2.COLOR_GRAY2BGR)
+            frame = cv2.resize(frame, (int(frame.shape[1]*grid_detector.normalize_multiplier[0]),
+                                       int(frame.shape[0]*grid_detector.normalize_multiplier[1])))
         
-        if self.processing_draw_lines_checkbox.get():
+        if self.grid_settings_draw_grid_lines_checkbox.get():
             grid_detector.draw_lines(frame)
         
-        if player_cord is not None:
-            cv2.circle(frame, player_cord, 15, (255, 0, 0), 5)
-        if mark_cord is not None:
-            cv2.circle(frame, mark_cord, 15, (0, 0, 255), 5)
+        if self.mark_draw_checkbox.get():
+            if player_cord is not None:
+                self.mark_detector.draw_point(frame, player_cord, "Player", (255, 0, 0))
+            if mark_cord is not None:
+                self.mark_detector.draw_point(frame, mark_cord, "Mark", (0, 0, 255))
 
         self.preview_image.set_cv2(frame)
             

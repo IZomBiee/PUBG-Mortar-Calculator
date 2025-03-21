@@ -4,14 +4,17 @@ import numpy as np
 from collections import Counter
 
 class GridDetector:
-    def __init__(self, reference_resolution:list[int, int]=[3840, 2160]):
-        self.canny_threshold1 = 20
-        self.canny_threshold2 = 40
+    def __init__(self, canny_threshold1:int, canny_threshold2:int,
+                 line_threshold:int,
+                 max_gap:int, merge_threshold:int,
+                 reference_resolution:list[int, int]=[3840, 2160]):
+        self.canny_threshold1 = canny_threshold1
+        self.canny_threshold2 = canny_threshold2
         self.aperture_size = 3
 
-        self.line_threshold = 1700
-        self.max_gap = 250
-        self.merge_threshold = 50
+        self.line_threshold = line_threshold
+        self.max_gap = max_gap
+        self.merge_threshold = merge_threshold
 
         self.multiplier = [1, 1]
         self.normalize_multiplier = [1, 1]
@@ -37,6 +40,7 @@ class GridDetector:
 
     def detect_lines(self, frame:np.ndarray):
         frame = self.process_frame(frame)
+
         lines = cv2.HoughLinesP(frame, 1, np.pi / 2,
                                int(self.line_threshold*self.avg_multiplier), maxLineGap=int(self.max_gap*self.avg_multiplier))
 
@@ -54,17 +58,20 @@ class GridDetector:
         self.horizontal_lines, self.vertical_lines = self.separate_lines(merged_lines)
     
     def get_minimap_frame(self, frame: np.ndarray, large=False) -> np.ndarray:
+        self.process_frame(frame)
         h, w = frame.shape[:2]
         if large:
-            safe_w = int(w * 0.26)
-            safe_h = int(h * 0.465)
+            # 2856, 1183px
+            # 3772, 2098px
+            return frame[int(1183*self.multiplier[0]):int(2098*self.multiplier[0]),
+                         int(2856*self.multiplier[0]):int(3772*self.multiplier[0])]
         else:
-            safe_w = int(w * 0.16)
-            safe_h = int(h * 0.28)
-        return frame[h-safe_h:h, w-safe_w:w]
+            return frame[int(1582*self.multiplier[0]):int(2100*self.multiplier[0]),
+                         int(3258*self.multiplier[0]):int(3773*self.multiplier[0])]
+
 
     def draw_lines(self, frame:np.ndarray, vertical_lines_color=(255, 0, 0), horizontal_lines_color=(0, 0, 255), trickness:int=5):
-        trickness = int((trickness*self.avg_multiplier)+0.49)
+        trickness = max(int((trickness*self.avg_multiplier)), 1)
         for x0, y0, x1, y1 in self.vertical_lines:
             cv2.line(frame, (x0, y0),
                      (x1, y1), vertical_lines_color, trickness)
@@ -134,13 +141,13 @@ class GridDetector:
         for i in range(0, len(self.horizontal_lines)-1):
             x0, y0, x1, y1 = self.horizontal_lines[i]
             x2, y2, x3, y3 = self.horizontal_lines[i+1]
-            gap = int(abs(y0-y2)* self.normalize_multiplier[1])
+            gap = int(abs(y0-y2))
             horizontal_gaps.append(gap)
 
         for i in range(0, len(self.vertical_lines)-1):
             x0, y0, x1, y1 = self.vertical_lines[i]
             x2, y2, x3, y3 = self.vertical_lines[i+1]
-            gap = int(abs(x0-x2)* self.normalize_multiplier[0])
+            gap = int(abs(x0-x2))
             vertical_gaps.append(gap)
 
         if len(horizontal_gaps):
@@ -159,13 +166,13 @@ class GridDetector:
         return math.sqrt(delta_x**2+delta_y**2)
 
 if __name__ == '__main__':
-    image = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-03\TslGame_esjtQiCnqH.jpg")
-    grid_detector = GridDetector()
+    image = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-03\TslGame_pwoOSyeBBF.jpg")
+    grid_detector = GridDetector(20, 40, 1600, 150, 50)
     image = grid_detector.get_minimap_frame(image, True)
 
     grid_detector.detect_lines(image)
     grid_detector.draw_lines(image)
 
     print(f'Grid Gap: {grid_detector.get_grid_gap()}')
-    cv2.imshow('Welcome to hell', cv2.resize(image, (image.shape[1], image.shape[0])))
+    cv2.imshow('Welcome to hell', cv2.resize(image, (image.shape[1]//2, image.shape[0]//2)))
     cv2.waitKey(0)
