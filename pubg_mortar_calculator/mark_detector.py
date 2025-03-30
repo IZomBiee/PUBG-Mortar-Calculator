@@ -16,15 +16,19 @@ class MarkDetector:
         hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
         mask = cv2.inRange(hsv_image, tuple(self.hsv_min), tuple(self.hsv_max))
-        mask[mask.shape[0]-int(400*self.avg_multiplier):mask.shape[0],
-             0:int(400*self.avg_multiplier)] = np.zeros((int(400*self.avg_multiplier),
-                                                         int(400*self.avg_multiplier)))
-        mask = cv2.GaussianBlur(mask, (15, 15), -1)
+
+        mask = self.replace_area_with_black(mask, (0, mask.shape[0]-(350*self.avg_multiplier)),
+                                      (550*self.avg_multiplier, mask.shape[0]))
+
+        mask = self.replace_area_with_black(mask, (mask.shape[1]-(900*self.avg_multiplier), 0),
+                                                (mask.shape[1], 400*self.avg_multiplier))
+
+        mask = cv2.GaussianBlur(mask, (19, 19), 7)
         ret, mask = cv2.threshold(mask, 15, 255, cv2.THRESH_BINARY)
         return mask
 
     def _find_contours(self, mask:np.ndarray) -> list:
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
         
@@ -44,6 +48,7 @@ class MarkDetector:
         
         for contour in contours:
             (x,y),radius = cv2.minEnclosingCircle(contour)
+
             cx, cy = int(x), int(y)
             if radius < self.max_radius: 
                 if player_cord == None:
@@ -75,45 +80,51 @@ class MarkDetector:
         cv2.rectangle(frame, (bg_x - 5, bg_y - text_h - 5), (bg_x + text_w + 5, bg_y + 5), (0, 0, 0), -1)
         cv2.putText(frame, title, (bg_x, bg_y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 255, 255), font_thickness)
     
+    @staticmethod
+    def replace_area_with_black(image, point1, point2):
+        x1, y1 = point1
+        x2, y2 = point2
+
+        h, w = image.shape[:2]
+        x1, y1 = max(0, x1), max(0, y1)
+        x2, y2 = min(w, x2), min(h, y2)
+        
+        if len(image.shape) == 3:
+            image[int(y1):int(y2), int(x1):int(x2)] = (0, 0, 0)
+        else:
+            image[int(y1):int(y2), int(x1):int(x2)] = 0
+        
+        return image
 
     def load_color(self, color:str):
         match color:
             case 'orange':
-                self.hsv_min = [8, 106, 123]
-                self.hsv_max = [17, 238, 231]
+                self.hsv_min = [10, 106, 123]
+                self.hsv_max = [13, 238, 231]
             case 'yellow':
-                self.hsv_min = [19,130,130]
+                self.hsv_min = [25,130,130]
                 self.hsv_max = [50,241,255]
             case 'blue':
-                self.hsv_min = [79, 88, 129]
-                self.hsv_max = [137, 224, 255]
+                self.hsv_min = [67, 70, 106]
+                self.hsv_max = [110, 210, 231]
             case 'green':
                 self.hsv_min = [81,83,101]
                 self.hsv_max = [155, 195, 255]
 
-def get_minimap_frame(frame: np.ndarray, large=False) -> np.ndarray:
-    h, w = frame.shape[:2]
-    if large:
-        safe_w = int(w * 0.26)
-        safe_h = int(h * 0.465)
-    else:
-        safe_w = int(w * 0.16)
-        safe_h = int(h * 0.28)
-    return frame[h-safe_h:h, w-safe_w:w]
+def raiseMarkDetector(image: np.ndarray, color:str):
+    mark_detector = MarkDetector([3840, 2160])
+
+    player_cord, mark_cord = mark_detector.get_cords(image, color)
+    print(f"Player Position: {player_cord} Mark Position: {mark_cord}")
+
+    image = cv2.bitwise_and(cv2.cvtColor(mark_detector._process_image(image), cv2.COLOR_GRAY2BGR), image)
+
+    mark_detector.draw_point(image, player_cord, 'Player')
+    mark_detector.draw_point(image, mark_cord, 'Mark', (0, 0, 255))
+
+    cv2.imshow('Grid', cv2.resize(image,(image.shape[1]//2, image.shape[0]//2)))
+    cv2.waitKey(0)
 
 if __name__ == '__main__':
-    mark_detector = MarkDetector([3840, 2160])
-    image = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-03\TslGame_aPdfDhh2ZA.jpg")
-    image = get_minimap_frame(image, False)
-    player_cord, mark_cord = mark_detector.get_cords(image, 'yellow')
-    print(player_cord, mark_cord)
-    try:
-        mark_detector.draw_point(image, player_cord, 'Player')
-    except TypeError:pass
-
-    try:
-        mark_detector.draw_point(image, mark_cord, 'Mark')
-    except TypeError:pass
-
-    cv2.imshow('Welcome to hell', cv2.resize(image, (image.shape[1], image.shape[0])))
-    cv2.waitKey(0)
+    raiseMarkDetector(cv2.imread(r"tests/test_samples/2025-03-30_15-36-43.png"), "blue")
+    

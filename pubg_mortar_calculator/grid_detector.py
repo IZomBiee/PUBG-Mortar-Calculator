@@ -1,5 +1,6 @@
 import cv2
 import math
+import json
 import numpy as np
 from collections import Counter
 
@@ -56,19 +57,6 @@ class GridDetector:
         
         merged_lines = self.merge_lines(processed_lines)
         self.horizontal_lines, self.vertical_lines = self.separate_lines(merged_lines)
-    
-    def get_minimap_frame(self, frame: np.ndarray, large=False) -> np.ndarray:
-        self.process_frame(frame)
-        h, w = frame.shape[:2]
-        if large:
-            # 2856, 1183px
-            # 3772, 2098px
-            return frame[int(1183*self.multiplier[0]):int(2098*self.multiplier[0]),
-                         int(2856*self.multiplier[0]):int(3772*self.multiplier[0])]
-        else:
-            return frame[int(1582*self.multiplier[0]):int(2100*self.multiplier[0]),
-                         int(3258*self.multiplier[0]):int(3773*self.multiplier[0])]
-
 
     def draw_lines(self, frame:np.ndarray, vertical_lines_color=(255, 0, 0), horizontal_lines_color=(0, 0, 255), trickness:int=5):
         trickness = max(int((trickness*self.avg_multiplier)), 1)
@@ -165,14 +153,19 @@ class GridDetector:
         delta_x = abs(first_point[1] - second_point[1])/grid_gap[1]*100
         return math.sqrt(delta_x**2+delta_y**2)
 
-if __name__ == '__main__':
-    image = cv2.imread(r"C:\Users\patri\Pictures\Screenshots\2025-03\TslGame_pwoOSyeBBF.jpg")
-    grid_detector = GridDetector(20, 40, 1600, 150, 50)
-    image = grid_detector.get_minimap_frame(image, True)
+def raiseGridDetector(image:np.ndarray):
+    with open('settings.json', 'r') as file:
+        settings = json.load(file)
+
+    grid_detector = GridDetector(settings["canny1_threshold"], settings["canny2_threshold"],
+                                 settings["line_threshold"], settings["line_gap"], settings["merge_threshold"])
 
     grid_detector.detect_lines(image)
     grid_detector.draw_lines(image)
 
     print(f'Grid Gap: {grid_detector.get_grid_gap()}')
-    cv2.imshow('Welcome to hell', cv2.resize(image, (image.shape[1]//2, image.shape[0]//2)))
+    cv2.imshow('Grid', cv2.resize(image, (image.shape[1]//2, image.shape[0]//2)))
     cv2.waitKey(0)
+
+if __name__ == '__main__':
+    raiseGridDetector(cv2.imread(''))

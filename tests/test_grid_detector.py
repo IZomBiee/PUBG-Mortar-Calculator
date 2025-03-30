@@ -3,7 +3,7 @@ import cv2
 import json
 import os
 
-from pubg_mortar_calculator.grid_detector import GridDetector
+from pubg_mortar_calculator.grid_detector import GridDetector, raiseGridDetector
 
 class TestGridDetector(unittest.TestCase):
     def setUp(self):
@@ -12,17 +12,28 @@ class TestGridDetector(unittest.TestCase):
             if file.endswith('.json'):
                 with open(f'tests/test_samples/{file}', 'r') as file:
                     self.test_samples.append(json.load(file))
-        self.grid_detector = GridDetector(20, 40, 1700, 100, 50)
+        with open('settings.json', 'r') as file:
+            settings = json.load(file)
+
+        self.grid_detector = GridDetector(settings["canny1_threshold"], settings["canny2_threshold"],
+                                        settings["line_threshold"], settings["line_gap"], settings["merge_threshold"])
         
     def test_get_grid_gap(self):
         for sample in self.test_samples:
+            print(f"Image: {sample['name']}.png Sample: {sample} ", end='')
+
             image = cv2.imread(f'tests/test_samples/{sample['name']}.png')
 
             self.grid_detector.detect_lines(image)
-            gap = self.grid_detector.get_grid_gap()
-            print(f'tests/test_samples/{sample['name']}.png gap:{gap}')
-            self.assertAlmostEqual(sample['grid_gap'][0], gap[0], delta=3, msg=f'tests/test_samples/{sample['name']}.png')
-            self.assertAlmostEqual(sample['grid_gap'][1], gap[1], delta=3, msg=f'tests/test_samples/{sample['name']}.png')
+            x_gap, y_gap = self.grid_detector.get_grid_gap()
+            print(f"Grid Gap: x={x_gap} y={y_gap}")
+
+            try:
+                self.assertAlmostEqual(sample['grid_gap'][0], x_gap, delta=3, msg="X Gap isn't correct")
+                self.assertAlmostEqual(sample['grid_gap'][1], y_gap, delta=3, msg="Y Gap isn't correct")
+            except AssertionError as e:
+                raiseGridDetector(image)
+                raise AssertionError(e)
 
 if __name__ == '__main__':
     unittest.main()

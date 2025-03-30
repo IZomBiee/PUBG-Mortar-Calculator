@@ -90,17 +90,9 @@ class App(customtkinter.CTk):
         self.grid_settings_title_label = customtkinter.CTkLabel(self.grid_settings_frame, text="Grid Settings")
         self.grid_settings_title_label.grid(row=0, column=0, columnspan=3)
 
-        self.grid_settings_fullsize_map_checkbox = customtkinter.CTkCheckBox(self.grid_settings_frame, text='Is Fullsize Map?',
-                                                          command=self.process_preview_image)
-        self.grid_settings_fullsize_map_checkbox.grid(row=1, column=0, padx=(5, 0))
-
         self.grid_settings_draw_grid_lines_checkbox = customtkinter.CTkCheckBox(self.grid_settings_frame, text='Draw Grid Lines',
                                                           command=self.process_preview_image)
         self.grid_settings_draw_grid_lines_checkbox.grid(row=1, column=1)
-
-        self.grid_settings_large_minimap_checkbox = customtkinter.CTkCheckBox(self.grid_settings_frame, text='Is Large Minimap?',
-                                                          command=self.process_preview_image)
-        self.grid_settings_large_minimap_checkbox.grid(row=1, column=2, padx=(0, 5))
 
         self.grid_settings_line_threshold_slider = CustomSlider(self.grid_settings_frame, "Line Threshold", 500, 2500,
                                                                 number_of_steps=300, command=self.process_preview_image, return_value=False)
@@ -167,31 +159,7 @@ class App(customtkinter.CTk):
 
     def get_calculate_key(self):
         return self.general_settings_calculation_key_entry.get()
-
-    def get_full_map_toggle_key(self):
-        return 'm'
-    
-    def get_large_minimap_toggle_key(self):
-        return 'n'
-    
-    def toggle_minimap(self, set:bool=None):
-        if set == None:
-            self.grid_settings_large_minimap_checkbox.toggle()
-        else:
-            if set:
-                self.grid_settings_large_minimap_checkbox.select()
-            else: self.grid_settings_large_minimap_checkbox.deselect()
-
-    def toggle_map(self, set:bool=None):
-        if set == None:
-            self.grid_settings_fullsize_map_checkbox.toggle()
-        else:
-            if set:
-                self.grid_settings_fullsize_map_checkbox.select()
-            else: self.grid_settings_fullsize_map_checkbox.deselect()
-
         
-
     def process_preview_image(self, combat_mode=False):
         print(f'------------- CALCULATION IN {"COMBAT"if combat_mode else "PREVIEW"} MODE -------------')
         if combat_mode:
@@ -209,9 +177,6 @@ class App(customtkinter.CTk):
                                      self.grid_settings_merge_threshold_slider.get(),
                                      [3840, 2160]
                                      )
-
-        if not self.grid_settings_fullsize_map_checkbox.get():
-            frame = grid_detector.get_minimap_frame(frame, self.grid_settings_large_minimap_checkbox.get())
 
         grid_detector.detect_lines(frame)
         grid_gap = grid_detector.get_grid_gap()
@@ -238,8 +203,6 @@ class App(customtkinter.CTk):
         if self.general_settings_add_to_test_samples_checkbox.get() and combat_mode and distance != 0:
             self.sample_loader.add(player_cord, mark_cord, grid_gap,
                                    self.mark_color_combobox.get(),
-                                   "full" if self.grid_settings_fullsize_map_checkbox.get() else "large" if \
-                                   self.grid_settings_large_minimap_checkbox.get() else "small",
                                    frame=frame)
 
         if self.processing_show_processed_image_checkbox.get():

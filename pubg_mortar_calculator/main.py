@@ -10,17 +10,6 @@ def listen_for_keys(app: App):
         try:
             if keyboard.is_pressed(app.get_calculate_key()):
                 app.process_preview_image(combat_mode=True)
-            elif keyboard.is_pressed(app.get_full_map_toggle_key()):
-                while keyboard.is_pressed(app.get_full_map_toggle_key()): time.sleep(0.01)
-                app.toggle_map()
-            elif keyboard.is_pressed('esc'):
-                while keyboard.is_pressed('esc'): time.sleep(0.01)
-                app.toggle_map(False)
-                app.process_preview_image()
-            elif keyboard.is_pressed(app.get_large_minimap_toggle_key()):
-                while keyboard.is_pressed(app.get_large_minimap_toggle_key()): time.sleep(0.01)
-                app.toggle_minimap()
-            
         except ValueError: time.sleep(1)
         time.sleep(0.001)
 

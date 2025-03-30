@@ -11,7 +11,7 @@ class SampleLoader:
     
     def add(self, player_position:list[int, int],
                 mark_position:list[int, int], grid_gap:list[int, int],
-                color:str, map_state:str, frame:np.ndarray=None, name:str=None):
+                color:str, frame:np.ndarray=None, name:str=None):
         
         if name is None:
             time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -26,8 +26,7 @@ class SampleLoader:
                 'player_position':player_position,
                 'mark_position':mark_position,
                 'grid_gap':grid_gap,
-                'color':color,
-                'map_state':map_state,
+                'color':color
             }, file)
 
     def change(self, name:str, data:dict):
