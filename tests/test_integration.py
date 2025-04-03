@@ -14,7 +14,11 @@ class TestIntegration(unittest.TestCase):
             if file.endswith('.json'):
                 with open(f'tests/test_samples/{file}', 'r') as file:
                     self.test_samples.append(json.load(file))
-        self.grid_detector = GridDetector(20, 40, 1600, 150, 50)
+        with open('settings.json', 'r') as file:
+            settings = json.load(file)
+
+        self.grid_detector = GridDetector(settings["canny1_threshold"], settings["canny2_threshold"],
+                                        settings["line_threshold"], settings["line_gap"], settings["merge_threshold"])
         self.mark_detector = MarkDetector([3840, 2160])
     
     def test_distance(self):

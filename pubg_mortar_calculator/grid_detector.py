@@ -168,4 +168,4 @@ def raiseGridDetector(image:np.ndarray):
     cv2.waitKey(0)
 
 if __name__ == '__main__':
-    raiseGridDetector(cv2.imread(''))
+    raiseGridDetector(cv2.imread('tests/test_samples/2025-03-30_15-37-00.png'))

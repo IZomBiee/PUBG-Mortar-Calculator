@@ -1,8 +1,6 @@
 import customtkinter
 import cv2
-import mouse
 import time
-import json
 from pubg_mortar_calculator import utils
 from pubg_mortar_calculator.custom_widgets import *
 from pubg_mortar_calculator.grid_detector import GridDetector
@@ -146,7 +144,7 @@ class App(customtkinter.CTk):
         self.mark_detector = MarkDetector([3840, 2160])
         self.sample_loader = SampleLoader()
 
-    def on_preview_image_load(self, path:str=None):
+    def on_preview_image_load(self, path:str | None = None):
         if path is None:
             path = utils.get_image_path()
             if path == '':
