@@ -126,5 +126,7 @@ def raiseMarkDetector(image: np.ndarray, color:str):
     cv2.waitKey(0)
 
 if __name__ == '__main__':
-    raiseMarkDetector(cv2.imread(r"tests/test_samples/2025-03-30_15-37-00.png"), "blue")
+    raiseMarkDetector(cv2.imread(
+        r"D:/Projects/Python/PUBG-Mortar-Calculator/tests/test_samples/2025-04-17_18-18-20.png"
+        ), "blue")
     

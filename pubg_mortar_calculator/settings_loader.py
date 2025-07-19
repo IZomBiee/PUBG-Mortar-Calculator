@@ -37,7 +37,7 @@ class SettingsLoader:
             "draw_grid_lines":self.app.grid_settings_draw_grid_lines_checkbox.get(),
             "line_threshold":self.app.grid_settings_line_threshold_slider.get(),
             "line_gap":self.app.grid_settings_line_gap_slider.get(),
-            "merge_threshold":self.app.grid_settings_merge_threshold_slider.get(),
+            "gap_threshold":self.app.grid_settings_gap_threshold_slider.get(),
             "show_processed_image":self.app.processing_show_processed_image_checkbox.get(),
             "canny1_threshold":self.app.processing_canny1_threshold_slider.get(),
             "canny2_threshold":self.app.processing_canny2_threshold_slider.get(),
@@ -67,7 +67,7 @@ class SettingsLoader:
         self.app.processing_canny2_threshold_slider.set(self.settings['canny2_threshold'])
         self.app.grid_settings_line_threshold_slider.set(self.settings['line_threshold'])
         self.app.grid_settings_line_gap_slider.set(self.settings['line_gap'])
-        self.app.grid_settings_merge_threshold_slider.set(self.settings['merge_threshold'])
+        self.app.grid_settings_gap_threshold_slider.set(self.settings['gap_threshold'])
         
         if self.settings['last_preview_path'] is not None:
             self.app.on_preview_image_load(self.settings['last_preview_path'])

@@ -28,7 +28,7 @@ base_settings = {
     "draw_grid_lines":1,
     "line_threshold":1700,
     "line_gap":150,
-    "merge_threshold":50,
+    "gap_threshold":50,
     "show_processed_image":0,
     "canny1_threshold":20,
     "canny2_threshold":40,

@@ -7,7 +7,7 @@ from collections import Counter
 class GridDetector:
     def __init__(self, canny_threshold1:int, canny_threshold2:int,
                  line_threshold:int,
-                 max_gap:int, merge_threshold:int,
+                 max_gap:int, gap_threshold:int,
                  reference_resolution:list[int, int]=[3840, 2160]):
         self.canny_threshold1 = canny_threshold1
         self.canny_threshold2 = canny_threshold2
@@ -15,7 +15,7 @@ class GridDetector:
 
         self.line_threshold = line_threshold
         self.max_gap = max_gap
-        self.merge_threshold = merge_threshold
+        self.gap_threshold = gap_threshold
 
         self.multiplier = [1, 1]
         self.normalize_multiplier = [1, 1]
@@ -55,8 +55,7 @@ class GridDetector:
                                     int(line[2]*self.normalize_multiplier[0]),
                                     int(line[3]*self.normalize_multiplier[1])])
         
-        merged_lines = self.merge_lines(processed_lines)
-        self.horizontal_lines, self.vertical_lines = self.separate_lines(merged_lines)
+        self.horizontal_lines, self.vertical_lines = self.separate_lines(processed_lines)
 
     def draw_lines(self, frame:np.ndarray, vertical_lines_color=(255, 0, 0), horizontal_lines_color=(0, 0, 255), trickness:int=5):
         trickness = max(int((trickness*self.avg_multiplier)), 1)
@@ -67,36 +66,6 @@ class GridDetector:
         for x0, y0, x1, y1 in self.horizontal_lines:
             cv2.line(frame, (x0, y0),
                      (x1, y1), horizontal_lines_color, trickness)
-
-    def merge_lines(self, lines:list[int]) -> list[int]:
-        merged_lines = []
-        used = [False] * len(lines)
-
-        for i, (x0, y0, x1, y1) in enumerate(lines):
-            if used[i]:
-                continue
-
-            merged_x0, merged_y0, merged_x1, merged_y1 = x0, y0, x1, y1
-
-            for j, (x2, y2, x3, y3) in enumerate(lines):
-                if i != j and not used[j]:
-                    mid1_x = (merged_x0 + merged_x1) / 2
-                    mid1_y = (merged_y0 + merged_y1) / 2
-                    mid2_x = (x2 + x3) / 2
-                    mid2_y = (y2 + y3) / 2
-                    distance = ((mid1_x - mid2_x) ** 2 + (mid1_y - mid2_y) ** 2) ** 0.5
-
-                    if distance < self.merge_threshold*self.avg_multiplier:
-                        merged_x0 = (merged_x0 + x2) // 2
-                        merged_y0 = (merged_y0 + y2) // 2
-                        merged_x1 = (merged_x1 + x3) // 2
-                        merged_y1 = (merged_y1 + y3) // 2
-                        used[j] = True
-
-            merged_lines.append((merged_x0, merged_y0, merged_x1, merged_y1))
-            used[i] = True
-
-        return merged_lines
     
     def mode(self, data):
         frequency = Counter(data)
@@ -122,7 +91,7 @@ class GridDetector:
 
         return horizontal_lines, vertical_lines
 
-    def get_grid_gap(self) -> list[int, int]:
+    def get_grid_gap(self) -> int:
         horizontal_gaps = []
         vertical_gaps = []
 
@@ -137,20 +106,21 @@ class GridDetector:
             x2, y2, x3, y3 = self.vertical_lines[i+1]
             gap = int(abs(x0-x2))
             vertical_gaps.append(gap)
+        
+        gaps = horizontal_gaps.copy()
+        gaps.extend(vertical_gaps)
+        gaps = list(filter(lambda gap: gap>self.gap_threshold, gaps))
 
-        if len(horizontal_gaps):
-            mode_horizontal_gap = int(self.mode(horizontal_gaps))
-        else: mode_horizontal_gap = None
-        if len(vertical_gaps):
-            mode_vertical_gap = int(self.mode(vertical_gaps))
-        else: mode_vertical_gap = None
-        return [mode_horizontal_gap, mode_vertical_gap]
-
+        if len(gaps):
+            mode_gap = int(self.mode(gaps))
+        else: mode_gap = None
+        return mode_gap
+        
     @staticmethod
     def get_distance(first_point:list[int, int], second_point:list[int, int],
-                 grid_gap:list[int, int]):
-        delta_y = abs(first_point[0] - second_point[0])/grid_gap[0]*100
-        delta_x = abs(first_point[1] - second_point[1])/grid_gap[1]*100
+                 grid_gap:int):
+        delta_y = abs(first_point[0] - second_point[0])/grid_gap*100
+        delta_x = abs(first_point[1] - second_point[1])/grid_gap*100
         return math.sqrt(delta_x**2+delta_y**2)
 
 def raiseGridDetector(image:np.ndarray):
@@ -158,7 +128,7 @@ def raiseGridDetector(image:np.ndarray):
         settings = json.load(file)
 
     grid_detector = GridDetector(settings["canny1_threshold"], settings["canny2_threshold"],
-                                 settings["line_threshold"], settings["line_gap"], settings["merge_threshold"])
+                                 settings["line_threshold"], settings["line_gap"], settings["gap_threshold"])
 
     grid_detector.detect_lines(image)
     grid_detector.draw_lines(image)

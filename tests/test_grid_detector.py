@@ -25,12 +25,11 @@ class TestGridDetector(unittest.TestCase):
             image = cv2.imread(f'tests/test_samples/{sample['name']}.png')
 
             self.grid_detector.detect_lines(image)
-            x_gap, y_gap = self.grid_detector.get_grid_gap()
-            print(f"Grid Gap: x={x_gap} y={y_gap}")
-
+            gap = self.grid_detector.get_grid_gap()
+            print(f"Grid Gap: {gap}")
+            
             try:
-                self.assertAlmostEqual(sample['grid_gap'][0], x_gap, delta=3, msg="X Gap isn't correct")
-                self.assertAlmostEqual(sample['grid_gap'][1], y_gap, delta=3, msg="Y Gap isn't correct")
+                self.assertAlmostEqual(sample['grid_gap'], gap, delta=3, msg="Gap isn't correct")
             except AssertionError as e:
                 raiseGridDetector(image)
                 raise AssertionError(e)

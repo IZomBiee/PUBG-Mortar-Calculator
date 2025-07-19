@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pubg-mortar-calculator"
-version = "2.4.0"
+version = "2.4.2"
 description = "A tool to calculate the range of a shot or to automatically fire a mortar."
 authors = ["IZomBie <patrik009009@gmail.com>"]
 license = "You can youse everything."

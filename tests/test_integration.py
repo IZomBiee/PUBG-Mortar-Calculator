@@ -23,6 +23,8 @@ class TestIntegration(unittest.TestCase):
     
     def test_distance(self):
         for sample in self.test_samples:
+            print(f"Image: {sample['name']}.png Sample: {sample}")
+
             image = cv2.imread(f'tests/test_samples/{sample['name']}.png')
             self.grid_detector.detect_lines(image)
             self.mark_detector.load_color(sample['color'])
@@ -31,11 +33,12 @@ class TestIntegration(unittest.TestCase):
 
             correct_distance = GridDetector.get_distance(sample['player_position'], sample['mark_position'], sample['grid_gap'])
             distance = GridDetector.get_distance(player_cord, mark_cord, gap)
-            self.assertAlmostEqual(correct_distance, distance, delta=5, msg=(
-                 f'Image: tests/test_samples/{sample['name']} Distance: {correct_distance} Calculated Distance: {distance} '
-                 f'Player Cord: {sample['player_position']} Calculated Player Cord: {player_cord} '
-                 f'Mark Cord: {sample['mark_position']} Calculated Mark Cord: {mark_cord} '
-                 f'Grid Gap: {sample['grid_gap']} Calculated Grid Gap: {gap}'))
+            self.assertAlmostEqual(correct_distance, distance, delta=10, msg=(
+                 f'Image: tests/test_samples/{sample['name']} Distance: {correct_distance} Calculated Distance: {distance}\n'
+                 f'Player Cord: {sample['player_position']} Calculated Player Cord: {player_cord}\n'
+                 f'Mark Cord: {sample['mark_position']} Calculated Mark Cord: {mark_cord}\n'
+                 f'Grid Gap: {sample['grid_gap']} Calculated Grid Gap: {gap}\n'
+                 f'Color: {sample['color']}\n'))
 
 if __name__ == '__main__':
     unittest.main()

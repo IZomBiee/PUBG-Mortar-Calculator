@@ -24,10 +24,10 @@ class TestMarkDetector(unittest.TestCase):
             print(f"Player Position: {player_cord} Mark Position: {mark_cord}")
             
             try:
-                self.assertAlmostEqual(sample['player_position'][0], player_cord[0], delta=10, msg=f"Player position X isn't correct")
-                self.assertAlmostEqual(sample['player_position'][1], player_cord[1], delta=10, msg=f"Player position Y isn't correct")
-                self.assertAlmostEqual(sample['mark_position'][0], mark_cord[0], delta=10, msg=f"Mark position X isn't correct")
-                self.assertAlmostEqual(sample['mark_position'][1], mark_cord[1], delta=10, msg=f"Mark position Y isn't correct")
+                self.assertAlmostEqual(sample['player_position'][0], player_cord[0], delta=5, msg=f"Player position X isn't correct")
+                self.assertAlmostEqual(sample['player_position'][1], player_cord[1], delta=5, msg=f"Player position Y isn't correct")
+                self.assertAlmostEqual(sample['mark_position'][0], mark_cord[0], delta=5, msg=f"Mark position X isn't correct")
+                self.assertAlmostEqual(sample['mark_position'][1], mark_cord[1], delta=5, msg=f"Mark position Y isn't correct")
             except AssertionError as e:
                 raiseMarkDetector(image, sample['color'])
                 raise AssertionError(e)

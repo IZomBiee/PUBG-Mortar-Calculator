@@ -100,9 +100,9 @@ class App(customtkinter.CTk):
                                                                 number_of_steps=100, command=self.process_preview_image, return_value=False)
         self.grid_settings_line_gap_slider.grid(row=3, column=0)
 
-        self.grid_settings_merge_threshold_slider = CustomSlider(self.grid_settings_frame, "Merge Threshold", 0, 100,
+        self.grid_settings_gap_threshold_slider = CustomSlider(self.grid_settings_frame, "Gap Threshold", 0, 50,
                                                                 number_of_steps=50, command=self.process_preview_image, return_value=False)
-        self.grid_settings_merge_threshold_slider.grid(row=4, column=0)
+        self.grid_settings_gap_threshold_slider.grid(row=4, column=0)
 
         # General Settings Frame
         self.general_settings_frame = customtkinter.CTkFrame(self.right_frame)
@@ -172,7 +172,7 @@ class App(customtkinter.CTk):
                                      self.processing_canny2_threshold_slider.get(),
                                      self.grid_settings_line_threshold_slider.get(),
                                      self.grid_settings_line_gap_slider.get(),
-                                     self.grid_settings_merge_threshold_slider.get(),
+                                     self.grid_settings_gap_threshold_slider.get(),
                                      [3840, 2160]
                                      )
 
