@@ -3,3 +3,4 @@ __pycache__
 tests/test_samples/*
 .gitkeep
 .vscode
+.idea
