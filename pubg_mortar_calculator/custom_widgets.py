@@ -98,7 +98,7 @@ class CustomImage:
         self.size=size
         self.save_aspect_ratio = save_aspect_ratio
         if image_array_or_path is None:
-            self.set_cv2(np.zeros((size[0], size[1], 3), dtype=np.uint8))
+            self.set_cv2(np.zeros((size[1], size[0], 3), dtype=np.uint8))
         elif type(image_array_or_path) == str:
             self.set_path(image_array_or_path)
         else:

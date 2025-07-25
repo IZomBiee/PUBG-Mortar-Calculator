@@ -22,23 +22,7 @@ customtkinter.set_default_color_theme("blue")
 app = App()
 app.protocol("WM_DELETE_WINDOW", on_closing)
 
-base_settings = {
-    "last_preview_path":None,
-    "dictor":1,
-    "draw_grid_lines":1,
-    "line_threshold":1700,
-    "line_gap":150,
-    "gap_threshold":50,
-    "show_processed_image":0,
-    "canny1_threshold":20,
-    "canny2_threshold":40,
-    "calculation_key":"ctrl+k",
-    "last_color":"orange",  
-    "draw_marks":1,
-    "add_to_test_samples":0,
-}
-
-settings_loader = SettingsLoader(app, 'settings.json', base_settings)
+settings_loader = SettingsLoader(app, 'settings.json')
 settings_loader.load_settings()
 
 t=threading.Thread(target=listen_for_keys, args=(app,), daemon=True)
