@@ -2,9 +2,9 @@ import cv2
 import numpy as np
 
 class MarkDetector:
-    def __init__(self, reference_resolution:list[int, int], max_radius:int=35):
-        self.hsv_min = None
-        self.hsv_max = None
+    def __init__(self, reference_resolution:tuple[int, int], max_radius:int=35):
+        self.hsv_min = np.array((0, 0, 0), dtype=np.uint8)
+        self.hsv_max = np.array((255, 255, 255), dtype=np.uint8)
         self.max_radius = max_radius
         self.multiplier = [1, 1]
         self.avg_multiplier = 1
@@ -15,7 +15,7 @@ class MarkDetector:
         self.avg_multiplier = sum(self.multiplier)/2
         hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
-        mask = cv2.inRange(hsv_image, tuple(self.hsv_min), tuple(self.hsv_max))
+        mask = cv2.inRange(hsv_image, self.hsv_min, self.hsv_max)
 
         mask = self.replace_area_with_black(mask, (0, mask.shape[0]-(350*self.avg_multiplier)),
                                       (550*self.avg_multiplier, mask.shape[0]))
@@ -34,11 +34,10 @@ class MarkDetector:
         
         return sorted_contours
 
-    def get_cords(self, frame:np.ndarray, color:str=None) -> list[list[int, int]]:
+    def get_cords(self, frame:np.ndarray, color:str|None=None) -> tuple[tuple[int, int] | None,
+                                                                   tuple[int, int] | None]:
         if color is not None:
             self.load_color(color)
-        elif self.hsv_min is None or self.hsv_max is None:
-            raise ValueError("No color")
         
         mask = self._process_image(frame)
         contours = self._find_contours(mask)
@@ -52,16 +51,16 @@ class MarkDetector:
             cx, cy = int(x), int(y)
             if radius < self.max_radius: 
                 if player_cord == None:
-                    player_cord = [cx, cy]
+                    player_cord = (cx, cy)
 
                 elif mark_cord == None:
-                    mark_cord = [cx, int(cy+(radius))]
+                    mark_cord = (cx, int(cy+(radius)))
                 
                 else:break
 
-        return player_cord, mark_cord
+        return (player_cord, mark_cord)
     
-    def draw_point(self, frame: np.ndarray, position: list[int, int], title: str, color: list = (255, 0, 0)): 
+    def draw_point(self, frame: np.ndarray, position: tuple[int, int], title: str, color: tuple = (255, 0, 0)): 
         radius = int(40*self.avg_multiplier)
         thickness = int(12*self.avg_multiplier)
 
@@ -99,28 +98,33 @@ class MarkDetector:
     def load_color(self, color:str):
         match color:
             case 'orange':
-                self.hsv_min = [10, 106, 123]
-                self.hsv_max = [13, 238, 231]
+                hsv_min = (10, 106, 123)
+                hsv_max = (13, 238, 231)
             case 'yellow':
-                self.hsv_min = [25,130,130]
-                self.hsv_max = [50,241,255]
+                hsv_min = (25,130,130)
+                hsv_max = (50,241,255)
             case 'blue':
-                self.hsv_min = [67, 70, 106]
-                self.hsv_max = [110, 210, 231]
+                hsv_min = (67, 70, 106)
+                hsv_max = (110, 210, 231)
             case 'green':
-                self.hsv_min = [81,83,101]
-                self.hsv_max = [155, 195, 255]
+                hsv_min = (81,83,101)
+                hsv_max = (155, 195, 255)
+            case _:
+                raise ValueError(f"There is no color {color}")
+        self.hsv_min = np.array(hsv_min, dtype=np.uint8)
+        self.hsv_max = np.array(hsv_max, dtype=np.uint8)
 
 def raiseMarkDetector(image: np.ndarray, color:str):
-    mark_detector = MarkDetector([3840, 2160])
+    mark_detector = MarkDetector((3840, 2160))
 
     player_cord, mark_cord = mark_detector.get_cords(image, color)
     print(f"Player Position: {player_cord} Mark Position: {mark_cord}")
 
     image = cv2.bitwise_and(cv2.cvtColor(mark_detector._process_image(image), cv2.COLOR_GRAY2BGR), image)
-
-    mark_detector.draw_point(image, player_cord, 'Player')
-    mark_detector.draw_point(image, mark_cord, 'Mark', (0, 0, 255))
+    if player_cord is not None:
+        mark_detector.draw_point(image, player_cord, 'Player')
+    if mark_cord is not None:
+        mark_detector.draw_point(image, mark_cord, 'Mark', (0, 0, 255))
 
     cv2.imshow('Grid', cv2.resize(image,(image.shape[1]//2, image.shape[0]//2)))
     cv2.waitKey(0)

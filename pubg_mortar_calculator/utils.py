@@ -1,26 +1,23 @@
-import tkinter
 import pyttsx3
 import cv2
 import numpy as np
+
+from tkinter import filedialog
 from mss import mss
 from screeninfo import get_monitors, common
 
 def text_to_speech(text, voice_id=None, rate=150, volume=1.0):
-    # Initialize the TTS engine
     engine = pyttsx3.init()
 
-    # Set properties
-    engine.setProperty('rate', rate)  # Speed of speech
-    engine.setProperty('volume', volume)  # Volume (0.0 to 1.0)
+    engine.setProperty('rate', rate)
+    engine.setProperty('volume', volume)
 
-    # Set the voice
     voices = engine.getProperty('voices')
     if voice_id:
         engine.setProperty('voice', voice_id)
     else:
-        engine.setProperty('voice', voices[0].id)  # Default voice
+        engine.setProperty('voice', voices[0].id)
 
-    # Speak the text
     engine.say(str(text))
     engine.runAndWait()
 
@@ -36,8 +33,8 @@ def take_screenshot():
 
         return cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
 
-def get_image_path() -> dict:
-    image_path: str = tkinter.filedialog.askopenfilename(title="Select a File",
+def get_image_path() -> str:
+    image_path: str = filedialog.askopenfilename(title="Select a File",
                                                         filetypes=[("Image Files", "*.png;*.jpg"),
                                                                    ("PNG Files", "*.png"),
                                                                    ("JPG Files", "*.jpg")])

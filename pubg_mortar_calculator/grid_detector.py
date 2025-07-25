@@ -8,7 +8,7 @@ class GridDetector:
     def __init__(self, canny_threshold1:int, canny_threshold2:int,
                  line_threshold:int,
                  max_gap:int, gap_threshold:int,
-                 reference_resolution:list[int, int]=[3840, 2160]):
+                 reference_resolution:tuple[int, int]=(3840, 2160)):
         self.canny_threshold1 = canny_threshold1
         self.canny_threshold2 = canny_threshold2
         self.aperture_size = 3
@@ -73,7 +73,7 @@ class GridDetector:
         modes = [key for key, count in frequency.items() if count == max_count]
         return sum(modes) / len(modes) if len(modes) > 1 else modes[0]
 
-    def separate_lines(self, lines:list[int]) -> list[list[int], list[int]]:
+    def separate_lines(self, lines:list[int]) -> tuple[list, list]:
         horizontal_lines = []
         vertical_lines = []
 
@@ -89,9 +89,9 @@ class GridDetector:
         horizontal_lines = sorted(horizontal_lines, key=lambda x:x[1])
         vertical_lines = sorted(vertical_lines, key=lambda x:x[0])
 
-        return horizontal_lines, vertical_lines
+        return (horizontal_lines, vertical_lines)
 
-    def get_grid_gap(self) -> int:
+    def get_grid_gap(self) -> int | None:
         horizontal_gaps = []
         vertical_gaps = []
 
@@ -117,7 +117,7 @@ class GridDetector:
         return mode_gap
         
     @staticmethod
-    def get_distance(first_point:list[int, int], second_point:list[int, int],
+    def get_distance(first_point:tuple[int, int], second_point:tuple[int, int],
                  grid_gap:int):
         delta_y = abs(first_point[0] - second_point[0])/grid_gap*100
         delta_x = abs(first_point[1] - second_point[1])/grid_gap*100
@@ -127,8 +127,8 @@ def raiseGridDetector(image:np.ndarray):
     with open('settings.json', 'r') as file:
         settings = json.load(file)
 
-    grid_detector = GridDetector(settings["canny1_threshold"], settings["canny2_threshold"],
-                                 settings["line_threshold"], settings["line_gap"], settings["gap_threshold"])
+    grid_detector = GridDetector(settings["Canny 1 Threshold"], settings["Canny 2 Threshold"],
+                                 settings["Line Threshold"], settings["Line Gap"], settings["Gap Threshold"])
 
     grid_detector.detect_lines(image)
     grid_detector.draw_lines(image)

@@ -9,9 +9,9 @@ class SampleLoader:
         self.samples_path = 'tests/test_samples/'
         self.samples = []
     
-    def add(self, player_position:list[int, int],
-                mark_position:list[int, int], grid_gap:list[int, int],
-                color:str, frame:np.ndarray=None, name:str=None):
+    def add(self, player_position:tuple[int, int],
+                mark_position:tuple[int, int], grid_gap:int,
+                color:str, frame:np.ndarray|None=None, name:str|None=None):
         
         if name is None:
             time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

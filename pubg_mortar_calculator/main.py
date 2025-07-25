@@ -14,16 +14,15 @@ def listen_for_keys(app: App):
         time.sleep(0.001)
 
 def on_closing():
-    settings_loader.save_current_settings()
-    exit()
+    settings_loader.save()
+    exit("Goodbye!")
+
+settings_loader = SettingsLoader()
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 app = App()
 app.protocol("WM_DELETE_WINDOW", on_closing)
-
-settings_loader = SettingsLoader(app, 'settings.json')
-settings_loader.load_settings()
 
 t=threading.Thread(target=listen_for_keys, args=(app,), daemon=True)
 t.start()
