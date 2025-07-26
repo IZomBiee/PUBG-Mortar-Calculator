@@ -124,7 +124,8 @@ class App(ct.CTk):
         ct.CTkLabel(self.mark_frame, text="Mark Color: ").grid(row=2, column=0)
 
         self.mark_color_combobox = CustomCombobox(self.mark_frame, values=['orange', 'yellow', 'blue', 'green'],
-                                                       command=self.process_preview_image, return_value=False)
+                                                       command=self.process_preview_image, return_value=False,
+                                                       settings_id="Mark Color Combobox")
         self.mark_color_combobox.grid(row=2, column=1)
         
         self.mark_detector = MarkDetector((3840, 2160))
@@ -159,7 +160,7 @@ class App(ct.CTk):
                                      self.grid_detection_line_threshold_slider.get(),
                                      self.grid_detection_line_gap_slider.get(),
                                      self.grid_detection_gap_threshold_slider.get(),
-                                     [3840, 2160]
+                                     (3840, 2160)
                                      )
 
         grid_detector.detect_lines(frame)

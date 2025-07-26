@@ -62,28 +62,39 @@ class CustomSlider:
         return int(self.slider.get())
 
 class CustomCombobox:
-    def __init__(self, master: CTkFrame, current_value:str|None=None,values:list[str]=[], state='readonly',
-                 command=None, command_args:tuple=(), return_value=True, **kwargs):
+    def __init__(self, master: CTkFrame, current_value:str|None=None,values:list[str]=[],
+                 state='readonly', command=None, command_args:tuple=(),
+                 return_value:bool=True, use_settings:bool=True, settings_id:str='Combobox',**kwargs):
         self.master = master
         self.command = command
         self.command_args = command_args
         self.return_value = return_value
+        self.use_settings = use_settings
+        self.id = settings_id
         self.combobox = CTkComboBox(self.master, command=self.on_combobox,
                                                   state=state, values=list(values), **kwargs)
         if current_value is not None:
             self.add_values(current_value)
         elif len(values) > 0: self.set(values[-1])
+
+        if use_settings:
+            value = SL().get(settings_id)
+            if value is not None and isinstance(value, str):
+                self.set(value)
         
     def grid(self, row=0, column=0, **kwargs) -> "CustomCombobox":
         self.combobox.grid(row=row, column=column, **kwargs)
         return self
     
     def on_combobox(self, value:str):
+        SL().set(self.id, value)
+
         if self.command is not None:
             if self.return_value:
                 self.command(value, *self.command_args)
             else:
                 self.command(*self.command_args)
+        
     
     def add_values(self, values:str | list[str], select=True):
         if type(values) == str:
@@ -223,7 +234,7 @@ class CustomEntry:
         self.use_settings = use_settings
         self.entry = CTkEntry(master, textvariable=self.text_varible,
                               placeholder_text=placeholder_text, state=state, **kwargs)
-        self.entry.bind("<FocusOut>", self.on_entry)
+        self.entry.bind("<KeyRelease>", self.on_entry)
         
         if self.use_settings:
             value = SL().get(placeholder_text)
@@ -231,7 +242,6 @@ class CustomEntry:
                 self.set(value)
 
     def on_entry(self, _):
-        print(self.placeholder_text, self.get())
         SL().set(self.placeholder_text, self.get())
 
     def get(self):
