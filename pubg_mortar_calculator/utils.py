@@ -1,6 +1,7 @@
 import pyttsx3
 import cv2
 import numpy as np
+import pygetwindow
 
 from tkinter import filedialog
 from mss import mss
@@ -21,17 +22,32 @@ def text_to_speech(text, voice_id=None, rate=150, volume=1.0):
     engine.say(str(text))
     engine.runAndWait()
 
-def get_monitor_properties(monitor=0) -> common.Monitor:
-    return get_monitors()[monitor]
 
-def take_screenshot():
+def take_screenshot() -> np.ndarray:
+    windows = pygetwindow.getWindowsWithTitle("PUBG")
+    if windows:
+        window = windows[0]
+        x, y = window.left, window.top
+        w, h = window.width, window.height
+
+        region = {
+            'top': y,
+            'left': x,
+            'width': w,
+            'height': h,
+        }
+    else:
+        monitors = get_monitors()[0]
+        region = {
+            'top': 0,
+            'left': 0,
+            'width': monitors.width,
+            'height': monitors.height,
+        }
+
     with mss() as sct:
-        frame = sct.grab((0, 0,
-                            get_monitor_properties().width,
-                            get_monitor_properties().height))
-        frame = np.array(frame)
-
-        return cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+        screenshot = sct.grab(region)
+    return cv2.cvtColor(np.array(screenshot), cv2.COLOR_BGRA2BGR)
 
 def get_image_path() -> str:
     image_path: str = filedialog.askopenfilename(title="Select a File",

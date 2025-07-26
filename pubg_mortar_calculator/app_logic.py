@@ -1,5 +1,5 @@
 import cv2
-import time
+import threading
 import os
 import numpy as np
 
@@ -50,7 +50,8 @@ class AppLogic():
             print("No App UI loaded!")
             return
         
-        if combat_mode: self.last_image = utils.take_screenshot()
+        if combat_mode:
+            self.last_image = utils.take_screenshot()
 
         draw_frame = self.last_image.copy()
 
@@ -75,7 +76,7 @@ class AppLogic():
 
         if combat_mode:
             if self.app_ui.general_settings_dictor_checkbox.get():
-                utils.text_to_speech(f"Range {distance}")
+                threading.Thread(target=utils.text_to_speech, args=(f"Range {distance}",)).start()
 
         if self.app_ui.grid_detection_show_processed_image_checkbox.get():
             draw_frame = cv2.cvtColor(canny_frame, cv2.COLOR_GRAY2BGR)
@@ -108,58 +109,3 @@ class AppLogic():
         self.app_ui.calculation_mark_cordinates_label.configure(text=f'{mark_pos}')
         self.app_ui.calculation_player_cordinates_label.configure(text=f'{player_pos}')
         self.app_ui.calculation_distance_label.configure(text=f'{distance}')
-
-    # def process_preview_image(self, combat_mode=False):
-    #     print(f'------------- CALCULATION IN {"COMBAT"if combat_mode else "PREVIEW"} MODE -------------')
-    #     if combat_mode:
-    #         self.last_image = utils.take_screenshot()
-    #         cv2.imwrite(f'screenshots/{time.time()}.png', self.last_image)
-    #     else:
-    #         if self.last_image is None: return
-
-    #     frame = self.last_image.copy()
-
-    #     grid_detector.detect_lines(frame)
-    #     grid_gap = grid_detector.get_grid_gap()
-            
-    #     self.calculation_grid_gap_label.configure(text=f'{grid_gap}')
-    #     print(f"GRID GAP: {grid_gap}")
-
-    #     player_cord, mark_cord = self.mark_detector.get_cords(frame, self.mark_color_combobox.get())
-    #     self.calculation_mark_cordinates_label.configure(text=f'{mark_cord}')
-    #     self.calculation_player_cordinates_label.configure(text=f'{player_cord}')
-    #     print(f'PLAYER POSITION: {player_cord}')
-    #     print(f'MARK POSITION: {mark_cord}')
-
-    #     if player_cord is not None and mark_cord is not None and grid_gap is not None:
-    #         try:
-    #             distance = round(grid_detector.get_distance(player_cord, mark_cord, grid_gap))
-    #         except ZeroDivisionError:
-    #             distance = 0
-            
-    #         self.calculation_distance_label.configure(text=f'{distance}')
-    #         print(f'DISTANCE: {distance}')
-
-    #         if self.general_settings_add_to_test_samples_checkbox.get() and combat_mode and distance != 0:
-    #             self.sample_loader.add(player_cord, mark_cord, grid_gap,
-    #                                 self.mark_color_combobox.get(),
-    #                                 frame=frame)
-
-    #     if self.grid_detection_show_processed_image_checkbox.get():
-    #         frame = cv2.cvtColor(grid_detector.process_frame(frame), cv2.COLOR_GRAY2BGR)
-    #         frame = cv2.resize(frame, (int(frame.shape[1]*grid_detector.normalize_multiplier[0]),
-    #                                    int(frame.shape[0]*grid_detector.normalize_multiplier[1])))
-        
-    #     if self.grid_detection_draw_grid_lines_checkbox.get():
-    #         grid_detector.draw_lines(frame)
-        
-    #     if self.mark_draw_checkbox.get():
-    #         if player_cord is not None:
-    #             self.mark_detector.draw_point(frame, player_cord, "Player", (255, 0, 0))
-    #         if mark_cord is not None:
-    #             self.mark_detector.draw_point(frame, mark_cord, "Mark", (0, 0, 255))
-
-    #     self.preview_image.set_cv2(frame)
-            
-    #     if self.general_settings_dictor_checkbox.get() and combat_mode:
-    #         utils.text_to_speech(str(distance))
