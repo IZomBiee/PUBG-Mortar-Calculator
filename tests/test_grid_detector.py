@@ -3,7 +3,7 @@ import cv2
 import json
 import os
 
-from pubg_mortar_calculator.grid_detector import GridDetector, raiseGridDetector
+from pubg_mortar_calculator.grid_detector import GridDetector
 
 class TestGridDetector(unittest.TestCase):
     def setUp(self):
@@ -13,10 +13,9 @@ class TestGridDetector(unittest.TestCase):
                 with open(f'tests/test_samples/{file}', 'r') as file:
                     self.test_samples.append(json.load(file))
         with open('settings.json', 'r') as file:
-            settings = json.load(file)
+            self.settings = json.load(file)
 
-        self.grid_detector = GridDetector(settings["canny1_threshold"], settings["canny2_threshold"],
-                                        settings["line_threshold"], settings["line_gap"], settings["merge_threshold"])
+        self.grid_detector = GridDetector()
         
     def test_get_grid_gap(self):
         for sample in self.test_samples:
@@ -24,15 +23,13 @@ class TestGridDetector(unittest.TestCase):
 
             image = cv2.imread(f'tests/test_samples/{sample['name']}.png')
 
-            self.grid_detector.detect_lines(image)
-            gap = self.grid_detector.get_grid_gap()
+            self.grid_detector.detect_lines(self.grid_detector.get_canny_frame(image,
+                self.settings["Canny 1 Threshold"], self.settings["Canny 2 Threshold"]),
+                self.settings["Line Threshold"], self.settings["Line Gap"])
+            gap = self.grid_detector.get_grid_gap(self.settings["Gap Threshold"])
             print(f"Grid Gap: {gap}")
             
-            try:
-                self.assertAlmostEqual(sample['grid_gap'], gap, delta=3, msg="Gap isn't correct")
-            except AssertionError as e:
-                raiseGridDetector(image)
-                raise AssertionError(e)
+            self.assertAlmostEqual(sample['grid_gap'], gap, delta=3, msg="Gap isn't correct")
 
 if __name__ == '__main__':
     unittest.main()

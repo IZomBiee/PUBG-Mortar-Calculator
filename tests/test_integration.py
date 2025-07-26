@@ -15,21 +15,22 @@ class TestIntegration(unittest.TestCase):
                 with open(f'tests/test_samples/{file}', 'r') as file:
                     self.test_samples.append(json.load(file))
         with open('settings.json', 'r') as file:
-            settings = json.load(file)
+            self.settings = json.load(file)
 
-        self.grid_detector = GridDetector(settings["canny1_threshold"], settings["canny2_threshold"],
-                                        settings["line_threshold"], settings["line_gap"], settings["merge_threshold"])
-        self.mark_detector = MarkDetector([3840, 2160])
+        self.grid_detector = GridDetector()
+        self.mark_detector = MarkDetector()
     
     def test_distance(self):
         for sample in self.test_samples:
             print(f"Image: {sample['name']}.png Sample: {sample}")
 
             image = cv2.imread(f'tests/test_samples/{sample['name']}.png')
-            self.grid_detector.detect_lines(image)
-            self.mark_detector.load_color(sample['color'])
-            gap = self.grid_detector.get_grid_gap()
-            player_cord, mark_cord = self.mark_detector.get_cords(image) 
+            self.grid_detector.detect_lines(self.grid_detector.get_canny_frame(image,
+                self.settings["Canny 1 Threshold"], self.settings["Canny 2 Threshold"]),
+                self.settings["Line Threshold"], self.settings["Line Gap"])
+            gap = self.grid_detector.get_grid_gap(self.settings["Gap Threshold"])
+            player_cord, mark_cord = self.mark_detector.get_mark_positions(
+                self.mark_detector.get_hsv_mask(image, sample['color']), 35)
 
             correct_distance = GridDetector.get_distance(sample['player_position'], sample['mark_position'], sample['grid_gap'])
             distance = GridDetector.get_distance(player_cord, mark_cord, gap)
