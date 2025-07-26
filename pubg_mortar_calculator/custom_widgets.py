@@ -155,7 +155,7 @@ class CustomImage:
             return image
         return None
 
-    def set_cv2(self, array) -> np.ndarray:
+    def set_cv2(self, array: np.ndarray) -> np.ndarray:
         self.image = array
 
         if self.save_aspect_ratio:

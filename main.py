@@ -2,14 +2,15 @@ import customtkinter
 import keyboard
 import threading
 import time
+
 from pubg_mortar_calculator.app import App
 from pubg_mortar_calculator.settings_loader import SettingsLoader
 
 def listen_for_keys(app: App):
     while True:
         try:
-            if keyboard.is_pressed(app.get_calculate_key()):
-                app.process_preview_image(combat_mode=True)
+            if keyboard.is_pressed(app.get_calculation_key()):
+                app.reload_preview_image(True)
         except ValueError: time.sleep(1)
         time.sleep(0.001)
 
