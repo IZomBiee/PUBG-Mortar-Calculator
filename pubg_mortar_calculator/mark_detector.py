@@ -2,28 +2,19 @@ import cv2
 import numpy as np
 
 class MarkDetector:
-    def __init__(self):
-        self.multiplier = [1, 1]
-        self.avg_multiplier = 1
-        self.reference_resolution = (3840, 2160)
-
     def get_hsv_mask(self, bgr_frame:np.ndarray, color:str,
                      bluring_size: int = 19,
                      bluring_threshold: int = 15) -> np.ndarray:
-        self.multiplier = [bgr_frame.shape[1]/self.reference_resolution[0],
-                           bgr_frame.shape[0]/self.reference_resolution[1]]
-        self.avg_multiplier = sum(self.multiplier)/2
-
         hsv_frame = cv2.cvtColor(bgr_frame, cv2.COLOR_BGR2HSV)
 
         hsv_min, hsv_max = self._load_color(color)
         mask = cv2.inRange(hsv_frame, hsv_min, hsv_max)
 
-        mask = self.replace_area_with_black(mask, (0, mask.shape[0]-(350*self.avg_multiplier)),
-                                      (int(550*self.avg_multiplier), mask.shape[0]))
+        mask = self.replace_area_with_black(mask, (0, mask.shape[0]-350),
+                                      (550, mask.shape[0]))
 
-        mask = self.replace_area_with_black(mask, (mask.shape[1]-(900*self.avg_multiplier), 0),
-                                                (mask.shape[1], int(400*self.avg_multiplier)))
+        mask = self.replace_area_with_black(mask, (mask.shape[1]-900, 0),
+                                                (mask.shape[1], 400))
         
         mask = cv2.GaussianBlur(mask, (bluring_size, bluring_size), 7)
         
@@ -41,7 +32,7 @@ class MarkDetector:
         
         for contour in contours:
             (x,y),radius = cv2.minEnclosingCircle(contour)
-
+            
             cx, cy = int(x), int(y)
             if radius < max_radius: 
                 if player_cord == None:
@@ -54,37 +45,12 @@ class MarkDetector:
 
         return (player_cord, mark_cord)
     
-    def draw_mark(self, frame: np.ndarray,
-                   position: tuple[int, int],
-                   title: str,
-                   color: tuple = (255, 0, 0)): 
-        radius = int(40*self.avg_multiplier)
-        thickness = int(12*self.avg_multiplier)
-
-        cv2.circle(frame, position, radius, color, thickness)
-
-        font_scale = 3*self.avg_multiplier
-        font_thickness = max(1, int(font_scale * 3))
-
-        text_size = cv2.getTextSize(title, cv2.FONT_HERSHEY_SIMPLEX,
-                                    font_scale, font_thickness)[0]
-        text_w, text_h = text_size
-
-        bg_x, bg_y = position[0] - text_w // 2, position[1] - text_h - 10
-        bg_x = max(0, min(bg_x, frame.shape[1] - text_w))
-        bg_y = max(text_h + 10, min(bg_y, frame.shape[0] - 10))
-
-        cv2.rectangle(frame, (bg_x - 5, bg_y - text_h - 5),
-                      (bg_x + text_w + 5, bg_y + 5), (0, 0, 0), -1)
-        cv2.putText(frame, title, (bg_x, bg_y), cv2.FONT_HERSHEY_SIMPLEX,
-                    font_scale, (255, 255, 255), font_thickness)
-
     def _find_contours(self, mask:np.ndarray) -> list:
-        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
-        
-        return sorted_contours
+            sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
+            
+            return sorted_contours
 
     def _load_color(self, color:str) -> tuple[np.ndarray, np.ndarray]:
         match color:
@@ -105,6 +71,29 @@ class MarkDetector:
         hsv_min = np.array(hsv_min, dtype=np.uint8)
         hsv_max = np.array(hsv_max, dtype=np.uint8)
         return hsv_min, hsv_max
+
+    @staticmethod
+    def draw_mark(frame: np.ndarray,
+                   position: tuple[int, int],
+                   title: str,
+                   color: tuple = (255, 0, 0), radius: int = 40,
+                   thickness:int = 12, font_scale:int=3): 
+        cv2.circle(frame, position, radius, color, thickness)
+
+        font_thickness = max(1, int(font_scale * 3))
+
+        text_size = cv2.getTextSize(title, cv2.FONT_HERSHEY_SIMPLEX,
+                                    font_scale, font_thickness)[0]
+        text_w, text_h = text_size
+
+        bg_x, bg_y = position[0] - text_w // 2, position[1] - text_h - 10
+        bg_x = max(0, min(bg_x, frame.shape[1] - text_w))
+        bg_y = max(text_h + 10, min(bg_y, frame.shape[0] - 10))
+
+        cv2.rectangle(frame, (bg_x - 5, bg_y - text_h - 5),
+                      (bg_x + text_w + 5, bg_y + 5), (0, 0, 0), -1)
+        cv2.putText(frame, title, (bg_x, bg_y), cv2.FONT_HERSHEY_SIMPLEX,
+                    font_scale, (255, 255, 255), font_thickness)
 
     @staticmethod
     def replace_area_with_black(image: np.ndarray,

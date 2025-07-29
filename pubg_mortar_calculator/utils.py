@@ -5,7 +5,7 @@ import pygetwindow
 
 from tkinter import filedialog
 from mss import mss
-from screeninfo import get_monitors, common
+from screeninfo import get_monitors
 
 def text_to_speech(text, voice_id=None, rate=150, volume=1.0):
     engine = pyttsx3.init()
@@ -22,19 +22,22 @@ def text_to_speech(text, voice_id=None, rate=150, volume=1.0):
     engine.say(str(text))
     engine.runAndWait()
 
-
 def take_screenshot() -> np.ndarray:
+    TITLE_BAR_PERCENT = 0.04
+
     windows = pygetwindow.getWindowsWithTitle("PUBG")
     if windows:
         window = windows[0]
         x, y = window.left, window.top
         w, h = window.width, window.height
 
+        title_bar_height = int(h * TITLE_BAR_PERCENT)
+
         region = {
-            'top': y,
+            'top': y + title_bar_height,
             'left': x,
             'width': w,
-            'height': h,
+            'height': h - title_bar_height,
         }
     else:
         monitors = get_monitors()[0]
@@ -47,6 +50,7 @@ def take_screenshot() -> np.ndarray:
 
     with mss() as sct:
         screenshot = sct.grab(region)
+
     return cv2.cvtColor(np.array(screenshot), cv2.COLOR_BGRA2BGR)
 
 def get_image_path() -> str:

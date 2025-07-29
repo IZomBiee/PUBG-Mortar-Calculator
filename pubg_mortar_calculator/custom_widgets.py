@@ -6,8 +6,9 @@ import os
 
 from customtkinter import CTkSlider, CTkFrame, CTkLabel, CTkCheckBox, \
 CTkComboBox, CTkImage, CTkEntry
-from .settings_loader import SettingsLoader as SL
 from PIL import Image
+
+from .settings_loader import SettingsLoader as SL
 
 class CustomSlider:
     def __init__(self, master: CTkFrame, title:str = "Title",

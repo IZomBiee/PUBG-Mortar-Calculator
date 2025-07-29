@@ -1,17 +1,17 @@
 import cv2
 import numpy as np
 import json
-import os
 
 from datetime import datetime
+
 class SampleLoader:
     def __init__(self):
         self.samples_path = 'tests/test_samples/'
         self.samples = []
     
-    def add(self, player_position:tuple[int, int],
-                mark_position:tuple[int, int], grid_gap:int,
-                color:str, frame:np.ndarray|None=None, name:str|None=None):
+    def add(self, player_position:tuple[int, int] | None,
+                mark_position:tuple[int, int] | None, grid_gap:int | None,
+                color:str, frame:np.ndarray|None=None, name:str|None=None, real_distance: int | None = None):
         
         if name is None:
             time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -26,7 +26,8 @@ class SampleLoader:
                 'player_position':player_position,
                 'mark_position':mark_position,
                 'grid_gap':grid_gap,
-                'color':color
+                'color':color,
+                'real_distance':real_distance
             }, file)
 
     def change(self, name:str, data:dict):
@@ -45,8 +46,3 @@ class SampleLoader:
     def load(self, name:str) -> dict:
         with open(self.samples_path+name+'.json', 'r') as file:
             return json.load(file)
-
-if __name__ == '__main__':
-    sample_loader = SampleLoader()
-    # sample_loader.add(np.array((255, 255, 3)), (0, 0), (0, 0), (52, 52), 'red', 'full')
-    # sample_loader.change('2025-03-10_17-29-25.json', {'name':"Why so sireous"})

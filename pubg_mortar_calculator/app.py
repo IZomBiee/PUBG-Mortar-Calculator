@@ -1,10 +1,7 @@
 import customtkinter as ct
 
-from pubg_mortar_calculator.app_logic import AppLogic
-from pubg_mortar_calculator.custom_widgets import *
-from pubg_mortar_calculator.grid_detector import GridDetector
-from pubg_mortar_calculator.mark_detector import MarkDetector
-from pubg_mortar_calculator.sample_loader import SampleLoader
+from .custom_widgets import *
+from .app_logic import AppLogic 
 
 class App(ct.CTk, AppLogic):
     def __init__(self):
@@ -14,18 +11,20 @@ class App(ct.CTk, AppLogic):
         
         title_font = ct.CTkFont('Arial', 15, 'bold')
 
+        # Left Frame
+
         # Preview Frame
         self.preview_frame = ct.CTkFrame(self)
         self.preview_frame.grid(row=0, column=0)
 
-        self.preview_image = CustomImage(self.preview_frame, (720, 480), save_aspect_ratio=True).grid(row=0, column=0)
+        self.preview_image = CustomImage(self.preview_frame, (int(720/1.2), int(480//1.2)), save_aspect_ratio=True).grid(row=0, column=0)
 
         # Calculation Frame 
         self.calculation_frame = ct.CTkFrame(self.preview_frame)
         self.calculation_frame.grid(row=1, column=0)
         
         ct.CTkLabel(self.calculation_frame, text='Calculated values',
-                    font=title_font).grid(row=1, column=0, columnspan=2)
+                    font=title_font).grid(row=1, column=0, columnspan=4)
 
         ct.CTkLabel(self.calculation_frame,text='Player Cordinates: ').grid(row=2, column=0)
 
@@ -46,6 +45,12 @@ class App(ct.CTk, AppLogic):
 
         self.calculation_distance_label = ct.CTkLabel(self.calculation_frame, text='None')
         self.calculation_distance_label.grid(row=5, column=1)
+
+        ct.CTkLabel(self.calculation_frame, text='Elevation: ').grid(row=2, column=2,
+            padx=(10, 10))
+
+        self.calculation_elevation_label = ct.CTkLabel(self.calculation_frame, text='None')
+        self.calculation_elevation_label.grid(row=2, column=3)
 
         # Right Frame
         self.right_frame = ct.CTkFrame(self, fg_color='transparent')
@@ -119,15 +124,39 @@ class App(ct.CTk, AppLogic):
         self.mark_show_processed_image_checkbox = CustomCheckbox(self.mark_frame, text="Show Processed Image",
                             command=self.reload_preview_image).grid(row=1, column=1, padx=(10, 10))
         
-        ct.CTkLabel(self.mark_frame, text="Mark Color: ").grid(row=2, column=0)
+        self.mark_zoom_to_points_checkbox = CustomCheckbox(self.mark_frame, text="Zoom To Points",
+                                  command=self.reload_preview_image).grid(row=2, columnspan=3,
+                                                                          padx=(10, 10))
+
+        ct.CTkLabel(self.mark_frame, text="Mark Color: ").grid(row=3, column=0)
 
         self.mark_color_combobox = CustomCombobox(self.mark_frame, values=['orange', 'yellow', 'blue', 'green'],
                                                        command=self.reload_preview_image, return_value=False,
                                                        settings_id="Mark Color Combobox")
-        self.mark_color_combobox.grid(row=2, column=1)
+        self.mark_color_combobox.grid(row=3, column=1, columnspan=2)
+
+        self.mark_max_radius_slider = CustomSlider(self.mark_frame, "Mark Max Radius",
+                                                   5, 50,
+                                                   command=self.reload_preview_image,
+                                                   return_value=False
+                                                   ).grid(row=4)
+
+        # Elevation Frame
+        self.elevation_frame = ct.CTkFrame(self.right_frame)
+        self.elevation_frame.grid(row=5, column=0, pady=(10, 10))
+
+        ct.CTkLabel(self.elevation_frame, text='Elevation Settings',
+                    font=title_font).grid(row=0, column=0, columnspan=3)
+
+        self.elevation_enable_checkbox = CustomCheckbox(self.elevation_frame, text="Calculate Elevation",
+                            command=self.reload_preview_image).grid(row=1, column=0, padx=(10, 10))
+        
+        self.elevation_hotkey_entry = CustomEntry(self.elevation_frame,
+                                                  placeholder_text='Elevation Hotkey'
+                                                  ).grid(row=1, column=1, padx=(10, 10))
         
         self.app_ui = self
         self.on_ui_load()
-
+        
     def get_calculation_key(self) -> str:
         return self.general_settings_calculation_key_entry.get()

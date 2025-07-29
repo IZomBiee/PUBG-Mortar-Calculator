@@ -28,11 +28,3 @@ app.protocol("WM_DELETE_WINDOW", on_closing)
 t=threading.Thread(target=listen_for_keys, args=(app,), daemon=True)
 t.start()
 app.mainloop()
-
-
-    
-
-
-
-             
-    

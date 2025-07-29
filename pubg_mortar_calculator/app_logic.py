@@ -2,14 +2,21 @@ import cv2
 import threading
 import os
 import numpy as np
+import datetime
+import time
+import onnxruntime as ort
 
+from tkinter import messagebox, simpledialog
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .app import App
-from pubg_mortar_calculator import utils
+
+from .utils import *
 from .settings_loader import SettingsLoader as SL
 from .grid_detector import GridDetector
 from .mark_detector import MarkDetector
+from .sample_loader import SampleLoader
+from .height_detector import HeightDetector
 
 class AppLogic():
     def __init__(self):
@@ -18,6 +25,7 @@ class AppLogic():
     def on_ui_load(self):
         self.grid_detector = GridDetector()
         self.mark_detector = MarkDetector()
+        self.sample_loader = SampleLoader()
 
         self.last_image: np.ndarray | None = None
         path = SL().get('Last Preview Path')
@@ -26,7 +34,7 @@ class AppLogic():
 
     def load_preview_image(self, path: str | None = None) -> np.ndarray | None:
         if path is None:
-            path = utils.get_image_path()
+            path = get_image_path()
             if path == '':
                 return None
             else:
@@ -43,15 +51,15 @@ class AppLogic():
                 return None
     
     def reload_preview_image(self, combat_mode:bool = False):
+        if combat_mode:
+            self.last_image = take_screenshot()
+
         if self.last_image is None:
             print("No image loaded!")
             return
         elif self.app_ui is None: 
             print("No App UI loaded!")
             return
-        
-        if combat_mode:
-            self.last_image = utils.take_screenshot()
 
         draw_frame = self.last_image.copy()
 
@@ -66,7 +74,8 @@ class AppLogic():
 
         hsv_mask = self.mark_detector.get_hsv_mask(draw_frame,
                                                    self.app_ui.mark_color_combobox.get())
-        player_pos, mark_pos = self.mark_detector.get_mark_positions(hsv_mask, 35)
+        player_pos, mark_pos = self.mark_detector.get_mark_positions(hsv_mask,
+            self.app_ui.mark_max_radius_slider.get())
 
         if player_pos is not None and \
         mark_pos is not None and grid_gap is not None:
@@ -76,10 +85,36 @@ class AppLogic():
 
         if combat_mode:
             if self.app_ui.general_settings_dictor_checkbox.get():
-                threading.Thread(target=utils.text_to_speech, args=(f"Range {distance}",)).start()
+                text_to_speech(f"Range {distance}")
+
+            if self.app_ui.elevation_enable_checkbox.get():
+                raise NotImplementedError("In development")
+                self.app_ui.calculation_elevation_label.configure(text='Disabled')
+                game_hsv_mask = self.mark_detector.get_hsv_mask(take_screenshot(),
+                                self.app_ui.mark_color_combobox.get())
+                game_hsv_mask = game_hsv_mask[300:, :]
+                cx, cy = HeightDetector.get_center_point(game_hsv_mask)
+                game_hsv_mask = HeightDetector.cut_x_line(game_hsv_mask, cx)
+                game_mark_pos = self.mark_detector.get_mark_positions(game_hsv_mask, 100)[0]
+                if game_mark_pos is None:
+                    text_to_speech("No mark founded")
+                else:
+                    text_to_speech(f"Found mark")
+                    elevation = HeightDetector.get_elevation(cy, game_mark_pos[1], 90, distance)
+                    corrected_distance = HeightDetector.get_correct_distance(elevation, distance)
+                    text_to_speech(f"Correct Distance {round(corrected_distance)}")
+                    print(f"Was {distance}, become {corrected_distance}")
+            else:
+                self.app_ui.calculation_elevation_label.configure(text='Disabled')
+
+            if self.app_ui.general_settings_add_to_test_samples_checkbox.get():
+                self.sample_loader.add(player_pos, mark_pos, grid_gap,
+                                       self.app_ui.mark_color_combobox.get(),
+                                       draw_frame)
 
         if self.app_ui.grid_detection_show_processed_image_checkbox.get():
             draw_frame = cv2.cvtColor(canny_frame, cv2.COLOR_GRAY2BGR)
+
         elif self.app_ui.mark_show_processed_image_checkbox.get():
             draw_frame = cv2.cvtColor(hsv_mask, cv2.COLOR_GRAY2BGR)
         
@@ -91,6 +126,10 @@ class AppLogic():
                 self.mark_detector.draw_mark(draw_frame, player_pos, "Player", (255, 0, 0))
             if mark_pos is not None:
                 self.mark_detector.draw_mark(draw_frame, mark_pos, "Mark", (0, 0, 255))
+
+        if mark_pos is not None and player_pos is not None \
+        and self.app_ui.mark_zoom_to_points_checkbox.get():
+            draw_frame = HeightDetector.cut_to_points(draw_frame, mark_pos, player_pos)
 
         self.app_ui.preview_image.set_cv2(draw_frame)
 

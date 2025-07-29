@@ -1,7 +1,7 @@
 import json
-from pubg_mortar_calculator import utils
+from .utils import singleton
 
-@utils.singleton
+@singleton
 class SettingsLoader:
     def __init__(self):
         self.path = 'settings.json'

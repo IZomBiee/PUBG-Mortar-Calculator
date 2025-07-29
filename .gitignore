@@ -4,3 +4,4 @@ tests/test_samples/*
 .gitkeep
 .vscode
 .idea
+*.pt
