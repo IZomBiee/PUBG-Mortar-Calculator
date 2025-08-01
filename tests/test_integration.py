@@ -28,7 +28,7 @@ class TestIntegration(unittest.TestCase):
             self.grid_detector.detect_lines(self.grid_detector.get_canny_frame(image,
                 self.settings["Canny 1 Threshold"], self.settings["Canny 2 Threshold"]),
                 self.settings["Line Threshold"], self.settings["Line Gap"])
-            gap = self.grid_detector.get_grid_gap(self.settings["Gap Threshold"])
+            gap = self.grid_detector.calculate_grid_gap(self.settings["Gap Threshold"])
             player_cord, mark_cord = self.mark_detector.get_mark_positions(
                 self.mark_detector.get_hsv_mask(image, sample['color']), 35)
 

@@ -93,7 +93,7 @@ class HeightDetector:
     
     @staticmethod
     def get_correct_distance(elevation:float, distance:float) -> float:
-        return distance-(elevation*0.76)
+        return distance+(elevation*0.76)
 
     @staticmethod
     def cut_x_line(image:np.ndarray, x:int, gap:int=100):
@@ -106,17 +106,18 @@ class HeightDetector:
 
 if __name__ == '__main__':
     detector = HeightDetector()
-    image = cv2.imread(r'tests\test_samples\2025-07-28_11-58-24.png')
-    with open(r'tests\test_samples\2025-07-28_11-58-24.json', 'r') as file:
+    name = '2025-07-28_11-55-26'
+    image = cv2.imread(rf'tests\test_samples\{name}.png')
+    with open(rf'tests\test_samples\{name}.json', 'r') as file:
         data = json.load(file)
     distance = GridDetector.get_distance(data['player_position'],
                     data['mark_position'],
                     data['grid_gap'])
-    image = HeightDetector.cut_to_points(image, data['mark_position'], data['player_position'])
-    predicted_distance = detector.get_corrected_distance(image, data['player_position'],
-                                          data['mark_position'], distance
-                                          )
-
+    elevation = HeightDetector.get_elevation(
+        HeightDetector.get_center_point(image)[1],
+        round(HeightDetector.get_center_point(image)[1]*1.10), 90, distance)
+    predicted_distance = HeightDetector.get_correct_distance(elevation, distance)
     print(f"Line-Off-Sight Distance: {distance}")
     print(f"Real Distance: {data['real_distance']}")
+    print(f"Elevation: {elevation}")
     print(f"Predicted Distance: {predicted_distance}")

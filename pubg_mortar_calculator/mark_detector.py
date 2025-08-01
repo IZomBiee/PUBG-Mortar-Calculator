@@ -2,13 +2,21 @@ import cv2
 import numpy as np
 
 class MarkDetector:
-    def get_hsv_mask(self, bgr_frame:np.ndarray, color:str,
+    def __init__(self) -> None:
+        self.hsv_min = np.array((0, 0, 0), dtype=np.uint8)
+        self.hsv_max = np.array((255, 255, 255), dtype=np.uint8)
+
+        self.player_position = None
+        self.mark_position = None
+
+    def get_hsv_mask(self, bgr_frame:np.ndarray, color:str|None=None,
                      bluring_size: int = 19,
                      bluring_threshold: int = 15) -> np.ndarray:
         hsv_frame = cv2.cvtColor(bgr_frame, cv2.COLOR_BGR2HSV)
 
-        hsv_min, hsv_max = self._load_color(color)
-        mask = cv2.inRange(hsv_frame, hsv_min, hsv_max)
+        if color is not None: self.load_color(color)
+
+        mask = cv2.inRange(hsv_frame, self.hsv_min, self.hsv_max)
 
         mask = self.replace_area_with_black(mask, (0, mask.shape[0]-350),
                                       (550, mask.shape[0]))
@@ -43,23 +51,18 @@ class MarkDetector:
                 
                 else:break
 
+        self.player_position = player_cord
+        self.mark_position = mark_cord
         return (player_cord, mark_cord)
-    
-    def _find_contours(self, mask:np.ndarray) -> list:
-            contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-            sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
-            
-            return sorted_contours
-
-    def _load_color(self, color:str) -> tuple[np.ndarray, np.ndarray]:
+    def load_color(self, color:str) -> tuple[np.ndarray, np.ndarray]:
         match color:
             case 'orange':
                 hsv_min = (10, 106, 123)
                 hsv_max = (13, 238, 231)
             case 'yellow':
-                hsv_min = (25,130,130)
-                hsv_max = (50,241,255)
+                hsv_min = (21, 165, 131)
+                hsv_max = (62, 255, 255)
             case 'blue':
                 hsv_min = (67, 70, 106)
                 hsv_max = (110, 210, 231)
@@ -68,12 +71,27 @@ class MarkDetector:
                 hsv_max = (80, 195, 218)
             case _:
                 raise ValueError(f"There is no color {color}")
-        hsv_min = np.array(hsv_min, dtype=np.uint8)
-        hsv_max = np.array(hsv_max, dtype=np.uint8)
-        return hsv_min, hsv_max
+        self.hsv_min = np.array(hsv_min, dtype=np.uint8)
+        self.hsv_max = np.array(hsv_max, dtype=np.uint8)
+        return self.hsv_min, self.hsv_max
+
+    def draw_marks(self, frame:np.ndarray) -> np.ndarray:
+        if self.player_position is not None:
+            self.draw_point(frame, self.player_position, "Player", (255, 0, 0))
+        if self.mark_position is not None:
+            self.draw_point(frame, self.mark_position, "Mark", (0, 0, 255))
+        return frame
 
     @staticmethod
-    def draw_mark(frame: np.ndarray,
+    def _find_contours(mask:np.ndarray) -> list:
+            contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+            sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
+            
+            return sorted_contours
+
+    @staticmethod
+    def draw_point(frame: np.ndarray,
                    position: tuple[int, int],
                    title: str,
                    color: tuple = (255, 0, 0), radius: int = 40,

@@ -14,9 +14,10 @@ class CustomSlider:
     def __init__(self, master: CTkFrame, title:str = "Title",
                  from_:int=0, to:int=100, default:int=0, number_of_steps:int=10,
                  command=None, command_args:tuple=(), return_value=True,
-                 use_settings: bool = True, **slider_args):
+                 use_settings: bool = True, saving_id:str="Slider", **slider_args):
         self.master = master
         self.title = title
+        self.id = saving_id
         self.command = command
         self.command_args = list(command_args)
         self.return_value = return_value
@@ -28,9 +29,8 @@ class CustomSlider:
         self.describe_label = CTkLabel(self.master, text=title)
 
         if use_settings:
-            value = SL().get(title)
+            value = SL().get(self.id)
             if value is not None and isinstance(value, int):
-                
                 default = value
     
         self.set(default)
@@ -39,7 +39,7 @@ class CustomSlider:
         value = self.get()
         self.label.configure(text=value)
         if self.use_settings:
-            SL().set(self.title, value)
+            SL().set(self.id, value)
         if self.command is not None:
             if self.return_value:
                 self.command(value, *self.command_args)
@@ -55,7 +55,7 @@ class CustomSlider:
     def set(self, value:int):
         if value > self.max: value = self.max
         elif value < self.min: value = self.min
-        SL().set(self.title, value)
+        SL().set(self.id, value)
         self.slider.set(value)
         self.label.configure(text=str(value))
     
@@ -65,13 +65,13 @@ class CustomSlider:
 class CustomCombobox:
     def __init__(self, master: CTkFrame, current_value:str|None=None,values:list[str]=[],
                  state='readonly', command=None, command_args:tuple=(),
-                 return_value:bool=True, use_settings:bool=True, settings_id:str='Combobox',**kwargs):
+                 return_value:bool=True, use_settings:bool=True, saving_id:str="Combobox",**kwargs):
         self.master = master
         self.command = command
         self.command_args = command_args
         self.return_value = return_value
         self.use_settings = use_settings
-        self.id = settings_id
+        self.id = saving_id
         self.combobox = CTkComboBox(self.master, command=self.on_combobox,
                                                   state=state, values=list(values), **kwargs)
         if current_value is not None:
@@ -79,7 +79,7 @@ class CustomCombobox:
         elif len(values) > 0: self.set(values[-1])
 
         if use_settings:
-            value = SL().get(settings_id)
+            value = SL().get(saving_id)
             if value is not None and isinstance(value, str):
                 self.set(value)
         
@@ -96,7 +96,6 @@ class CustomCombobox:
             else:
                 self.command(*self.command_args)
         
-    
     def add_values(self, values:str | list[str], select=True):
         if type(values) == str:
             values = [values]
@@ -227,9 +226,10 @@ class CustomImage:
 
 class CustomEntry:
     def __init__(self, master:CTkFrame, text:str='',
-                 placeholder_text:str='Description', state:str='normal',
-                 use_settings:bool=True, **kwargs):
+                 placeholder_text:str='', state:str='normal',
+                 use_settings:bool=True, saving_id:str="Entry", **kwargs):
         self.placeholder_text = placeholder_text
+        self.id = saving_id
         self.text_varible = tkinter.StringVar()
         self.text_varible.set(text)
         self.use_settings = use_settings
@@ -238,12 +238,13 @@ class CustomEntry:
         self.entry.bind("<KeyRelease>", self.on_entry)
         
         if self.use_settings:
-            value = SL().get(placeholder_text)
+            value = SL().get(self.id)
             if value is not None and isinstance(value, str):
                 self.set(value)
 
     def on_entry(self, _):
-        SL().set(self.placeholder_text, self.get())
+        if self.use_settings:
+            SL().set(self.id, self.get())
 
     def get(self):
         return self.entry.get()
@@ -259,10 +260,12 @@ class CustomEntry:
         return self
 
 class CustomCheckbox:
-    def __init__(self, master:CTkFrame, text:str = 'Text', default:bool=False,
+    def __init__(self, master:CTkFrame, 
+                 text:str = 'Text', default:bool=False,
                  command=None, command_args:tuple=(),
-                 use_settings: bool = True, **checkbox_args):
+                 use_settings: bool = True, saving_id:str="Checkbox", **checkbox_args):
         self.master = master
+        self.id = saving_id
         self.text = text
         self.command = command
         self.command_args = list(command_args)
@@ -270,7 +273,7 @@ class CustomCheckbox:
         self.checkbox = CTkCheckBox(self.master, text=text, command=self.on_checkbox, **checkbox_args)
 
         if use_settings:
-            value = SL().get(text)
+            value = SL().get(self.id)
             if value is not None and isinstance(value, bool):
                 default = value
     
@@ -278,7 +281,7 @@ class CustomCheckbox:
     
     def on_checkbox(self):
         if self.use_settings:
-            SL().set(self.text, self.get())
+            SL().set(self.id, self.get())
         if self.command is not None:
             self.command(*self.command_args)
 
@@ -287,7 +290,7 @@ class CustomCheckbox:
         return self
     
     def set(self, value:bool):
-        SL().set(self.text, value)
+        SL().set(self.id, value)
         if value: self.checkbox.select()
         else: self.checkbox.deselect()
     

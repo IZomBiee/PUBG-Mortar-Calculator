@@ -26,7 +26,7 @@ class TestGridDetector(unittest.TestCase):
             self.grid_detector.detect_lines(self.grid_detector.get_canny_frame(image,
                 self.settings["Canny 1 Threshold"], self.settings["Canny 2 Threshold"]),
                 self.settings["Line Threshold"], self.settings["Line Gap"])
-            gap = self.grid_detector.get_grid_gap(self.settings["Gap Threshold"])
+            gap = self.grid_detector.calculate_grid_gap(self.settings["Gap Threshold"])
             print(f"Grid Gap: {gap}")
             
             self.assertAlmostEqual(sample['grid_gap'], gap, delta=3, msg="Gap isn't correct")
