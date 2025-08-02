@@ -1,4 +1,4 @@
-from . import draw, paths
+from . import image, paths
 from .screenshot import take_game_screenshot
 
 def singleton(class_):

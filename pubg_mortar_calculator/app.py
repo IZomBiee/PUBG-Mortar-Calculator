@@ -59,19 +59,19 @@ class App(ct.CTk, AppLogic):
 
         # Grid Detection Frame
         self.grid_detection_frame = ct.CTkFrame(self.center_frame)
-        self.grid_detection_frame.grid(row=1, column=0, pady=10, padx=5)
+        self.grid_detection_frame.grid(row=0, column=0, pady=10, padx=5)
         
         ct.CTkLabel(self.grid_detection_frame, text="Grid Detection",
                     font=title_font).grid(row=0, column=0, columnspan=3)
 
         self.grid_detection_show_processed_image_checkbox = CustomCheckbox(
-            self.grid_detection_frame, text='Show Processed Image',
+            self.grid_detection_frame, text='Draw Processed',
             command=self.reload_map_image,
             saving_id='grid_detection_show_processed_image_checkbox'
             ).grid(row=1, column=0,  padx=(10, 0))
 
         self.grid_detection_draw_grid_lines_checkbox = CustomCheckbox(
-            self.grid_detection_frame, text='Draw Grid Lines',
+            self.grid_detection_frame, text='Draw Grid',
             command=self.reload_map_image,
             saving_id='grid_detection_draw_grid_lines_checkbox'
             ).grid(row=1, column=1)
@@ -112,45 +112,21 @@ class App(ct.CTk, AppLogic):
         self.grid_detection_load_example_button.grid(row=7, column=0,
             columnspan=3, pady=(0, 10))
 
-        # General Settings Frame
-        self.general_settings_frame = ct.CTkFrame(self.center_frame)
-        self.general_settings_frame.grid(row=3, column=0, pady=10)
-
-        ct.CTkLabel(self.general_settings_frame, text='General Settings',
-                    font=title_font).grid(row=0, column=0, columnspan=2)
-
-        self.general_settings_dictor_checkbox = CustomCheckbox(
-            self.general_settings_frame,text="Dictor",
-            saving_id='general_settings_dictor_checkbox').grid(row=1, column=0)
-        
-        self.general_settings_add_to_test_samples_checkbox = CustomCheckbox(
-            self.general_settings_frame, text="Add To Test Samples",
-            saving_id='general_settings_add_to_test_samples_checkbox'
-            ).grid(row=1, column=1, padx=(0, 5))
-
-        ct.CTkLabel(self.general_settings_frame, text='Calculation Hotkey:'
-            ).grid(row=3, column=0, padx=5, pady=5)
-
-        self.general_settings_calculation_hotkey_entry = CustomEntry(
-            self.general_settings_frame, text='ctrl+p',
-            saving_id='general_settings_calculation_hotkey_entry')
-        self.general_settings_calculation_hotkey_entry.grid(row=3, column=1)
-
         # Mark Frame
         self.mark_frame = ct.CTkFrame(self.center_frame)
-        self.mark_frame.grid(row=4, column=0)
+        self.mark_frame.grid(row=1, column=0)
 
         ct.CTkLabel(self.mark_frame, text='Mark Detection',
                     font=title_font).grid(row=0, column=0, columnspan=3)
 
         self.mark_draw_checkbox = CustomCheckbox(
-            self.mark_frame, text="Draw Marks Location",
+            self.mark_frame, text="Draw Marks",
             command=self.reload_map_image,
             saving_id='mark_draw_checkbox'
             ).grid(row=1, column=0, padx=(10, 10))
         
         self.mark_show_processed_image_checkbox = CustomCheckbox(
-            self.mark_frame, text="Show Processed Image",
+            self.mark_frame, text="Draw Processed",
             command=self.reload_map_image,
             saving_id='mark_show_processed_image_checkbox'
             ).grid(row=1, column=1, padx=(10, 10))
@@ -175,12 +151,12 @@ class App(ct.CTk, AppLogic):
             command=self.reload_map_image,
             return_value=False, saving_id='mark_max_radius_slider'
             ).grid(row=4)
-
+        
         # Elevation Frame
         self.elevation_frame = ct.CTkFrame(self.center_frame)
-        self.elevation_frame.grid(row=5, column=0, pady=(10, 10))
+        self.elevation_frame.grid(row=2, column=0, pady=(10, 10))
 
-        ct.CTkLabel(self.elevation_frame, text='Elevation Settings',
+        ct.CTkLabel(self.elevation_frame, text='Height Detector',
                     font=title_font).grid(row=0, column=0, columnspan=2)
         
         self.elevation_draw_points_checkbox = CustomCheckbox(
@@ -210,6 +186,30 @@ class App(ct.CTk, AppLogic):
         self.elevation_load_example_button.grid(row=3, column=0,
             columnspan=2, pady=(0, 10))
         
+        # General Settings Frame
+        self.general_settings_frame = ct.CTkFrame(self.center_frame)
+        self.general_settings_frame.grid(row=3, column=0)
+
+        ct.CTkLabel(self.general_settings_frame, text='General Settings',
+                    font=title_font).grid(row=0, column=0, columnspan=2)
+
+        self.general_settings_dictor_checkbox = CustomCheckbox(
+            self.general_settings_frame,text="Dictor",
+            saving_id='general_settings_dictor_checkbox').grid(row=1, column=0)
+        
+        self.general_settings_add_to_test_samples_checkbox = CustomCheckbox(
+            self.general_settings_frame, text="Add To Test Samples",
+            saving_id='general_settings_add_to_test_samples_checkbox'
+            ).grid(row=1, column=1, padx=(0, 5))
+
+        ct.CTkLabel(self.general_settings_frame, text='Calculation Hotkey:'
+            ).grid(row=3, column=0, padx=5, pady=5)
+
+        self.general_settings_calculation_hotkey_entry = CustomEntry(
+            self.general_settings_frame, text='ctrl+p',
+            saving_id='general_settings_calculation_hotkey_entry')
+        self.general_settings_calculation_hotkey_entry.grid(row=3, column=1)
+
         # Right Frame
         self.right_frame = CTkFrame(self)
         self.right_frame.grid(row=0, column=2)

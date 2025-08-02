@@ -6,8 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .app import App
 
-from .utils import paths, take_game_screenshot
-from .settings_loader import SettingsLoader as SL
+from .utils import paths, take_game_screenshot, image
 from .detectors.grid_detector import GridDetector
 from .detectors.mark_detector import MarkDetector
 from .sample_loader import SampleLoader
@@ -110,7 +109,7 @@ class AppLogic():
 
         if mark_pos is not None and player_pos is not None \
         and self.app_ui.mark_zoom_to_points_checkbox.get():
-            draw_frame = HeightDetector.cut_to_points(draw_frame, mark_pos, player_pos)
+            draw_frame = image.cut_to_points(draw_frame, mark_pos, player_pos)
 
         self.app_ui.map_image.set_cv2(draw_frame)
         
@@ -153,7 +152,7 @@ class AppLogic():
 
         game_elevation_mark_image = self.last_elevation_image.copy()
         cx, cy = HeightDetector.get_center_point(game_elevation_mark_image)
-        game_elevation_mark_image = HeightDetector.cut_x_line(game_elevation_mark_image, cx, 50)
+        game_elevation_mark_image = image.cut_x_line(game_elevation_mark_image, cx, 50)
         rcx, rcy = HeightDetector.get_center_point(game_elevation_mark_image)
 
         game_hsv_mask = self.mark_detector.get_hsv_mask(game_elevation_mark_image,
@@ -161,7 +160,7 @@ class AppLogic():
 
         height,width = game_hsv_mask.shape[:2]
         cut_y = round(height*0.1)
-        MarkDetector.replace_area_with_black(game_hsv_mask, (0, 0), (width, cut_y))
+        image.replace_area_with_black(game_hsv_mask, (0, 0), (width, cut_y))
 
         game_mark_pos = self.mark_detector.get_mark_positions(game_hsv_mask,
             self.app_ui.mark_max_radius_slider.get())[0]

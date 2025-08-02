@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+from ..utils import image
+
 class MarkDetector:
     def __init__(self) -> None:
         self.hsv_min = np.array((0, 0, 0), dtype=np.uint8)
@@ -19,10 +21,10 @@ class MarkDetector:
         mask = cv2.inRange(hsv_frame, self.hsv_min, self.hsv_max)
 
         if cut_borders:
-            mask = self.replace_area_with_black(mask, (0, mask.shape[0]-350),
+            mask = image.replace_area_with_black(mask, (0, mask.shape[0]-350),
                                         (550, mask.shape[0]))
 
-            mask = self.replace_area_with_black(mask, (mask.shape[1]-900, 0),
+            mask = image.replace_area_with_black(mask, (mask.shape[1]-900, 0),
                                                     (mask.shape[1], 400))
         
         mask = cv2.GaussianBlur(mask, (bluring_size, bluring_size), 7)
@@ -78,9 +80,9 @@ class MarkDetector:
 
     def draw_marks(self, frame:np.ndarray) -> np.ndarray:
         if self.player_position is not None:
-            self.draw_point(frame, self.player_position, "Player", (255, 0, 0))
+            image.draw_point(frame, self.player_position, "Player", (255, 0, 0))
         if self.mark_position is not None:
-            self.draw_point(frame, self.mark_position, "Mark", (0, 0, 255))
+            image.draw_point(frame, self.mark_position, "Mark", (0, 0, 255))
         return frame
 
     @staticmethod
@@ -90,44 +92,3 @@ class MarkDetector:
             sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
             
             return sorted_contours
-
-    @staticmethod
-    def draw_point(frame: np.ndarray,
-                   position: tuple[int, int],
-                   title: str,
-                   color: tuple = (255, 0, 0), radius: int = 30,
-                   thickness:int = 12, font_scale:int=3): 
-        cv2.circle(frame, position, radius, color, thickness)
-
-        font_thickness = max(1, int(font_scale * 3))
-
-        text_size = cv2.getTextSize(title, cv2.FONT_HERSHEY_SIMPLEX,
-                                    font_scale, font_thickness)[0]
-        text_w, text_h = text_size
-
-        bg_x, bg_y = position[0] - text_w // 2, position[1] - text_h - 10
-        bg_x = max(0, min(bg_x, frame.shape[1] - text_w))
-        bg_y = max(text_h + 10, min(bg_y, frame.shape[0] - 10))
-
-        cv2.rectangle(frame, (bg_x - 5, bg_y - text_h - 5),
-                      (bg_x + text_w + 5, bg_y + 5), (0, 0, 0), -1)
-        cv2.putText(frame, title, (bg_x, bg_y), cv2.FONT_HERSHEY_SIMPLEX,
-                    font_scale, (255, 255, 255), font_thickness)
-
-    @staticmethod
-    def replace_area_with_black(image: np.ndarray,
-                                point1: tuple[int, int],
-                                point2: tuple[int, int]):
-        x1, y1 = point1
-        x2, y2 = point2
-
-        h, w = image.shape[:2]
-        x1, y1 = max(0, x1), max(0, y1)
-        x2, y2 = min(w, x2), min(h, y2)
-        
-        if len(image.shape) == 3:
-            image[int(y1):int(y2), int(x1):int(x2)] = (0, 0, 0)
-        else:
-            image[int(y1):int(y2), int(x1):int(x2)] = 0
-        
-        return image
