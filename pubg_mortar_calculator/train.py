@@ -7,8 +7,8 @@ from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader, random_split
 from PIL import Image
 import numpy as np
-from .grid_detector import GridDetector
-from .height_detector import HeightDetector
+from .detectors.grid_detector import GridDetector
+from .detectors.height_detector import HeightDetector
 from .custom_widgets import CustomImage
 import torch.nn.functional as F
 

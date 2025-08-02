@@ -6,12 +6,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .app import App
 
-from .utils import *
+from .utils import paths, take_game_screenshot
 from .settings_loader import SettingsLoader as SL
-from .grid_detector import GridDetector
-from .mark_detector import MarkDetector
+from .detectors.grid_detector import GridDetector
+from .detectors.mark_detector import MarkDetector
 from .sample_loader import SampleLoader
-from .height_detector import HeightDetector
+from .detectors.height_detector import HeightDetector
+from .dictor_manager import DictorManager
 
 class AppLogic():
     def __init__(self, app_ui: "App"):
@@ -26,20 +27,23 @@ class AppLogic():
         self.mark_detector = MarkDetector()
         self.sample_loader = SampleLoader()
 
-        if os.path.exists('map_preview.png'):
-            self.load_map_image('map_preview.png')
+        self.dictor_manager = DictorManager()
+        self.dictor_manager.start()
+
+        if os.path.exists(paths.map_preview()):
+            self.load_map_image(paths.map_preview())
         
-        if os.path.exists('elevation_preview.png'):
-            self.load_elevation_image('map_preview.png')
+        if os.path.exists(paths.elevation_preview()):
+            self.load_elevation_image(paths.elevation_preview())
 
     def load_map_image(self, path: str | None = None) -> np.ndarray | None:
         if path is None:
-            path = get_image_path()
+            path = paths.get_image()
             if path == '':
                 return None
             else:
                 self.last_map_image = cv2.imread(path)
-                cv2.imwrite('map_preview.png',self.last_map_image)
+                cv2.imwrite(paths.map_preview(), self.last_map_image)
                 self.reload_map_image()
                 return self.last_map_image
         else:
@@ -52,8 +56,8 @@ class AppLogic():
     
     def reload_map_image(self, combat_mode:bool = False):
         if combat_mode:
-            self.last_map_image = take_screenshot()
-            cv2.imwrite('map_preview.png',self.last_map_image)
+            self.last_map_image = take_game_screenshot()
+            cv2.imwrite(paths.map_preview(), self.last_map_image)
 
         if self.last_map_image is None:
             print("No image loaded!")
@@ -85,7 +89,7 @@ class AppLogic():
 
         if combat_mode:
             if self.is_dictor():
-                text_to_speech(f"Range {self.last_distance}")
+                self.dictor_manager.add(f"Range {self.last_distance}")
             else:
                 if self.app_ui.general_settings_add_to_test_samples_checkbox.get():
                     self.sample_loader.add(player_pos, mark_pos, grid_gap,
@@ -118,13 +122,14 @@ class AppLogic():
 
     def load_elevation_image(self, path: str | None = None) -> np.ndarray | None:
         if path is None:
-            path = get_image_path()
+            path = paths.get_image()
             if path == '':
                 return None
             else:
                 self.last_elevation_image = cv2.imread(path)
                 self.reload_elevation_image()
-                cv2.imwrite('elevation_preview.png', self.last_elevation_image)
+                cv2.imwrite(paths.elevation_preview(),
+                            self.last_elevation_image)
 
                 return self.last_elevation_image
         else:
@@ -138,8 +143,9 @@ class AppLogic():
 
     def reload_elevation_image(self, combat_mode:bool=False):
         if combat_mode:
-            self.last_elevation_image = take_screenshot()
-            cv2.imwrite('elevation_preview.png', self.last_elevation_image)
+            self.last_elevation_image = take_game_screenshot()
+            cv2.imwrite(paths.elevation_preview(),
+                        self.last_elevation_image)
 
         if self.last_elevation_image is None:
             print("No Elevation Image")
@@ -162,7 +168,7 @@ class AppLogic():
         self.set_calculation_data(center_point=(cx, cy))
         if game_mark_pos is None:
             if self.is_dictor() and combat_mode:
-                text_to_speech("No mark founded")
+                self.dictor_manager.add("No mark founded")
             self.set_calculation_data(elevation=0,corrected_distance=0,elevation_mark_point=(cx,cy))
         else:
             self.last_elevation_point1 = (cx, cy)
@@ -171,8 +177,8 @@ class AppLogic():
             elevation = round(HeightDetector.get_elevation(cy, game_mark_pos[1], 90, self.last_distance))
             corrected_distance = round(HeightDetector.get_correct_distance(elevation, self.last_distance))
             if self.is_dictor() and combat_mode:
-                text_to_speech(f"Elevation is {elevation}")
-                text_to_speech(f"Corrected Distance is {corrected_distance}")
+                self.dictor_manager.add(f"Elevation is {elevation}")
+                self.dictor_manager.add(f"Corrected Distance is {corrected_distance}")
                 
             self.set_calculation_data(elevation=elevation,
                 elevation_mark_point=game_mark_pos, corrected_distance=corrected_distance)

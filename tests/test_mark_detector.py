@@ -3,7 +3,7 @@ import cv2
 import json
 import os
 
-from pubg_mortar_calculator.mark_detector import MarkDetector
+from pubg_mortar_calculator.detectors.mark_detector import MarkDetector
 
 class TestMarkDetector(unittest.TestCase):
     def setUp(self):

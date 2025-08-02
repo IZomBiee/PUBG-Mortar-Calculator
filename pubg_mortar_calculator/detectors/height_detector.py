@@ -4,7 +4,7 @@ import math
 import onnxruntime as ort
 import json
 
-from .custom_widgets import CustomImage
+from ..custom_widgets import CustomImage
 from .grid_detector import GridDetector
 
 class HeightDetector:

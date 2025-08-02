@@ -4,8 +4,8 @@ import json
 import os
 
 from pubg_mortar_calculator.utils import *
-from pubg_mortar_calculator.grid_detector import GridDetector
-from pubg_mortar_calculator.mark_detector import MarkDetector
+from pubg_mortar_calculator.detectors.grid_detector import GridDetector
+from pubg_mortar_calculator.detectors.mark_detector import MarkDetector
 
 class TestIntegration(unittest.TestCase):
     def setUp(self):

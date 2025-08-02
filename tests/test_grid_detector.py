@@ -3,7 +3,7 @@ import cv2
 import json
 import os
 
-from pubg_mortar_calculator.grid_detector import GridDetector
+from pubg_mortar_calculator.detectors.grid_detector import GridDetector
 
 class TestGridDetector(unittest.TestCase):
     def setUp(self):

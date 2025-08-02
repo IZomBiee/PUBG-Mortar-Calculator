@@ -1,10 +1,10 @@
 import json
-from .utils import singleton
+from .utils import singleton, paths
 
 @singleton
 class SettingsLoader:
     def __init__(self):
-        self.path = 'settings.json'
+        self.path = paths.settings()
         self._load()
     
     def get(self, key:str) -> object | None:
