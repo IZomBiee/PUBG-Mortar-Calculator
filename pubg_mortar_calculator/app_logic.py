@@ -26,13 +26,11 @@ class AppLogic():
         self.mark_detector = MarkDetector()
         self.sample_loader = SampleLoader()
 
-        path = SL().get('last_map_image_path')
-        if path is not None and isinstance(path, str):
-            self.load_map_image(path)
-
-        path = SL().get('last_elevation_image_path')
-        if path is not None and isinstance(path, str):
-            self.load_elevation_image(path)
+        if os.path.exists('map_preview.png'):
+            self.load_map_image('map_preview.png')
+        
+        if os.path.exists('elevation_preview.png'):
+            self.load_elevation_image('map_preview.png')
 
     def load_map_image(self, path: str | None = None) -> np.ndarray | None:
         if path is None:
@@ -41,8 +39,8 @@ class AppLogic():
                 return None
             else:
                 self.last_map_image = cv2.imread(path)
+                cv2.imwrite('map_preview.png',self.last_map_image)
                 self.reload_map_image()
-                SL().set('last_map_image_path', path)
                 return self.last_map_image
         else:
             if os.path.exists(path):
@@ -55,6 +53,7 @@ class AppLogic():
     def reload_map_image(self, combat_mode:bool = False):
         if combat_mode:
             self.last_map_image = take_screenshot()
+            cv2.imwrite('map_preview.png',self.last_map_image)
 
         if self.last_map_image is None:
             print("No image loaded!")
@@ -125,7 +124,8 @@ class AppLogic():
             else:
                 self.last_elevation_image = cv2.imread(path)
                 self.reload_elevation_image()
-                SL().set('last_elevation_image_path', path)
+                cv2.imwrite('elevation_preview.png', self.last_elevation_image)
+
                 return self.last_elevation_image
         else:
             if os.path.exists(path):
@@ -139,6 +139,7 @@ class AppLogic():
     def reload_elevation_image(self, combat_mode:bool=False):
         if combat_mode:
             self.last_elevation_image = take_screenshot()
+            cv2.imwrite('elevation_preview.png', self.last_elevation_image)
 
         if self.last_elevation_image is None:
             print("No Elevation Image")

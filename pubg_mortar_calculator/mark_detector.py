@@ -57,7 +57,6 @@ class MarkDetector:
         return (player_cord, mark_cord)
 
     def load_color(self, color:str) -> tuple[np.ndarray, np.ndarray]:
-        print(f"LOAD {color}")
         match color:
             case 'orange':
                 hsv_min = (10, 106, 123)
@@ -96,7 +95,7 @@ class MarkDetector:
     def draw_point(frame: np.ndarray,
                    position: tuple[int, int],
                    title: str,
-                   color: tuple = (255, 0, 0), radius: int = 40,
+                   color: tuple = (255, 0, 0), radius: int = 30,
                    thickness:int = 12, font_scale:int=3): 
         cv2.circle(frame, position, radius, color, thickness)
 
