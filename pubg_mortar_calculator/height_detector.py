@@ -8,37 +8,37 @@ from .custom_widgets import CustomImage
 from .grid_detector import GridDetector
 
 class HeightDetector:
-    def __init__(self):
-        self.onnx_session = ort.InferenceSession("models\\corrector_model.onnx")
+    # def __init__(self):
+    #     self.onnx_session = ort.InferenceSession("models\\corrector_model.onnx")
     
-    def get_corrected_distance(self, image: np.ndarray, player_pos: tuple[int, int],
-                            mark_pos: tuple[int, int], distance: float) -> float:
-        height, width = image.shape[:2]
+    # def get_corrected_distance(self, image: np.ndarray, player_pos: tuple[int, int],
+    #                         mark_pos: tuple[int, int], distance: float) -> float:
+    #     height, width = image.shape[:2]
         
-        image = CustomImage.resize_with_aspect_ratio(image, (512, 512))
+    #     image = CustomImage.resize_with_aspect_ratio(image, (512, 512))
         
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    #     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
-        normalized_gray_image = gray_image.astype(np.float32) / 255.0
+    #     normalized_gray_image = gray_image.astype(np.float32) / 255.0
         
-        flatten_gray_image = np.expand_dims(np.expand_dims(normalized_gray_image, axis=0), axis=0)
+    #     flatten_gray_image = np.expand_dims(np.expand_dims(normalized_gray_image, axis=0), axis=0)
 
-        norm_player_pos = np.array([[player_pos[0]/width, player_pos[1]/height]], dtype=np.float32)
-        norm_mark_pos = np.array([[mark_pos[0]/width, mark_pos[1]/height]], dtype=np.float32)
+    #     norm_player_pos = np.array([[player_pos[0]/width, player_pos[1]/height]], dtype=np.float32)
+    #     norm_mark_pos = np.array([[mark_pos[0]/width, mark_pos[1]/height]], dtype=np.float32)
 
-        inputs = {
-            "image": flatten_gray_image,
-            "norm_player_pos": norm_player_pos.reshape(1, 2),
-            "norm_mark_pos": norm_mark_pos.reshape(1, 2),
-            "distance_km": np.array([[distance/1000]], dtype=np.float32)
-        }
+    #     inputs = {
+    #         "image": flatten_gray_image,
+    #         "norm_player_pos": norm_player_pos.reshape(1, 2),
+    #         "norm_mark_pos": norm_mark_pos.reshape(1, 2),
+    #         "distance_km": np.array([[distance/1000]], dtype=np.float32)
+    #     }
         
-        outputs = self.onnx_session.run(None, inputs)
-        predicted_km = outputs[0][0][0]
+    #     outputs = self.onnx_session.run(None, inputs)
+    #     predicted_km = outputs[0][0][0]
         
-        predicted_meters = predicted_km * 1000
+    #     predicted_meters = predicted_km * 1000
         
-        return predicted_meters 
+    #     return predicted_meters 
 
     @staticmethod
     def cut_to_points(image: np.ndarray, point1: tuple[int, int],
@@ -93,8 +93,11 @@ class HeightDetector:
     
     @staticmethod
     def get_correct_distance(elevation:float, distance:float) -> float:
-        return distance+(elevation*0.76)
-
+        t = (distance - 110) / (700 - 110)
+        k = 0.4 + (0.55 - 0.4) * (1.1 * t - 0.1 * t**2)
+        
+        return distance + elevation * k
+    
     @staticmethod
     def cut_x_line(image:np.ndarray, x:int, gap:int=100):
         h, w = image.shape[:2]

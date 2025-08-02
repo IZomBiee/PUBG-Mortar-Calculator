@@ -11,18 +11,19 @@ class MarkDetector:
 
     def get_hsv_mask(self, bgr_frame:np.ndarray, color:str|None=None,
                      bluring_size: int = 19,
-                     bluring_threshold: int = 15) -> np.ndarray:
+                     bluring_threshold: int = 15, cut_borders:bool=True) -> np.ndarray:
         hsv_frame = cv2.cvtColor(bgr_frame, cv2.COLOR_BGR2HSV)
 
         if color is not None: self.load_color(color)
 
         mask = cv2.inRange(hsv_frame, self.hsv_min, self.hsv_max)
 
-        mask = self.replace_area_with_black(mask, (0, mask.shape[0]-350),
-                                      (550, mask.shape[0]))
+        if cut_borders:
+            mask = self.replace_area_with_black(mask, (0, mask.shape[0]-350),
+                                        (550, mask.shape[0]))
 
-        mask = self.replace_area_with_black(mask, (mask.shape[1]-900, 0),
-                                                (mask.shape[1], 400))
+            mask = self.replace_area_with_black(mask, (mask.shape[1]-900, 0),
+                                                    (mask.shape[1], 400))
         
         mask = cv2.GaussianBlur(mask, (bluring_size, bluring_size), 7)
         
@@ -56,13 +57,14 @@ class MarkDetector:
         return (player_cord, mark_cord)
 
     def load_color(self, color:str) -> tuple[np.ndarray, np.ndarray]:
+        print(f"LOAD {color}")
         match color:
             case 'orange':
                 hsv_min = (10, 106, 123)
                 hsv_max = (13, 238, 231)
             case 'yellow':
-                hsv_min = (21, 165, 131)
-                hsv_max = (62, 255, 255)
+                hsv_min = (22, 79, 99)
+                hsv_max = (50, 255, 255)
             case 'blue':
                 hsv_min = (67, 70, 106)
                 hsv_max = (110, 210, 231)

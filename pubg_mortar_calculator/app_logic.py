@@ -113,6 +113,9 @@ class AppLogic():
         
         self.set_calculation_data(grid_gap=grid_gap, player_pos=player_pos,
                                     mark_pos=mark_pos, distance=self.last_distance)
+        
+        if self.last_elevation_image is not None:
+            self.reload_elevation_image()
 
     def load_elevation_image(self, path: str | None = None) -> np.ndarray | None:
         if path is None:
@@ -143,24 +146,35 @@ class AppLogic():
 
         game_elevation_mark_image = self.last_elevation_image.copy()
         cx, cy = HeightDetector.get_center_point(game_elevation_mark_image)
-        game_elevation_mark_image = HeightDetector.cut_x_line(game_elevation_mark_image, cx)
+        game_elevation_mark_image = HeightDetector.cut_x_line(game_elevation_mark_image, cx, 50)
         rcx, rcy = HeightDetector.get_center_point(game_elevation_mark_image)
 
         game_hsv_mask = self.mark_detector.get_hsv_mask(game_elevation_mark_image,
-                        self.get_color())
+                        self.get_color(), cut_borders=False)
 
-        game_mark_pos = self.mark_detector.get_mark_positions(game_hsv_mask, 100)[0]
+        height,width = game_hsv_mask.shape[:2]
+        cut_y = round(height*0.1)
+        MarkDetector.replace_area_with_black(game_hsv_mask, (0, 0), (width, cut_y))
+
+        game_mark_pos = self.mark_detector.get_mark_positions(game_hsv_mask,
+            self.app_ui.mark_max_radius_slider.get())[0]
         self.set_calculation_data(center_point=(cx, cy))
         if game_mark_pos is None:
-            if self.is_dictor():
+            if self.is_dictor() and combat_mode:
                 text_to_speech("No mark founded")
+            self.set_calculation_data(elevation=0,corrected_distance=0,elevation_mark_point=(cx,cy))
         else:
             self.last_elevation_point1 = (cx, cy)
             self.last_elevation_point2 = game_mark_pos
+
             elevation = round(HeightDetector.get_elevation(cy, game_mark_pos[1], 90, self.last_distance))
-            if self.is_dictor():
+            corrected_distance = round(HeightDetector.get_correct_distance(elevation, self.last_distance))
+            if self.is_dictor() and combat_mode:
                 text_to_speech(f"Elevation is {elevation}")
-            self.set_calculation_data(elevation=elevation, elevation_mark_point=game_mark_pos)
+                text_to_speech(f"Corrected Distance is {corrected_distance}")
+                
+            self.set_calculation_data(elevation=elevation,
+                elevation_mark_point=game_mark_pos, corrected_distance=corrected_distance)
         
         if self.app_ui.elevation_draw_processed_checkbox.get():
             draw_image = cv2.cvtColor(game_hsv_mask, cv2.COLOR_GRAY2BGR)
@@ -183,7 +197,8 @@ class AppLogic():
                                distance:float|None=None,
                                center_point:tuple[int, int]|None=None,
                                elevation_mark_point:tuple[int, int]|None=None,
-                               elevation:float|None=None):
+                               elevation:float|None=None,
+                               corrected_distance:float|None=None):
         if grid_gap is not None:
             self.app_ui.map_calculation_grid_gap_label.configure(text=f'{grid_gap} px')
         if mark_pos is not None:
@@ -200,6 +215,9 @@ class AppLogic():
         if elevation_mark_point is not None:
             self.app_ui.elevation_calculation_mark_cordinates_label.configure(
                 text=f'{elevation_mark_point}')
+        if corrected_distance is not None:
+            self.app_ui.elevation_calculation_elevated_distance_label.configure(
+                text=f'{round(corrected_distance)} m')
 
     def get_color(self) -> str:
         return self.app_ui.mark_color_combobox.get()
