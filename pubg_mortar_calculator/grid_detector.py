@@ -14,9 +14,12 @@ class GridDetector:
         self.grid_gap = 0
     
     def detect_lines(self, canny_frame:np.ndarray,
-                     line_threshold: int, max_line_gap: int) -> None:
+                     line_threshold: float, max_line_gap: float) -> None:
         normalized_canny_frame = self._normalize_frame(canny_frame)
         
+        side_size = normalized_canny_frame.shape[0]
+        line_threshold = int(line_threshold*side_size)
+        max_line_gap = int(max_line_gap*side_size)
         lines:np.ndarray|None = cv2.HoughLinesP(normalized_canny_frame, 1, np.pi / 2,
                                line_threshold,
                                maxLineGap=max_line_gap)    

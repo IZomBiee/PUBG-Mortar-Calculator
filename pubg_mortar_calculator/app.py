@@ -77,25 +77,25 @@ class App(ct.CTk, AppLogic):
             ).grid(row=1, column=1)
 
         self.grid_detection_canny1_threshold_slider = CustomSlider(
-            self.grid_detection_frame, "Canny 1 Threshold", 0, 300,
+            self.grid_detection_frame, "Canny 1 Threshold", 0, 100,
             number_of_steps=100, command=self.reload_map_image,
             return_value=False, saving_id='grid_detection_canny1_threshold_slider')
         self.grid_detection_canny1_threshold_slider.grid(row=2, column=0)
 
         self.grid_detection_canny2_threshold_slider = CustomSlider(
-            self.grid_detection_frame, "Canny 2 Threshold", 0, 300,
+            self.grid_detection_frame, "Canny 2 Threshold", 0, 100,
             number_of_steps=100, command=self.reload_map_image,
             return_value=False, saving_id='grid_detection_canny2_threshold_slider')
         self.grid_detection_canny2_threshold_slider.grid(row=3, column=0)
 
         self.grid_detection_line_threshold_slider = CustomSlider(
-            self.grid_detection_frame, "Line Threshold", 500, 2500,
-            number_of_steps=300, command=self.reload_map_image,
+            self.grid_detection_frame, "Line Threshold", 20, 100,
+            number_of_steps=100, command=self.reload_map_image,
             return_value=False, saving_id='grid_detection_line_threshold_slider')
         self.grid_detection_line_threshold_slider.grid(row=4, column=0)
 
         self.grid_detection_line_gap_slider = CustomSlider(
-            self.grid_detection_frame, "Line Gap", 50, 500,
+            self.grid_detection_frame, "Line Gap", 0, 100,
             number_of_steps=100, command=self.reload_map_image,
             return_value=False, saving_id='grid_detection_line_gap_slider')
         self.grid_detection_line_gap_slider.grid(row=5, column=0)

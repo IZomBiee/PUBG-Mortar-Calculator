@@ -63,12 +63,12 @@ class AppLogic():
         draw_frame = self.last_map_image.copy()
 
         canny_frame = self.grid_detector.get_canny_frame(draw_frame,
-                                    self.app_ui.grid_detection_canny1_threshold_slider.get(),
-                                    self.app_ui.grid_detection_canny2_threshold_slider.get())
+            self.app_ui.grid_detection_canny1_threshold_slider.get(),
+            self.app_ui.grid_detection_canny2_threshold_slider.get())
 
         self.grid_detector.detect_lines(canny_frame,
-                                        self.app_ui.grid_detection_line_threshold_slider.get(),
-                                        self.app_ui.grid_detection_line_gap_slider.get())
+            self.app_ui.grid_detection_line_threshold_slider.get()/100,
+            self.app_ui.grid_detection_line_gap_slider.get()/100)
         
         grid_gap = self.grid_detector.calculate_grid_gap(
             self.app_ui.grid_detection_gap_threshold_slider.get())
