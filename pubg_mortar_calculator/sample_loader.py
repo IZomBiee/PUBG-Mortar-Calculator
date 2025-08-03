@@ -1,48 +1,62 @@
 import cv2
+import os
 import numpy as np
 import json
 
+from .utils import paths
 from datetime import datetime
 
 class SampleLoader:
     def __init__(self):
-        self.samples_path = 'tests/test_samples/'
-        self.samples = []
+        self.sample_units = []
+        self.__load()
     
-    def add(self, player_position:tuple[int, int] | None,
-                mark_position:tuple[int, int] | None, grid_gap:int | None,
-                color:str, frame:np.ndarray|None=None, name:str|None=None, real_distance: int | None = None):
-        
-        if name is None:
-            time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        else: time = name
-
-        if frame is not None:
-            cv2.imwrite(self.samples_path+time+'.png', frame)
-
-        with open(self.samples_path+time+'.json', 'w') as file:
+    def add(self, player_position: tuple[int, int]|None=None,
+            mark_position: tuple[int, int]|None=None, grid_gap:int=0,
+            distance:int=0, elevation: int=0, corrected_distance: int=0,
+            elevation_mark_position:tuple[int, int]|None=None,
+            map_image:np.ndarray|None=None,
+            elevation_image:np.ndarray|None=None
+            ):
+        file_name = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        path = os.path.join(paths.test_samples(), file_name)
+        os.mkdir(path)
+        with open(os.path.join(path, 'data.json'),
+                  'w') as file:
             json.dump({
-                'name': time,
                 'player_position':player_position,
                 'mark_position':mark_position,
                 'grid_gap':grid_gap,
-                'color':color,
-                'real_distance':real_distance
+                'distance':distance,
+                'elevation':elevation,
+                'corrected_distance':corrected_distance,
+                'elevation_mark_position':elevation_mark_position
             }, file)
 
-    def change(self, name:str, data:dict):
-        if not name.endswith('.json'): name += '.json'
-        try:
-            with open(self.samples_path+name, 'r') as file:
-                previous_data = json.load(file)
-        except FileNotFoundError:
-            previous_data = {}
+        if map_image is not None:
+            cv2.imwrite(os.path.join(path, 'map.png'), map_image)    
+        if elevation_image is not None:
+            cv2.imwrite(os.path.join(path, 'elevation.png'), elevation_image)    
 
-        with open(self.samples_path+name, 'w') as file:
-            for key in data.keys():
-                previous_data[key] = data[key]
-            json.dump(previous_data, file)
+    def __load(self):
+        for dir in os.listdir(paths.test_samples()):
+            dir = os.path.join(paths.test_samples(), dir)
+            with open(os.path.join(dir, 'data.json'), 'r') as file:
+                map_image_path = os.path.join(dir, 'map.png')
+                elevation_image_path = os.path.join(dir, 'elevation.png')
+                self.sample_units.append(
+                {
+                    'path':dir,
+                    'data':json.load(file),
+                    'map_image': cv2.imread(map_image_path)
+                    if os.path.exists(map_image_path) else None,
+                    'elevation_image':cv2.imread(elevation_image_path)
+                    if os.path.exists(elevation_image_path) else None,
+                }
+                )
 
-    def load(self, name:str) -> dict:
-        with open(self.samples_path+name+'.json', 'r') as file:
-            return json.load(file)
+    def __len__(self) -> int:
+        return len(self.sample_units)
+    
+    def __iter__(self):
+        return iter(self.sample_units)

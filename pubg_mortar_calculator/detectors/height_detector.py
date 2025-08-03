@@ -14,12 +14,6 @@ class HeightDetector:
         cv2.line(image, (x, 0),
                  (x, image.shape[0]), color, 3)
         return image
-
-    @staticmethod
-    def get_center_point(image: np.ndarray) -> tuple[int, int]:
-        center_x = image.shape[1]//2
-        center_y = image.shape[0]//2
-        return (center_x, center_y)
     
     @staticmethod
     def get_elevation(y0: int, y1: int, fov_deg: float, dist: float,

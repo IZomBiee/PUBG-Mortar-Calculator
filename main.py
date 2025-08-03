@@ -10,9 +10,9 @@ def listen_for_keys(app: App):
     while True:
         try:
             if keyboard.is_pressed(app.get_calculation_key()):
-                app.reload_map_image(True)
+                app.calculate_map_in_combat()
             elif keyboard.is_pressed(app.get_elevation_key()):
-                app.reload_elevation_image(True)
+                app.calculate_elevation_in_combat()
         except ValueError: time.sleep(1)
         time.sleep(0.001)
 

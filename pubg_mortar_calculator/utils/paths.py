@@ -20,6 +20,12 @@ def map_preview() -> str:
 def elevation_preview() -> str:
     return os.path.join(assets(), 'elevation_preview.png')
 
+def test_samples() -> str:
+    path = os.path.join(project(), 'test_samples')
+    if not os.path.exists(path):
+        os.mkdir(path)
+    return path
+
 def get_image() -> str:
     image_path: str = filedialog.askopenfilename(title="Select a File",
                                                         filetypes=[("Image Files", "*.png;*.jpg"),

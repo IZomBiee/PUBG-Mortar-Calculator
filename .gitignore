@@ -6,3 +6,4 @@ tests/test_samples/*
 *.png
 *.json
 assets/
+test_samples/

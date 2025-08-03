@@ -26,7 +26,7 @@ class GridDetector:
 
         if lines is None:
             return
-
+        
         processed_lines = []
         for line in lines:
             line = np.array(line[0])
@@ -49,7 +49,7 @@ class GridDetector:
             cv2.line(frame, (x0, y0),
                      (x1, y1), horizontal_lines_color, trickness)
           
-    def calculate_grid_gap(self, gap_threshold: int) -> int | None:
+    def calculate_grid_gap(self, gap_threshold: int) -> int:
         horizontal_gaps = []
         vertical_gaps = []
 
@@ -67,11 +67,12 @@ class GridDetector:
         
         gaps = horizontal_gaps.copy()
         gaps.extend(vertical_gaps)
+
         gaps = list(filter(lambda gap: gap>gap_threshold, gaps))
 
         if len(gaps):
             mode_gap = round(self.mode(gaps))
-        else: mode_gap = None
+        else: mode_gap = 0
 
         return mode_gap
     

@@ -1,8 +1,9 @@
 import cv2
 import numpy as np
 
-def cut_x_line(image:np.ndarray, x:int, gap:int=100):
+def cut_x_line(image:np.ndarray, x:int, gap:float=0.1):
     h, w = image.shape[:2]
+    gap = round(w*gap)
     x_start = x - gap
     x_end = x_start + gap*2
 
@@ -48,7 +49,11 @@ def draw_point(frame: np.ndarray,
     cv2.putText(frame, title, (bg_x, bg_y), cv2.FONT_HERSHEY_SIMPLEX,
                 font_scale, (255, 255, 255), font_thickness)
 
-@staticmethod
+def get_center_point(image: np.ndarray) -> tuple[int, int]:
+    center_x = image.shape[1]//2
+    center_y = image.shape[0]//2
+    return (center_x, center_y)
+
 def cut_to_points(image: np.ndarray, point1: tuple[int, int],
                 point2: tuple[int, int], margin: float = 0.05) -> np.ndarray:
     height, width = image.shape[:2]
