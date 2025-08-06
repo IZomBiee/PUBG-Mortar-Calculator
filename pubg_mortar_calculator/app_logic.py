@@ -121,10 +121,19 @@ class AppLogic():
         if self.last_map_image is None: return
             
         processed_image = self.last_map_image.copy()
+
+        # Avoiding danger zones
+        height , width = processed_image.shape[:2]
+        imgpr.replace_area_with_black(processed_image, (0, int(height*0.85)),
+            (int(width*0.15), height))
         if self.app_ui.map_detection_minimap_detection.get():
-            self.map_detector.detect(processed_image)
+            minimap_detections = self.map_detector.detect(processed_image)
             processed_image = self.map_detector.cut_to_map(processed_image)
-        
+        if not self.app_ui.map_detection_minimap_detection.get() or\
+            not len(minimap_detections):
+            imgpr.replace_area_with_black(processed_image, (int(width*0.75),
+                int(height*0.8)), (width, height))
+
         canny_image = self.grid_detector.get_canny_frame(processed_image,
             self.app_ui.grid_detection_canny1_threshold_slider.get(),
             self.app_ui.grid_detection_canny2_threshold_slider.get())
@@ -138,7 +147,7 @@ class AppLogic():
 
         hsv_mask = self.mark_detector.get_hsv_mask(processed_image,
                                                    self.get_color())
-        
+
         player_pos, mark_pos = self.mark_detector.get_mark_positions(hsv_mask,
             self.app_ui.map_detection_max_radius_slider.get())
         
@@ -174,6 +183,11 @@ class AppLogic():
         if self.last_elevation_image is None: return
 
         processed_image = self.last_elevation_image.copy()
+
+        cut_y = int(processed_image.shape[0]*0.2)
+        processed_image = processed_image[cut_y:
+            processed_image.shape[0]-cut_y]
+        
         center = imgpr.get_center_point(processed_image)
         processed_image = imgpr.cut_x_line(processed_image, center[0], 0.01)
         cutted_center = imgpr.get_center_point(processed_image)
@@ -204,9 +218,7 @@ class AppLogic():
             elevation_mark_point=mark_position, elevation=round(elevation),
             corrected_distance=corrected_distance)
         
-        cut_y = int(processed_image.shape[0]*0.2)
-        self.app_ui.elevation_image.set_cv2(processed_image[cut_y:
-            processed_image.shape[0]-cut_y])
+        self.app_ui.elevation_image.set_cv2(processed_image)
 
     def set_elevation_data(self,
         center_point:tuple[int, int]|None=None,
