@@ -112,45 +112,51 @@ class App(ct.CTk, AppLogic):
         self.grid_detection_load_example_button.grid(row=7, column=0,
             columnspan=3, pady=(0, 10))
 
-        # Mark Frame
-        self.mark_frame = ct.CTkFrame(self.center_frame)
-        self.mark_frame.grid(row=1, column=0)
+        # Map Detection Frame
+        self.map_detection_frame = ct.CTkFrame(self.center_frame)
+        self.map_detection_frame.grid(row=1, column=0)
 
-        ct.CTkLabel(self.mark_frame, text='Mark Detector',
+        ct.CTkLabel(self.map_detection_frame, text='Map Detector',
                     font=title_font).grid(row=0, column=0, columnspan=3)
 
-        self.mark_draw_checkbox = CustomCheckbox(
-            self.mark_frame, text="Draw Marks",
+        self.map_detection_draw_checkbox = CustomCheckbox(
+            self.map_detection_frame, text="Draw Marks",
             command=self.process_map_image,
-            saving_id='mark_draw_checkbox'
+            saving_id='map_detection_draw_checkbox'
             ).grid(row=1, column=0, padx=(10, 10))
         
-        self.mark_show_processed_image_checkbox = CustomCheckbox(
-            self.mark_frame, text="Draw Processed",
+        self.map_detection_show_processed_image_checkbox = CustomCheckbox(
+            self.map_detection_frame, text="Draw Processed",
             command=self.process_map_image,
-            saving_id='mark_show_processed_image_checkbox'
+            saving_id='map_detection_show_processed_image_checkbox'
             ).grid(row=1, column=1, padx=(10, 10))
         
-        self.mark_zoom_to_points_checkbox = CustomCheckbox(
-            self.mark_frame, text="Zoom To Points",
+        self.map_detection_zoom_to_points_checkbox = CustomCheckbox(
+            self.map_detection_frame, text="Zoom To Points",
             command=self.process_map_image,
-            saving_id='mark_zoom_to_points_checkbox'
-            ).grid(row=2, columnspan=3, padx=(10, 10))
+            saving_id='map_detection_zoom_to_points_checkbox'
+            ).grid(row=2, padx=(10, 10))
 
-        ct.CTkLabel(self.mark_frame, text="Mark Color: "
+        self.map_detection_minimap_detection = CustomCheckbox(
+            self.map_detection_frame, text="Minimap Detection",
+            command=self.process_map_image,
+            saving_id='map_detection_minimap_detection'
+            ).grid(row=2, column=1, padx=(10, 10))
+
+        ct.CTkLabel(self.map_detection_frame, text="Mark Color: "
                     ).grid(row=3, column=0)
 
-        self.mark_color_combobox = CustomCombobox(
-            self.mark_frame, values=['orange', 'yellow', 'blue', 'green'],
+        self.map_detection_color_combobox = CustomCombobox(
+            self.map_detection_frame, values=['orange', 'yellow', 'blue', 'green'],
             command=self.process_map_image, return_value=False,
-            saving_id="mark_color_combobox")
-        self.mark_color_combobox.grid(row=3, column=1, columnspan=2)
+            saving_id="map_detection_color_combobox")
+        self.map_detection_color_combobox.grid(row=3, column=1, columnspan=2)
 
-        self.mark_max_radius_slider = CustomSlider(
-            self.mark_frame, "Mark Max Radius", 5, 50,
+        self.map_detection_max_radius_slider = CustomSlider(
+            self.map_detection_frame, "Mark Max Radius", 5, 50,
             default=30, number_of_steps=45,
             command=self.process_map_image,
-            return_value=False, saving_id='mark_max_radius_slider'
+            return_value=False, saving_id='map_detection_max_radius_slider'
             ).grid(row=4)
         
         # Elevation Frame
@@ -186,10 +192,10 @@ class App(ct.CTk, AppLogic):
             command=self.load_elevation_image)
         self.elevation_load_example_button.grid(row=3, column=0,
             columnspan=2, pady=(0, 10))
-        
+
         # General Settings Frame
         self.general_settings_frame = ct.CTkFrame(self.center_frame)
-        self.general_settings_frame.grid(row=3, column=0)
+        self.general_settings_frame.grid(row=4, column=0)
 
         ct.CTkLabel(self.general_settings_frame, text='General Settings',
                     font=title_font).grid(row=0, column=0, columnspan=2)

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pubg-mortar-calculator"
-version = "2.9.0"
+version = "2.10.0"
 description = "A tool to calculate the range of a shot or to automatically fire a mortar."
 authors = ["IZomBie <patrik009009@gmail.com>"]
 license = "You can youse everything."
@@ -17,7 +17,8 @@ keyboard = "^0.13.5"
 pyttsx3 = "^2.98"
 mouse = "^0.7.1"
 pygetwindow = "^0.0.9"
-onnxruntime = "^1.22.1"
+pip = "^25.2"
+yolov8-onnx = "^1.0.4"
 
 [[tool.poetry.source]]
 name = "pytorch-cu128"
@@ -28,7 +29,6 @@ priority = "supplemental"
 torch = {source = "pytorch-cu128"}
 torchvision = {source = "pytorch-cu128"}
 torchaudio = {source = "pytorch-cu128"}
-onnx = "^1.18.0"
 
 [build-system]
 requires = ["poetry-core"]

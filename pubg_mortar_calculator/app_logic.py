@@ -6,12 +6,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .app import App
 
-from .utils import paths, take_game_screenshot, image
-from .detectors.grid_detector import GridDetector
-from .detectors.mark_detector import MarkDetector
+from .utils import imgpr, paths, take_game_screenshot
+from .detectors import GridDetector,\
+MapDetector, MarkDetector, GridDetector,\
+HeightDetector
 from .sample_loader import SampleLoader
-from .detectors.height_detector import HeightDetector
 from .dictor_manager import DictorManager
+
 
 class AppLogic():
     def __init__(self, app_ui: "App"):
@@ -31,6 +32,7 @@ class AppLogic():
         self.grid_detector = GridDetector()
         self.mark_detector = MarkDetector()
         self.sample_loader = SampleLoader()
+        self.map_detector = MapDetector()
 
         self.dictor_manager = DictorManager()
         self.dictor_manager.start()
@@ -119,7 +121,10 @@ class AppLogic():
         if self.last_map_image is None: return
             
         processed_image = self.last_map_image.copy()
-
+        if self.app_ui.map_detection_minimap_detection.get():
+            self.map_detector.detect(processed_image)
+            processed_image = self.map_detector.cut_to_map(processed_image)
+        
         canny_image = self.grid_detector.get_canny_frame(processed_image,
             self.app_ui.grid_detection_canny1_threshold_slider.get(),
             self.app_ui.grid_detection_canny2_threshold_slider.get())
@@ -135,7 +140,7 @@ class AppLogic():
                                                    self.get_color())
         
         player_pos, mark_pos = self.mark_detector.get_mark_positions(hsv_mask,
-            self.app_ui.mark_max_radius_slider.get())
+            self.app_ui.map_detection_max_radius_slider.get())
         
         if player_pos is not None and mark_pos is not None and \
             grid_gap != 0:
@@ -146,18 +151,18 @@ class AppLogic():
         if self.app_ui.grid_detection_show_processed_image_checkbox.get():
             processed_image = cv2.cvtColor(canny_image, cv2.COLOR_GRAY2BGR)
 
-        elif self.app_ui.mark_show_processed_image_checkbox.get():
+        elif self.app_ui.map_detection_show_processed_image_checkbox.get():
             processed_image = cv2.cvtColor(hsv_mask, cv2.COLOR_GRAY2BGR)
         
         if self.app_ui.grid_detection_draw_grid_lines_checkbox.get():
             self.grid_detector.draw_lines(processed_image)
 
-        if self.app_ui.mark_draw_checkbox.get():
+        if self.app_ui.map_detection_draw_checkbox.get():
             self.mark_detector.draw_marks(processed_image)
 
         if mark_pos is not None and player_pos is not None \
-        and self.app_ui.mark_zoom_to_points_checkbox.get():
-            processed_image = image.cut_to_points(processed_image,
+        and self.app_ui.map_detection_zoom_to_points_checkbox.get():
+            processed_image = imgpr.cut_to_points(processed_image,
                 mark_pos, player_pos)
 
         self.app_ui.map_image.set_cv2(processed_image)
@@ -169,13 +174,13 @@ class AppLogic():
         if self.last_elevation_image is None: return
 
         processed_image = self.last_elevation_image.copy()
-        center = image.get_center_point(processed_image)
-        processed_image = image.cut_x_line(processed_image, center[0], 0.01)
-        cutted_center = image.get_center_point(processed_image)
+        center = imgpr.get_center_point(processed_image)
+        processed_image = imgpr.cut_x_line(processed_image, center[0], 0.01)
+        cutted_center = imgpr.get_center_point(processed_image)
 
         hsv_mask_image = self.mark_detector.get_hsv_mask(processed_image)
         mark_position = self.mark_detector.get_mark_positions(
-            hsv_mask_image, self.app_ui.mark_max_radius_slider.get())[0]
+            hsv_mask_image, self.app_ui.map_detection_max_radius_slider.get())[0]
 
         if mark_position is None or self.last_distance == 0: elevation = 0
         elif self.last_distance is not None:
@@ -239,7 +244,7 @@ class AppLogic():
         self.app_ui.map_calculation_distance_label.configure(text=f'{distance} m')
 
     def get_color(self) -> str:
-        return self.app_ui.mark_color_combobox.get()
+        return self.app_ui.map_detection_color_combobox.get()
 
     def is_dictor(self) -> bool:
         return self.app_ui.general_settings_dictor_checkbox.get()
