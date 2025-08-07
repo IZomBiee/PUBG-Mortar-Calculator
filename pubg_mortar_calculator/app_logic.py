@@ -1,6 +1,7 @@
 import cv2
 import os
 import numpy as np
+import tkinter
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -36,7 +37,15 @@ class AppLogic():
         print("Load sample loader...")
         self.sample_loader = SampleLoader()
         print("Load map detector...")
-        self.map_detector = MapDetector()
+        if os.path.exists(paths.map_detection_model()):
+            self.map_detector = MapDetector()
+        else:
+            print(f"Can't find minimap detection model at "+
+                  paths.map_detection_model())
+            self.map_detector = None
+            self.app_ui.map_detection_minimap_detection.\
+            checkbox.configure(state=tkinter.DISABLED)
+            self.app_ui.map_detection_minimap_detection.set(False)
         
         print("Starting dictor manager...")
         self.dictor_manager = DictorManager()
@@ -130,13 +139,15 @@ class AppLogic():
 
         # Avoiding danger zones
         height , width = processed_image.shape[:2]
-        imgpr.replace_area_with_black(processed_image, (0, int(height*0.85)),
-            (int(width*0.15), height))
-        if self.app_ui.map_detection_minimap_detection.get():
+        if self.app_ui.map_detection_minimap_detection.get()\
+        and self.map_detector is not None:
             minimap_detections = self.map_detector.detect(processed_image)
             processed_image = self.map_detector.cut_to_map(processed_image)
-        if not self.app_ui.map_detection_minimap_detection.get() or\
-            not len(minimap_detections):
+        else:minimap_detections = []
+        if not self.app_ui.map_detection_minimap_detection.get()\
+        or not len(minimap_detections):
+            imgpr.replace_area_with_black(processed_image, (0, int(height*0.83)),
+                (int(width*0.13), height))
             imgpr.replace_area_with_black(processed_image, (int(width*0.75),
                 int(height*0.8)), (width, height))
 

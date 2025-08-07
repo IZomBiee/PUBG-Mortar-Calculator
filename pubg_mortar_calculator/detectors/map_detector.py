@@ -1,9 +1,12 @@
 import numpy as np
+
+from ..utils import paths
 from .yolov8_onnx_detector import YOLOv8OnnxDetector
 
 class MapDetector():
     def __init__(self) -> None:
-        self.detector = YOLOv8OnnxDetector('assets/map_model.onnx', 640,
+        self.detector = YOLOv8OnnxDetector(
+            paths.map_detection_model(), 640,
             [
                 "map"
             ],  0.5, 0.5)
