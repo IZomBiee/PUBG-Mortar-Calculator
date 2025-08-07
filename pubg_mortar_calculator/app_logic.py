@@ -29,14 +29,20 @@ class AppLogic():
         self.last_elevation = 0
         self.last_elevation_mark_position = None
 
+        print("Load grid detector...")
         self.grid_detector = GridDetector()
+        print("Load mark detector...")
         self.mark_detector = MarkDetector()
+        print("Load sample loader...")
         self.sample_loader = SampleLoader()
+        print("Load map detector...")
         self.map_detector = MapDetector()
-
+        
+        print("Starting dictor manager...")
         self.dictor_manager = DictorManager()
         self.dictor_manager.start()
 
+        print("Loading preview...")
         self.initialize_preview_images()
     
     def initialize_preview_images(self):
@@ -185,8 +191,8 @@ class AppLogic():
         processed_image = self.last_elevation_image.copy()
 
         cut_y = int(processed_image.shape[0]*0.2)
-        processed_image = processed_image[cut_y:
-            processed_image.shape[0]-cut_y]
+        imgpr.replace_area_with_black(
+            processed_image, (0, 0), (processed_image.shape[1], cut_y))
         
         center = imgpr.get_center_point(processed_image)
         processed_image = imgpr.cut_x_line(processed_image, center[0], 0.01)
@@ -218,7 +224,8 @@ class AppLogic():
             elevation_mark_point=mark_position, elevation=round(elevation),
             corrected_distance=corrected_distance)
         
-        self.app_ui.elevation_image.set_cv2(processed_image)
+        self.app_ui.elevation_image.set_cv2(
+            processed_image[cut_y:processed_image.shape[0]])
 
     def set_elevation_data(self,
         center_point:tuple[int, int]|None=None,

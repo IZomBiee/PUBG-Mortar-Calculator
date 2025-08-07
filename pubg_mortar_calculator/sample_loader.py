@@ -9,7 +9,6 @@ from datetime import datetime
 class SampleLoader:
     def __init__(self):
         self.sample_units = []
-        self.__load()
     
     def add(self, player_position: tuple[int, int]|None=None,
             mark_position: tuple[int, int]|None=None, grid_gap:int=0,
@@ -38,7 +37,7 @@ class SampleLoader:
         if elevation_image is not None:
             cv2.imwrite(os.path.join(path, 'elevation.png'), elevation_image)    
 
-    def __load(self):
+    def load(self):
         for dir in os.listdir(paths.test_samples()):
             dir = os.path.join(paths.test_samples(), dir)
             with open(os.path.join(dir, 'data.json'), 'r') as file:

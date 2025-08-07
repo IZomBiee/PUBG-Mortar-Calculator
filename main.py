@@ -24,9 +24,13 @@ settings_loader = SettingsLoader()
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
+print("Loading app...")
 app = App()
 app.protocol("WM_DELETE_WINDOW", on_closing)
 
+print("Starting keyboard listeners...")
 t=threading.Thread(target=listen_for_keys, args=(app,), daemon=True)
 t.start()
+
+print("Starting program...")
 app.mainloop()
