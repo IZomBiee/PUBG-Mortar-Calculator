@@ -137,6 +137,12 @@ class AppLogic():
             
         processed_image = self.last_map_image.copy()
 
+        if self.app_ui.map_detection_minimap_detection.get()\
+        and self.map_detector is not None:
+            minimap_detections = self.map_detector.detect(processed_image)
+            processed_image = self.map_detector.cut_to_map(processed_image)
+        else:minimap_detections = []
+
         canny_image = self.grid_detector.get_canny_frame(processed_image,
             self.app_ui.grid_detection_canny1_threshold_slider.get(),
             self.app_ui.grid_detection_canny2_threshold_slider.get())
@@ -150,11 +156,7 @@ class AppLogic():
 
         # Avoiding danger zones for mark detection
         height , width = processed_image.shape[:2]
-        if self.app_ui.map_detection_minimap_detection.get()\
-        and self.map_detector is not None:
-            minimap_detections = self.map_detector.detect(processed_image)
-            processed_image = self.map_detector.cut_to_map(processed_image)
-        else:minimap_detections = []
+
         if not self.app_ui.map_detection_minimap_detection.get()\
         or not len(minimap_detections):
             imgpr.replace_area_with_black(processed_image, (0, int(height*0.83)),
