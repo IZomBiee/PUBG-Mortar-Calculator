@@ -12,6 +12,7 @@ class SettingsLoader:
 
     def set(self, key:str, value):
         self.settings[key] = value
+        self.save()
     
     def save(self):
         with open(self.path, 'w') as file:

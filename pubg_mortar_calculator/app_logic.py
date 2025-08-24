@@ -137,7 +137,18 @@ class AppLogic():
             
         processed_image = self.last_map_image.copy()
 
-        # Avoiding danger zones
+        canny_image = self.grid_detector.get_canny_frame(processed_image,
+            self.app_ui.grid_detection_canny1_threshold_slider.get(),
+            self.app_ui.grid_detection_canny2_threshold_slider.get())
+
+        self.grid_detector.detect_lines(canny_image,
+            self.app_ui.grid_detection_line_threshold_slider.get()/100,
+            self.app_ui.grid_detection_line_gap_slider.get()/100)
+        
+        grid_gap = self.grid_detector.calculate_grid_gap(
+            self.app_ui.grid_detection_gap_threshold_slider.get())
+
+        # Avoiding danger zones for mark detection
         height , width = processed_image.shape[:2]
         if self.app_ui.map_detection_minimap_detection.get()\
         and self.map_detector is not None:
@@ -150,17 +161,6 @@ class AppLogic():
                 (int(width*0.13), height))
             imgpr.replace_area_with_black(processed_image, (int(width*0.75),
                 int(height*0.8)), (width, height))
-
-        canny_image = self.grid_detector.get_canny_frame(processed_image,
-            self.app_ui.grid_detection_canny1_threshold_slider.get(),
-            self.app_ui.grid_detection_canny2_threshold_slider.get())
-
-        self.grid_detector.detect_lines(canny_image,
-            self.app_ui.grid_detection_line_threshold_slider.get()/100,
-            self.app_ui.grid_detection_line_gap_slider.get()/100)
-        
-        grid_gap = self.grid_detector.calculate_grid_gap(
-            self.app_ui.grid_detection_gap_threshold_slider.get())
 
         hsv_mask = self.mark_detector.get_hsv_mask(processed_image,
                                                    self.get_color())
@@ -206,7 +206,7 @@ class AppLogic():
             processed_image, (0, 0), (processed_image.shape[1], cut_y))
         
         center = imgpr.get_center_point(processed_image)
-        processed_image = imgpr.cut_x_line(processed_image, center[0], 0.01)
+        processed_image = imgpr.cut_x_line(processed_image, center[0], 0.02)
         cutted_center = imgpr.get_center_point(processed_image)
 
         hsv_mask_image = self.mark_detector.get_hsv_mask(processed_image)

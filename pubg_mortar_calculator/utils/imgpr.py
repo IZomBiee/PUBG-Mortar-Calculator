@@ -1,6 +1,73 @@
 import cv2
 import numpy as np
 
+import cv2
+import numpy as np
+
+def get_straight_line(image: np.ndarray,
+                      start_point: tuple[int, int],
+                      end_point: tuple[int, int],
+                      width: float = 0.1,
+                      margin: float = 0.0) -> np.ndarray:
+    """
+    Cuts a warped strip from the image along the line between two points.
+
+    :param image: Input image
+    :param start_point: (x1, y1)
+    :param end_point: (x2, y2)
+    :param width: Thickness of the cut relative to image size
+    :param margin: Extra length added before/after line, relative to original line length
+    :return: Warped (straightened) image strip
+    """
+    x1, y1 = start_point
+    x2, y2 = end_point
+    H, W = image.shape[:2]
+
+    abs_width = width * min(H, W)
+
+    dx = x2 - x1
+    dy = y2 - y1
+    length = np.hypot(dx, dy)
+
+    if length == 0:
+        raise ValueError("Start and end points cannot be the same.")
+
+    # Unit direction vector
+    dir_x = dx / length
+    dir_y = dy / length
+
+    # Add margin (in both directions)
+    margin_len = length * margin
+    x1m = x1 - dir_x * margin_len
+    y1m = y1 - dir_y * margin_len
+    x2m = x2 + dir_x * margin_len
+    y2m = y2 + dir_y * margin_len
+
+    extended_length = np.hypot(x2m - x1m, y2m - y1m)
+
+    # Perpendicular unit vector
+    perp_dx = -dir_y
+    perp_dy = dir_x
+
+    # Rectangle corners with margin
+    p1 = (x1m + perp_dx * abs_width / 2, y1m + perp_dy * abs_width / 2)
+    p2 = (x2m + perp_dx * abs_width / 2, y2m + perp_dy * abs_width / 2)
+    p3 = (x2m - perp_dx * abs_width / 2, y2m - perp_dy * abs_width / 2)
+    p4 = (x1m - perp_dx * abs_width / 2, y1m - perp_dy * abs_width / 2)
+
+    src_pts = np.array([p1, p2, p3, p4], dtype=np.float32)
+    dst_pts = np.array([
+        [0, 0],
+        [extended_length, 0],
+        [extended_length, abs_width],
+        [0, abs_width]
+    ], dtype=np.float32)
+
+    M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+    warped = cv2.warpPerspective(image, M, (int(extended_length), int(abs_width)))
+
+    return warped
+
 def cut_x_line(image:np.ndarray, x:int, gap:float=0.1):
     h, w = image.shape[:2]
     gap = round(w*gap)
