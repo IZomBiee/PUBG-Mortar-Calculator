@@ -48,7 +48,9 @@ class AppLogic():
             self.app_ui.map_detection_minimap_detection.set(False)
         
         print("Starting dictor manager...")
-        self.dictor_manager = DictorManager()
+        self.dictor_manager = DictorManager(
+            self.app_ui.dictor_settings_rate_slider.get(),
+            self.app_ui.dictor_settings_volume_slider.get())
         self.dictor_manager.start()
 
         print("Loading preview...")
@@ -279,4 +281,4 @@ class AppLogic():
         return self.app_ui.map_detection_color_combobox.get()
 
     def is_dictor(self) -> bool:
-        return self.app_ui.general_settings_dictor_checkbox.get()
+        return self.app_ui.dictor_settings_dictor_checkbox.get()

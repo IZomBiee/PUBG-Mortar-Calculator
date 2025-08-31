@@ -9,7 +9,7 @@ class MapDetector():
             paths.map_detection_model(), 640,
             [
                 "map"
-            ],  0.5, 0.5)
+            ],  0.8, 0.8)
         self.last_detection = []
     
     def detect(self, image:np.ndarray) -> list[dict]:

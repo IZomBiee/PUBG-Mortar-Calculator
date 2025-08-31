@@ -193,16 +193,32 @@ class App(ct.CTk, AppLogic):
         self.elevation_load_example_button.grid(row=3, column=0,
             columnspan=2, pady=(0, 10))
 
+        # Dictor Settings Frame
+        self.dictor_settings_frame = ct.CTkFrame(self.center_frame)
+        self.dictor_settings_frame.grid(row=4, column=0, pady=(0,10))
+
+        ct.CTkLabel(self.dictor_settings_frame, text='Dictor Settings',
+                    font=title_font).grid(row=0, column=0, columnspan=3)
+
+        self.dictor_settings_dictor_checkbox = CustomCheckbox(
+            self.dictor_settings_frame,text="Dictor",
+            saving_id='general_settings_dictor_checkbox').grid(row=1, column=1)
+        
+        self.dictor_settings_volume_slider = CustomSlider(self.dictor_settings_frame,
+            "Volume", 0, 100, 50, 100, saving_id="dictor_settings_volume_slider",
+            command=lambda x: setattr(self.dictor_manager, "volume", round(x/100,2))
+            ).grid(2, 0)
+        self.dictor_settings_rate_slider = CustomSlider(self.dictor_settings_frame,
+            "Rate", 50, 300, 150, 100, saving_id="dictor_settings_rate_slider",
+            command=lambda x: setattr(self.dictor_manager, "rate", x)
+            ).grid(3, 0)
+
         # General Settings Frame
         self.general_settings_frame = ct.CTkFrame(self.center_frame)
-        self.general_settings_frame.grid(row=4, column=0)
+        self.general_settings_frame.grid(row=5, column=0)
 
         ct.CTkLabel(self.general_settings_frame, text='General Settings',
                     font=title_font).grid(row=0, column=0, columnspan=2)
-
-        self.general_settings_dictor_checkbox = CustomCheckbox(
-            self.general_settings_frame,text="Dictor",
-            saving_id='general_settings_dictor_checkbox').grid(row=1, column=0)
         
         self.general_settings_add_to_test_samples_checkbox = CustomCheckbox(
             self.general_settings_frame, text="Add To Test Samples",
