@@ -53,7 +53,6 @@ class CustomSlider:
         return self
 
     def set(self, value:int):
-        print(self.id, '-', value)
         if value > self.max: value = self.max
         elif value < self.min: value = self.min
         SL().set(self.id, value)

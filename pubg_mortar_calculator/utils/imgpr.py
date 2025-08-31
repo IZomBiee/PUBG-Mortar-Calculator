@@ -9,16 +9,6 @@ def get_straight_line(image: np.ndarray,
                       end_point: tuple[int, int],
                       width: float = 0.1,
                       margin: float = 0.0) -> np.ndarray:
-    """
-    Cuts a warped strip from the image along the line between two points.
-
-    :param image: Input image
-    :param start_point: (x1, y1)
-    :param end_point: (x2, y2)
-    :param width: Thickness of the cut relative to image size
-    :param margin: Extra length added before/after line, relative to original line length
-    :return: Warped (straightened) image strip
-    """
     x1, y1 = start_point
     x2, y2 = end_point
     H, W = image.shape[:2]
@@ -95,26 +85,37 @@ def replace_area_with_black(image: np.ndarray,
     return image
 
 def draw_point(frame: np.ndarray,
-                position: tuple[int, int],
-                title: str,
-                color: tuple = (255, 0, 0), radius: int = 25,
-                thickness:int = 12, font_scale:int=2): 
-    cv2.circle(frame, position, radius, color, thickness)
+               position: tuple[int, int],
+               title: str,
+               color: tuple = (255, 0, 0),
+               radius: float = 0.02,
+               thickness: float = 0.005,
+               font_scale: float = 0.002):
+    h, w = frame.shape[:2]
+    base = min(h, w)
 
-    font_thickness = max(1, int(font_scale * 3))
+    radius_px = max(1, int(radius * base))
+    thickness_px = max(1, int(thickness * base))
+    font_scale_px = font_scale * base
+
+    cv2.circle(frame, position, radius_px, color, thickness_px)
+
+    font_thickness = max(1, int(font_scale_px * 0.5))
 
     text_size = cv2.getTextSize(title, cv2.FONT_HERSHEY_SIMPLEX,
-                                font_scale, font_thickness)[0]
+                                font_scale_px, font_thickness)[0]
     text_w, text_h = text_size
 
     bg_x, bg_y = position[0] - text_w // 2, position[1] - text_h - 10
-    bg_x = max(0, min(bg_x, frame.shape[1] - text_w))
-    bg_y = max(text_h + 10, min(bg_y, frame.shape[0] - 10))
+    bg_x = max(0, min(bg_x, w - text_w))
+    bg_y = max(text_h + 10, min(bg_y, h - 10))
 
     cv2.rectangle(frame, (bg_x - 5, bg_y - text_h - 5),
-                    (bg_x + text_w + 5, bg_y + 5), (0, 0, 0), -1)
-    cv2.putText(frame, title, (bg_x, bg_y), cv2.FONT_HERSHEY_SIMPLEX,
-                font_scale, (255, 255, 255), font_thickness)
+                  (bg_x + text_w + 5, bg_y + 5), (0, 0, 0), -1)
+
+    cv2.putText(frame, title, (bg_x, bg_y),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                font_scale_px, (255, 255, 255), font_thickness)
 
 def get_center_point(image: np.ndarray) -> tuple[int, int]:
     center_x = image.shape[1]//2
