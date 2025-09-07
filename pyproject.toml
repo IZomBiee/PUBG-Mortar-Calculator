@@ -1,10 +1,11 @@
 [tool.poetry]
-name = "pubg-mortar-calculator"
+name = "pubg_mortar_calculator"
 version = "2.11.1"
-description = "A tool to calculate the range of a shot or to automatically fire a mortar."
+description = "A tool to calculate the range of a shot for mortar."
 authors = ["IZomBie <patrik009009@gmail.com>"]
-license = "You can youse everything."
+license = "You can use everything."
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.13"
@@ -26,11 +27,10 @@ url = "https://download.pytorch.org/whl/cu128"
 priority = "supplemental"
 
 [tool.poetry.group.train.dependencies]
-torch = {source = "pytorch-cu128"}
-torchvision = {source = "pytorch-cu128"}
-torchaudio = {source = "pytorch-cu128"}
+torch = { version = "*", source = "pytorch-cu128", optional = true }
+torchvision = { version = "*", source = "pytorch-cu128", optional = true }
+torchaudio = { version = "*", source = "pytorch-cu128", optional = true }
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
