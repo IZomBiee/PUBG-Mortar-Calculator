@@ -3,7 +3,6 @@ import math
 import numpy as np
 
 from collections import Counter
-from ..settings_loader import SettingsLoader as SL
 
 class GridDetector:
     def __init__(self):
@@ -40,8 +39,8 @@ class GridDetector:
                    vertical_lines_color=(255, 0, 0),
                    horizontal_lines_color=(0, 0, 255),
                    trickness:float=0.002) -> None:
-        trickness = int(((frame.shape[1] * trickness) +\
-            (frame.shape[0] * trickness))/2)
+        trickness = max(1, int(((frame.shape[1] * trickness) +\
+            (frame.shape[0] * trickness))/2))
         
         for x0, y0, x1, y1 in self.vertical_lines:
             cv2.line(frame, (x0, y0),

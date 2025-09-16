@@ -5,7 +5,7 @@ import tkinter
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .app import App
+    from .ui.app import App
 
 from .utils import imgpr, paths, take_game_screenshot
 from .detectors import GridDetector,\
@@ -13,7 +13,6 @@ MapDetector, MarkDetector, GridDetector,\
 HeightDetector
 from .sample_loader import SampleLoader
 from .dictor_manager import DictorManager
-
 
 class AppLogic():
     def __init__(self, app_ui: "App"):
@@ -43,14 +42,14 @@ class AppLogic():
             print(f"Can't find minimap detection model at "+
                   paths.map_detection_model())
             self.map_detector = None
-            self.app_ui.map_detection_minimap_detection.\
+            self.app_ui.map_detector_block.minimap_detection.\
             checkbox.configure(state=tkinter.DISABLED)
-            self.app_ui.map_detection_minimap_detection.set(False)
+            self.app_ui.map_detector_block.minimap_detection.set(False)
         
         print("Starting dictor manager...")
         self.dictor_manager = DictorManager(
-            self.app_ui.dictor_settings_rate_slider.get(),
-            self.app_ui.dictor_settings_volume_slider.get())
+            self.app_ui.dictor_settings_block.rate_slider.get(),
+            self.app_ui.dictor_settings_block.volume_slider.get())
         self.dictor_manager.start()
 
         print("Loading preview...")
@@ -121,7 +120,7 @@ class AppLogic():
                 self.dictor_manager.add(f'Corrected {self.last_corrected_distance}')
 
 
-            if self.app_ui.general_settings_add_to_test_samples_checkbox.get():
+            if self.app_ui.general_settings_block.add_to_test_samples_checkbox.get():
                 self.sample_loader.add(
                     self.last_player_position, self.last_mark_position,
                     self.last_grid_gap, self.last_distance,
@@ -139,27 +138,27 @@ class AppLogic():
             
         processed_image = self.last_map_image.copy()
 
-        if self.app_ui.map_detection_minimap_detection.get()\
+        if self.app_ui.map_detector_block.minimap_detection.get()\
         and self.map_detector is not None:
             minimap_detections = self.map_detector.detect(processed_image)
             processed_image = self.map_detector.cut_to_map(processed_image)
         else:minimap_detections = []
 
         canny_image = self.grid_detector.get_canny_frame(processed_image,
-            self.app_ui.grid_detection_canny1_threshold_slider.get(),
-            self.app_ui.grid_detection_canny2_threshold_slider.get())
+            self.app_ui.grid_detector_block.canny1_threshold_slider.get(),
+            self.app_ui.grid_detector_block.canny2_threshold_slider.get())
 
         self.grid_detector.detect_lines(canny_image,
-            self.app_ui.grid_detection_line_threshold_slider.get()/100,
-            self.app_ui.grid_detection_line_gap_slider.get()/100)
+            self.app_ui.grid_detector_block.line_threshold_slider.get()/100,
+            self.app_ui.grid_detector_block.line_gap_slider.get()/100)
         
         grid_gap = self.grid_detector.calculate_grid_gap(
-            self.app_ui.grid_detection_gap_threshold_slider.get())
+            self.app_ui.grid_detector_block.gap_threshold_slider.get())
 
         # Avoiding danger zones for mark detection
         height , width = processed_image.shape[:2]
 
-        if not self.app_ui.map_detection_minimap_detection.get()\
+        if not self.app_ui.map_detector_block.minimap_detection.get()\
         or not len(minimap_detections):
             imgpr.replace_area_with_black(processed_image, (0, int(height*0.83)),
                 (int(width*0.13), height))
@@ -170,7 +169,7 @@ class AppLogic():
                                                    self.get_color())
 
         player_pos, mark_pos = self.mark_detector.get_mark_positions(hsv_mask,
-            self.app_ui.map_detection_max_radius_slider.get())
+            self.app_ui.map_detector_block.max_radius_slider.get())
         
         if player_pos is not None and mark_pos is not None and \
             grid_gap != 0:
@@ -178,20 +177,20 @@ class AppLogic():
                 player_pos, mark_pos, grid_gap))
         else: distance = 0
 
-        if self.app_ui.grid_detection_show_processed_image_checkbox.get():
+        if self.app_ui.grid_detector_block.show_processed_image_checkbox.get():
             processed_image = cv2.cvtColor(canny_image, cv2.COLOR_GRAY2BGR)
 
-        elif self.app_ui.map_detection_show_processed_image_checkbox.get():
+        elif self.app_ui.map_detector_block.show_processed_image_checkbox.get():
             processed_image = cv2.cvtColor(hsv_mask, cv2.COLOR_GRAY2BGR)
         
-        if self.app_ui.grid_detection_draw_grid_lines_checkbox.get():
+        if self.app_ui.grid_detector_block.draw_grid_lines_checkbox.get():
             self.grid_detector.draw_lines(processed_image)
 
-        if self.app_ui.map_detection_draw_checkbox.get():
+        if self.app_ui.map_detector_block.draw_checkbox.get():
             self.mark_detector.draw_marks(processed_image)
 
         if mark_pos is not None and player_pos is not None \
-        and self.app_ui.map_detection_zoom_to_points_checkbox.get():
+        and self.app_ui.map_detector_block.zoom_to_points_checkbox.get():
             processed_image = imgpr.cut_to_points(processed_image,
                 mark_pos, player_pos)
 
@@ -215,7 +214,7 @@ class AppLogic():
 
         hsv_mask_image = self.mark_detector.get_hsv_mask(processed_image)
         mark_position = self.mark_detector.get_mark_positions(
-            hsv_mask_image, self.app_ui.map_detection_max_radius_slider.get())[0]
+            hsv_mask_image, self.app_ui.map_detector_block.max_radius_slider.get())[0]
 
         if mark_position is None or self.last_distance == 0: elevation = 0
         elif self.last_distance is not None:
@@ -225,10 +224,10 @@ class AppLogic():
         corrected_distance = round(HeightDetector.get_correct_distance(
             elevation, self.last_distance))
         
-        if self.app_ui.elevation_draw_processed_checkbox.get():
+        if self.app_ui.elevation_detector_block.draw_processed_checkbox.get():
             processed_image = cv2.cvtColor(hsv_mask_image, cv2.COLOR_GRAY2BGR)
         
-        if self.app_ui.elevation_draw_points_checkbox.get():
+        if self.app_ui.elevation_detector_block.draw_points_checkbox.get():
             cv2.circle(processed_image, cutted_center, 2, (0, 255, 0), 5)
             if mark_position is not None:
                 cv2.arrowedLine(processed_image, cutted_center, mark_position,
@@ -251,14 +250,12 @@ class AppLogic():
         self.last_elevation = elevation
         self.last_elevation_mark_position = elevation_mark_point
 
-        self.app_ui.elevation_calculation_elevation_label.configure(text=f'{elevation} m')
-        self.app_ui.elevation_calculation_center_cordinates_label.configure(
-            text=f'{center_point}')
-
-        self.app_ui.elevation_calculation_mark_cordinates_label.configure(
-            text=f'{elevation_mark_point}')
-        self.app_ui.elevation_calculation_elevated_distance_label.configure(
-            text=f'{round(corrected_distance)} m')
+        self.app_ui.elevation_data_block.set_value(
+            'Mark Pos', str(elevation_mark_point))
+        self.app_ui.elevation_data_block.set_value(
+            'Elevation', str(elevation)+"m")
+        self.app_ui.elevation_data_block.set_value(
+            'Elevated Distance', str(corrected_distance)+"m")
 
     def set_map_data(self, grid_gap:int=0,
                                player_pos:tuple[int, int]|None=None,
@@ -272,13 +269,13 @@ class AppLogic():
         self.last_player_position = player_pos
         self.last_mark_position = mark_pos
 
-        self.app_ui.map_calculation_grid_gap_label.configure(text=f'{grid_gap} px')
-        self.app_ui.map_calculation_mark_cordinates_label.configure(text=f'{mark_pos}')
-        self.app_ui.map_calculation_player_cordinates_label.configure(text=f'{player_pos}')
-        self.app_ui.map_calculation_distance_label.configure(text=f'{distance} m')
+        self.app_ui.map_data_block.set_value('Grid Gap', str(grid_gap)+"px")
+        self.app_ui.map_data_block.set_value('Mark Pos', str(mark_pos))
+        self.app_ui.map_data_block.set_value('Player Pos', str(player_pos))
+        self.app_ui.map_data_block.set_value('Distance', str(distance)+"m")
 
     def get_color(self) -> str:
-        return self.app_ui.map_detection_color_combobox.get()
+        return self.app_ui.map_detector_block.color_combobox.get()
 
     def is_dictor(self) -> bool:
-        return self.app_ui.dictor_settings_dictor_checkbox.get()
+        return self.app_ui.dictor_settings_block.dictor_checkbox.get()
