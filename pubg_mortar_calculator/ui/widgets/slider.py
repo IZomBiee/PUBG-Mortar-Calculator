@@ -28,11 +28,9 @@ class Slider(CTkFrame):
         self.set(value)
             
     def set(self, value:int):
-        print(f"Was {value}")
         if value > self.max: value = self.max
         elif value < self.min: value = self.min
         SL().set(self.saving_id, value)
-        print(f"Become {value}")
         self.slider.set(value)
         self.label.configure(text=str(value))
     

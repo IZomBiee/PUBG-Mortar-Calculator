@@ -10,19 +10,11 @@ class MapDetector():
             [
                 "map"
             ],  0.8, 0.8)
-        self.last_detection = []
     
-    def detect(self, image:np.ndarray) -> list[dict]:
-        self.last_detection = self.detector.detect(image)
-        return self.last_detection
-    
-    def draw(self, image:np.ndarray) -> np.ndarray:
-        return self.detector.draw(image, self.last_detection)
-    
-    def cut_to_map(self, image:np.ndarray) -> np.ndarray:
-        if len(self.last_detection):
-            detection = max(self.last_detection, key=lambda i:i['conf'])
-            x0, y0, x1, y1 = detection['box']
-            image = image[y0:y1, x0:x1]
-        return image
+    def detect(self, image:np.ndarray) -> tuple[int, int, int, int] | None:
+        detection = self.detector.detect(image)
+        if len(detection) > 0:
+            detection = max(detection, key=lambda i:i['conf'])
+            return detection['box']
+        return None
 

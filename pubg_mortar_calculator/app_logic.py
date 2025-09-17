@@ -23,6 +23,7 @@ class AppLogic():
         self.last_grid_gap = 0
         self.last_player_position = None
         self.last_mark_position = None
+        self.last_minimap_box = None
 
         self.last_elevation_image: np.ndarray|None = None
         self.last_corrected_distance = 0
@@ -119,15 +120,17 @@ class AppLogic():
 
                 self.dictor_manager.add(f'Corrected {self.last_corrected_distance}')
 
-
             if self.app_ui.general_settings_block.add_to_test_samples_checkbox.get():
-                self.sample_loader.add(
-                    self.last_player_position, self.last_mark_position,
-                    self.last_grid_gap, self.last_distance,
-                    self.last_elevation, self.last_corrected_distance,
-                    self.last_elevation_mark_position,
-                    self.last_map_image, self.last_elevation_image
-                )
+                self.sample_loader.add(self.last_map_image,
+                                    self.last_elevation_image,
+                                    self.last_player_position,
+                                    self.last_mark_position,
+                                    self.last_elevation_mark_position,
+                                    self.last_grid_gap,
+                                    self.last_elevation,
+                                    self.get_color(),
+                                    self.last_minimap_box)
+
         else:
             self.dictor_manager.add(f'No Elevation')
 
@@ -140,9 +143,14 @@ class AppLogic():
 
         if self.app_ui.map_detector_block.minimap_detection.get()\
         and self.map_detector is not None:
-            minimap_detections = self.map_detector.detect(processed_image)
-            processed_image = self.map_detector.cut_to_map(processed_image)
-        else:minimap_detections = []
+            self.last_minimap_box = self.map_detector.detect(processed_image)
+            if self.last_minimap_box is not None:
+                x0, y0, x1, y1 = self.last_minimap_box
+                processed_image = imgpr.cut_to_points(
+                    processed_image, (x0, y0), (x1, y1), 0)
+        else:
+            minimap_detections = []
+            self.last_minimap_box = None
 
         canny_image = self.grid_detector.get_canny_frame(processed_image,
             self.app_ui.grid_detector_block.canny1_threshold_slider.get(),
@@ -159,7 +167,7 @@ class AppLogic():
         height , width = processed_image.shape[:2]
 
         if not self.app_ui.map_detector_block.minimap_detection.get()\
-        or not len(minimap_detections):
+        or self.last_minimap_box is None:
             imgpr.replace_area_with_black(processed_image, (0, int(height*0.83)),
                 (int(width*0.13), height))
             imgpr.replace_area_with_black(processed_image, (int(width*0.75),
