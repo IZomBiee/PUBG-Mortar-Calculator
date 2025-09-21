@@ -27,7 +27,7 @@ class AppLogic():
 
         self.last_elevation_image: np.ndarray|None = None
         self.last_corrected_distance = 0
-        self.last_elevation = 0
+        self.last_elevation = 0.0
         self.last_elevation_mark_position = None
 
         print("Load grid detector...")
@@ -54,15 +54,8 @@ class AppLogic():
         self.dictor_manager.start()
 
         print("Loading preview...")
-        self.initialize_preview_images()
+        self.__initialize_preview_images()
     
-    def initialize_preview_images(self):
-        if os.path.exists(paths.map_preview()):
-            self.load_map_image(paths.map_preview())
-        
-        if os.path.exists(paths.elevation_preview()):
-            self.load_elevation_image(paths.elevation_preview())
-
     def load_map_image(self, path: str | None = None) -> np.ndarray | None:
         if path is None:
             path = paths.get_image()
@@ -121,16 +114,17 @@ class AppLogic():
                 self.dictor_manager.add(f'Corrected {self.last_corrected_distance}')
 
             if self.app_ui.general_settings_block.add_to_test_samples_checkbox.get():
-                self.sample_loader.add(self.last_map_image,
-                                    self.last_elevation_image,
-                                    self.last_player_position,
-                                    self.last_mark_position,
-                                    self.last_elevation_mark_position,
-                                    self.last_grid_gap,
-                                    self.last_elevation,
-                                    self.get_color(),
-                                    self.last_minimap_box)
-
+                if self.last_map_image is not None and self.last_player_position is not None\
+            and self.last_mark_position is not None and self.last_elevation_mark_position is not None:
+                    self.sample_loader.add(self.last_map_image,
+                                        self.last_elevation_image,
+                                        self.last_player_position,
+                                        self.last_mark_position,
+                                        self.last_elevation_mark_position,
+                                        self.last_grid_gap,
+                                        self.last_elevation,
+                                        self.get_color(),
+                                        self.last_minimap_box)
         else:
             self.dictor_manager.add(f'No Elevation')
 
@@ -147,9 +141,8 @@ class AppLogic():
             if self.last_minimap_box is not None:
                 x0, y0, x1, y1 = self.last_minimap_box
                 processed_image = imgpr.cut_to_points(
-                    processed_image, (x0, y0), (x1, y1), 0)
+                    processed_image, (x0, y0), (x1, y1), 0)[0]
         else:
-            minimap_detections = []
             self.last_minimap_box = None
 
         canny_image = self.grid_detector.get_canny_frame(processed_image,
@@ -164,7 +157,7 @@ class AppLogic():
             self.app_ui.grid_detector_block.gap_threshold_slider.get())
 
         # Avoiding danger zones for mark detection
-        height , width = processed_image.shape[:2]
+        height, width = processed_image.shape[:2]
 
         if not self.app_ui.map_detector_block.minimap_detection.get()\
         or self.last_minimap_box is None:
@@ -178,7 +171,7 @@ class AppLogic():
 
         player_pos, mark_pos = self.mark_detector.get_mark_positions(hsv_mask,
             self.app_ui.map_detector_block.max_radius_slider.get())
-        
+
         if player_pos is not None and mark_pos is not None and \
             grid_gap != 0:
             distance = round(self.grid_detector.get_distance(
@@ -200,7 +193,7 @@ class AppLogic():
         if mark_pos is not None and player_pos is not None \
         and self.app_ui.map_detector_block.zoom_to_points_checkbox.get():
             processed_image = imgpr.cut_to_points(processed_image,
-                mark_pos, player_pos)
+                mark_pos, player_pos)[0]
 
         self.app_ui.map_image.set_cv2(processed_image)
         self.process_elevation_image()
@@ -217,7 +210,8 @@ class AppLogic():
             processed_image, (0, 0), (processed_image.shape[1], cut_y))
         
         center = imgpr.get_center_point(processed_image)
-        processed_image = imgpr.cut_x_line(processed_image, center[0], 0.02)
+        processed_image = imgpr.cut_x_line(
+            processed_image, center[0], 0.02)[0]
         cutted_center = imgpr.get_center_point(processed_image)
 
         hsv_mask_image = self.mark_detector.get_hsv_mask(processed_image)
@@ -242,15 +236,14 @@ class AppLogic():
                                 (0, 255, 0), 3)
                 cv2.circle(processed_image, mark_position, 2, (0, 255, 0), 5)
 
-        self.set_elevation_data(center_point=center,
-            elevation_mark_point=mark_position, elevation=round(elevation),
+        self.set_elevation_data(elevation_mark_point=mark_position,
+            elevation=round(elevation),
             corrected_distance=corrected_distance)
         
         self.app_ui.elevation_image.set_cv2(
             processed_image[cut_y:processed_image.shape[0]])
 
     def set_elevation_data(self,
-        center_point:tuple[int, int]|None=None,
         elevation_mark_point:tuple[int, int]|None=None,
         elevation:int=0,
         corrected_distance:int=0):
@@ -266,9 +259,9 @@ class AppLogic():
             'Elevated Distance', str(corrected_distance)+"m")
 
     def set_map_data(self, grid_gap:int=0,
-                               player_pos:tuple[int, int]|None=None,
-                               mark_pos:tuple[int, int]|None=None,
-                               distance:float=0):
+        player_pos:tuple[int, int]|None=None,
+        mark_pos:tuple[int, int]|None=None,
+        distance:float=0):
         if self.last_distance != distance:
             self.last_distance=round(distance)
             self.process_elevation_image()
@@ -287,3 +280,10 @@ class AppLogic():
 
     def is_dictor(self) -> bool:
         return self.app_ui.dictor_settings_block.dictor_checkbox.get()
+    
+    def __initialize_preview_images(self):
+        if os.path.exists(paths.map_preview()):
+            self.load_map_image(paths.map_preview())
+        
+        if os.path.exists(paths.elevation_preview()):
+            self.load_elevation_image(paths.elevation_preview())

@@ -58,14 +58,15 @@ def get_straight_line(image: np.ndarray,
 
     return warped
 
-def cut_x_line(image:np.ndarray, x:int, gap:float=0.1):
+def cut_x_line(image:np.ndarray, x:int, gap:float=0.1)\
+    -> tuple[np.ndarray, tuple[int, int]]:
     h, w = image.shape[:2]
-    gap = round(w*gap)
-    x_start = x - gap
-    x_end = x_start + gap*2
+    gap = w*gap
+    x0 = round(x - gap)
+    x1 = round(x0 + gap*2)
 
-    center_strip = image[:, x_start:x_end]
-    return center_strip
+    center_strip = image[:, x0:x1]
+    return (center_strip, (x0, x1))
 
 def replace_area_with_black(image: np.ndarray,
                             point1: tuple[int, int],
@@ -81,8 +82,6 @@ def replace_area_with_black(image: np.ndarray,
         image[int(y1):int(y2), int(x1):int(x2)] = (0, 0, 0)
     else:
         image[int(y1):int(y2), int(x1):int(x2)] = 0
-    
-    return image
 
 def draw_point(frame: np.ndarray,
                position: tuple[int, int],
@@ -123,7 +122,8 @@ def get_center_point(image: np.ndarray) -> tuple[int, int]:
     return (center_x, center_y)
 
 def cut_to_points(image: np.ndarray, point1: tuple[int, int],
-                point2: tuple[int, int], margin: float = 0.05) -> np.ndarray:
+                point2: tuple[int, int], margin: float = 0.05)\
+    -> tuple[np.ndarray, tuple[int, int, int, int]]:
     height, width = image.shape[:2]
     
     left = min(point1[0], point2[0])
@@ -139,9 +139,10 @@ def cut_to_points(image: np.ndarray, point1: tuple[int, int],
     top = max(0, top - margin_y)
     bottom = min(height, bottom + margin_y)
     
-    return image[top:bottom, left:right]
+    return (image[top:bottom, left:right], (left, top, right, bottom))
 
-def letterbox(img: np.ndarray, size: tuple[int, int], fill_value: int = 114) -> np.ndarray:
+def letterbox(img: np.ndarray, size: tuple[int, int], fill_value: int = 114)\
+    -> tuple[np.ndarray, tuple[int, int]]:
     target_h, target_w = size
     h, w = img.shape[:2]
 

@@ -63,8 +63,8 @@ class MarkDetector:
                 hsv_min = (67, 70, 106)
                 hsv_max = (110, 210, 231)
             case 'green':
-                hsv_min = (49, 101, 154)
-                hsv_max = (80, 195, 218)
+                hsv_min = (49, 101, 111)
+                hsv_max = (80, 195, 219)
             case _:
                 raise ValueError(f"There is no color {color}")
         self.hsv_min = np.array(hsv_min, dtype=np.uint8)

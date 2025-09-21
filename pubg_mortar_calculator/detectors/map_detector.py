@@ -9,7 +9,7 @@ class MapDetector():
             paths.map_detection_model(), 640,
             [
                 "map"
-            ],  0.8, 0.8)
+            ],  0.85, 0.85)
     
     def detect(self, image:np.ndarray) -> tuple[int, int, int, int] | None:
         detection = self.detector.detect(image)
