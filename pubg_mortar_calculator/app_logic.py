@@ -11,7 +11,7 @@ from .utils import imgpr, paths, take_game_screenshot
 from .detectors import GridDetector,\
 MapDetector, MarkDetector, GridDetector,\
 HeightDetector
-from .sample_loader import SampleLoader
+from .sample_manager import SampleManager, Sample
 from .dictor_manager import DictorManager
 
 class AppLogic():
@@ -35,7 +35,7 @@ class AppLogic():
         print("Load mark detector...")
         self.mark_detector = MarkDetector()
         print("Load sample loader...")
-        self.sample_loader = SampleLoader()
+        self.sample_loader = SampleManager()
         print("Load map detector...")
         if os.path.exists(paths.map_detection_model()):
             self.map_detector = MapDetector()
@@ -116,7 +116,7 @@ class AppLogic():
             if self.app_ui.general_settings_block.add_to_test_samples_checkbox.get():
                 if self.last_map_image is not None and self.last_player_position is not None\
             and self.last_mark_position is not None and self.last_elevation_mark_position is not None:
-                    self.sample_loader.add(self.last_map_image,
+                    self.sample_loader.add(Sample(self.last_map_image,
                                         self.last_elevation_image,
                                         self.last_player_position,
                                         self.last_mark_position,
@@ -124,7 +124,7 @@ class AppLogic():
                                         self.last_grid_gap,
                                         self.last_elevation,
                                         self.get_color(),
-                                        self.last_minimap_box)
+                                        self.last_minimap_box))
         else:
             self.dictor_manager.add(f'No Elevation')
 

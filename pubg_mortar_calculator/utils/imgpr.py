@@ -141,8 +141,7 @@ def cut_to_points(image: np.ndarray, point1: tuple[int, int],
     
     return (image[top:bottom, left:right], (left, top, right, bottom))
 
-def letterbox(img: np.ndarray, size: tuple[int, int], fill_value: int = 114)\
-    -> tuple[np.ndarray, tuple[int, int]]:
+def letterbox(img: np.ndarray, size: tuple[int, int], fill_value: int = 114) -> tuple[np.ndarray, tuple[float, float], tuple[float, float]]:
     target_h, target_w = size
     h, w = img.shape[:2]
 
@@ -157,5 +156,7 @@ def letterbox(img: np.ndarray, size: tuple[int, int], fill_value: int = 114)\
     left = (target_w - new_w) // 2
 
     padded_img[top:top + new_h, left:left + new_w] = resized_img
-
-    return padded_img
+    offset = (left, top)
+    multiplier = (scale, scale)
+    
+    return padded_img, offset, multiplier
