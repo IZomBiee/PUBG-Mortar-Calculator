@@ -23,9 +23,6 @@ poetry install
 poetry run pubg_mortar_calculator
 ```
 
-3. **Install minimap detection model: (Optional)**
-Download minimap detection model from this repository releases and add that .onnx file to assets folder. After that you can enable minimap detection in program gui.
-
 ## Using
 1. Setup hotkeys for calculation.
 2. Use both hotkeys to get map/minimap image and elevation image. (Elevation image must be from mortar first-person view on mark)

@@ -5,6 +5,4 @@ tests/test_samples/*
 *.pt
 *.png
 *.json
-*.onnx
-assets/
 test_samples/
