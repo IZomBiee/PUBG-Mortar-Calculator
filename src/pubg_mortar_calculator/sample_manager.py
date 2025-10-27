@@ -17,7 +17,8 @@ class Sample:
     grid_gap:int
     elevation:float
     color:str
-    map_box:tuple[int, int, int, int]|None=field(default=None)
+    map_box:list[int]|None=field(default=None)
+    verified:bool=field(default=False)
 
     def save_to_folder(self, path:str):
         if os.path.exists(path):
@@ -33,6 +34,7 @@ class Sample:
         data['elevation'] = self.elevation
         data['color'] = self.color
         data['map_box'] = self.map_box
+        data['verified'] = self.verified
         with open(os.path.join(path, 'data.json'), 'w') as file:
             json.dump(data, file)
 
@@ -52,7 +54,7 @@ class Sample:
         )
 
     @staticmethod
-    def __parse_map_box(data:dict) -> tuple[int, int, int, int]|None:
+    def __parse_map_box(data:dict) -> list[int]|None:
         if data.get("map_box") is not None:
             box = data["map_box"]
         elif data.get("minimap_box") is not None:
@@ -74,7 +76,8 @@ class Sample:
             data['grid_gap'],
             data['elevation'],
             'yellow' if data.get('color') is None else data['color'],
-            Sample.__parse_map_box(data)
+            Sample.__parse_map_box(data),
+            data['verified']
         )
 
 class SampleManager:

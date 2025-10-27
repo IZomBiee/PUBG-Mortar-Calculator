@@ -5,12 +5,12 @@ from customtkinter import CTkFrame, CTkEntry
 class Entry:
     def __init__(self, master:CTkFrame, text:str='',
                  placeholder_text:str='', state:str='normal',
-                 use_settings:bool=True, saving_id:str="Entry", **kwargs):
+                 saving_id:str="", **kwargs):
         self.placeholder_text = placeholder_text
         self.id = saving_id
         self.text_varible = tkinter.StringVar()
         self.text_varible.set(text)
-        self.use_settings = use_settings
+        self.use_settings = saving_id != ""
         self.entry = CTkEntry(master, textvariable=self.text_varible,
                               placeholder_text=placeholder_text, state=state, **kwargs)
         self.entry.bind("<KeyRelease>", self.on_entry)
@@ -19,6 +19,8 @@ class Entry:
             value = SL().get(self.id)
             if value is not None and isinstance(value, str):
                 self.set(value)
+            else:
+                SL().set(saving_id, self.get())
 
     def on_entry(self, _):
         if self.use_settings:

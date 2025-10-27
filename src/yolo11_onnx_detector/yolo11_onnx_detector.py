@@ -38,7 +38,7 @@ class Yolo11OnnxDetector:
 
     def __inference(self, processed_image: np.ndarray) -> np.ndarray:
         input_name = self.session.get_inputs()[0].name
-        outputs = self.session.run(None, {input_name: processed_image})[0][0]
+        outputs = self.session.run(None, {input_name: processed_image})[0][0] # type: ignore
         outputs = np.transpose(outputs, (1, 0))
         return outputs
 
@@ -66,7 +66,7 @@ class Yolo11OnnxDetector:
 
         detections = []
         if len(indices) > 0:
-            for i in indices.flatten(): 
+            for i in indices.flatten():  # type: ignore
                 if self.last_original_image_size is not None:
                     boxes[i][0] -= self.last_letterbox_offset[0]
                     boxes[i][1] -= self.last_letterbox_offset[1]
@@ -99,7 +99,7 @@ class Yolo11OnnxDetector:
 
     def _get_color(self, class_id: int) -> tuple[int, int, int]:
         np.random.seed(class_id * 999)
-        return tuple(int(x) for x in np.random.randint(60, 255, size=3))
+        return tuple(int(x) for x in np.random.randint(60, 255, size=3)) # type: ignore
 
     def detect(self, image: np.ndarray, use_lettebox_resize:bool = True) -> List[Detection]:
         if use_lettebox_resize:

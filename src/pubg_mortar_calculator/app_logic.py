@@ -99,20 +99,15 @@ class AppLogic():
         self.last_map_image = take_game_screenshot()
         self.process_map_image()
         if self.is_dictor():
-            if self.last_distance != 0:
-                self.dictor_manager.add(f'Line of Sight {self.last_distance}')
-            else: self.dictor_manager.add(f'No Distance')
+            self.dictor_manager.add(f'{self.last_distance}')
         cv2.imwrite(paths.map_preview(), self.last_map_image)
     
     def calculate_elevation_in_combat(self):
         self.last_elevation_image = take_game_screenshot()
         self.process_elevation_image()
+        if self.is_dictor():
+            self.dictor_manager.add(f'{self.last_corrected_distance}')
         if self.last_elevation != 0:
-            if self.is_dictor():
-                self.dictor_manager.add(f'Elevation {self.last_elevation}')
-
-                self.dictor_manager.add(f'Corrected {self.last_corrected_distance}')
-
             if self.app_ui.general_settings_block.add_to_test_samples_checkbox.get():
                 if self.last_map_image is not None and self.last_player_position is not None\
             and self.last_mark_position is not None and self.last_elevation_mark_position is not None:
@@ -125,9 +120,6 @@ class AppLogic():
                                         self.last_elevation,
                                         self.get_color(),
                                         self.last_minimap_box))
-        else:
-            self.dictor_manager.add(f'No Elevation')
-
         cv2.imwrite(paths.elevation_preview(), self.last_elevation_image)
 
     def process_map_image(self):

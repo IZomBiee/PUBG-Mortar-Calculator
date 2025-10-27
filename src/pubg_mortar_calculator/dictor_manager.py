@@ -23,7 +23,7 @@ class DictorManager:
             if len(self.queue):
                 self.text_to_speech(self.queue.pop(0),
                     self.rate, self.volume)
-            time.sleep(0.1)
+            time.sleep(0.01)
     
     @staticmethod
     def text_to_speech(text, rate, volume, voice_id=None, ):

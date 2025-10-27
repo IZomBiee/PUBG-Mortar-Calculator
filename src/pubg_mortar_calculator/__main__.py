@@ -13,10 +13,12 @@ def main():
             try:
                 if keyboard.is_pressed(app.get_calculation_key()):
                     app.calculate_map_in_combat()
+                    time.sleep(0.5)
                 elif keyboard.is_pressed(app.get_elevation_key()):
                     app.calculate_elevation_in_combat()
+                    time.sleep(0.5)
             except ValueError: time.sleep(1)
-            time.sleep(0.001)
+            time.sleep(0.01)
 
     def on_closing():
         settings_loader.save()
