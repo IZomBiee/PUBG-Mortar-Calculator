@@ -33,7 +33,7 @@ def main():
     args = parser.parse_args()
 
     # Load detector
-    detector = Yolo11OnnxDetector(args.model, confidence=0.7)
+    detector = Yolo11OnnxDetector(args.model)
 
     # Read image
     image = cv2.imread(args.image)
@@ -42,7 +42,8 @@ def main():
         return
 
     # Detect and draw
-    detector.detect(image)
+    detections = detector.detect(image)
+    print(f"Founded {len(detections)} detections.")
     detector.draw_last_detections(image)
 
     # Resize image for display

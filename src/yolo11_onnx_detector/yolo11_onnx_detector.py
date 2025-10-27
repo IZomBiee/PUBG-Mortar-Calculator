@@ -14,11 +14,15 @@ class Detection:
 
 class Yolo11OnnxDetector:
     def __init__(self, model_path: str, classes: List[str] = [],
-                 confidence: float = 0.5, width: int = 640, height: int = 640,
-                 iou_threshold: float = 0.5) -> None:
-        self.session = onnxruntime.InferenceSession(model_path)
+                 confidence: float = 0.05,
+                 iou_threshold: float = 0.05) -> None:
+        self.session = onnxruntime.InferenceSession(model_path, providers=["CPUExecutionProvider"])
         self.confidence = confidence
-        self.width, self.height = width, height
+
+        self.input_shape = self.session.get_inputs()[0].shape
+        self.width, self.height = self.input_shape[-1], self.input_shape[-2]
+        self.input_dtype = np.float16 if self.session.get_inputs()[0].type == "tensor(float16)" else np.float32
+
         self.last_letterbox_offset = (0, 0)
         self.last_letterbox_multiplier = (1.0, 1.0)
         self.last_original_image_size = None
@@ -27,7 +31,7 @@ class Yolo11OnnxDetector:
         self.iou_threshold = iou_threshold
 
     def __preprocess_image(self, image: np.ndarray) -> np.ndarray:
-        image = image.astype(np.float32) / 255.0
+        image = image.astype(self.input_dtype) / 255.0
         image = np.transpose(image, (2, 0, 1))
         image = np.expand_dims(image, axis=0)
         return image
