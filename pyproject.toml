@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pubg_mortar_calculator"
-version = "3.0.3"
+version = "3.1.0"
 description = "A tool to calculate the range of a shot for mortar."
 authors = ["IZomBie <patrik009009@gmail.com>"]
 license = "You can use everything."
@@ -19,7 +19,8 @@ pyttsx3 = "^2.98"
 mouse = "^0.7.1"
 pygetwindow = "^0.0.9"
 pip = "^25.2"
-yolov8-onnx = "^1.0.4"
+tqdm = "^4.67.1"
+onnxruntime = "^1.23.2"
 
 [[tool.poetry.source]]
 name = "pytorch-cu128"

@@ -29,6 +29,9 @@ def test_samples() -> str:
 def map_detection_model() -> str:
     return os.path.join(assets(), 'map_model.onnx')
 
+def mark_detection_model() -> str:
+    return os.path.join(assets(), 'mark_model.onnx')
+
 def get_image() -> str:
     image_path: str = filedialog.askopenfilename(title="Select a File",
                                                         filetypes=[("Image Files", "*.png;*.jpg"),
