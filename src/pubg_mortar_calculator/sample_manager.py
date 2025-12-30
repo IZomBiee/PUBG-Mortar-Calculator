@@ -3,6 +3,7 @@ import os
 import numpy as np
 import json
 import shutil
+from pathlib import Path
 from .utils import paths
 from datetime import datetime
 from dataclasses import dataclass, field
@@ -18,6 +19,7 @@ class Sample:
     elevation:float
     color:str
     map_box:list[int]|None=field(default=None)
+    name: str|None=field(default=None)
     verified:bool=field(default=False)
 
     def save_to_folder(self, path:str):
@@ -25,6 +27,7 @@ class Sample:
             shutil.rmtree(path)
         os.mkdir(path)
         data = {}
+
         cv2.imwrite(os.path.join(path, 'map.png'), self.map_image)
         cv2.imwrite(os.path.join(path, 'elevation.png'), self.elevation_image)
         data['map_player_position'] = self.map_player_position
@@ -37,6 +40,12 @@ class Sample:
         data['verified'] = self.verified
         with open(os.path.join(path, 'data.json'), 'w') as file:
             json.dump(data, file)
+
+    def get_minimap_image(self) -> np.ndarray:
+        if self.map_box is not None:
+            x0, y0, x1, y1 = self.map_box
+            return self.map_image[y0:y1, x0:x1]
+        return self.map_image
 
     def __eq__(self, other):
         if not isinstance(other, Sample):
@@ -77,46 +86,38 @@ class Sample:
             data['elevation'],
             'yellow' if data.get('color') is None else data['color'],
             Sample.__parse_map_box(data),
-            data['verified']
+            Path(path).name,
+            data.get('verified', False)
         )
 
 class SampleManager:
     def __init__(self):
-        self.samples: list[Sample] = []
-        self.paths: list[str] = []
+        self.count = len(os.listdir(paths.test_samples()))
     
     def add(self, sample:Sample):
         file_name = datetime.now().strftime("%d-%m-%Y_%H-%M-%S-%f")
         path = os.path.join(paths.test_samples(), file_name)
-        self.paths.append(path)
         sample.save_to_folder(path)
-        self.samples.append(sample)
+        self.count += 1
 
-    def load(self):
-        for dir in os.listdir(paths.test_samples()):
-            path = os.path.join(paths.test_samples(), dir)
-            self.paths.append(path)
-            self.samples.append(Sample.load_from_folder(path))
-
-    def delete(self, sample: Sample) -> Sample:
-        index = self.samples.index(sample)
-        deleted_sample = self.samples.pop(index)
-        deleted_path = self.paths.pop(index)
-        shutil.rmtree(deleted_path)
-        return deleted_sample
+    def delete(self, name:str) -> Sample:
+        for path in os.listdir(paths.test_samples()):
+            if path == name:
+                sample = Sample.load_from_folder(paths.test_samples() + path)
+                shutil.rmtree(paths.test_samples() + path)
+                return sample
+        raise IndexError(f"No sample {name} was found")
 
     def __len__(self) -> int:
-        return len(self.samples)
+        return self.count
     
     def __iter__(self):
-        return iter(self.samples)
+        return iter((Sample.load_from_folder(paths.test_samples()+"\\"+path) for path in os.listdir(paths.test_samples())))
 
     def __getitem__(self, index:int):
-        return self.samples[index]
+        return Sample.load_from_folder(paths.test_samples() +"\\"+ os.listdir(paths.test_samples())[index])
     
 if __name__ == '__main__':
     sample_manager = SampleManager()
-    sample_manager.load()
     for item in sample_manager:
         print(item)
-        exit()

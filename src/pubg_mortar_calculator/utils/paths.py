@@ -11,6 +11,9 @@ def assets() -> str:
         os.mkdir(path)
     return path
 
+def mortar_distances() -> str:
+    return os.path.join(assets(), 'mortar_distances.txt')
+
 def settings() -> str:
     return os.path.join(assets(), 'settings.json')
 

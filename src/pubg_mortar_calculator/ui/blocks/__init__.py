@@ -1,4 +1,3 @@
-from .titled_block import TitledBlock
 from .grid_detector_block import GridDetectorBlock
 from .map_detector_block import MapDetectorBlock
 from .calculation_data_block import CalculationDataBlock

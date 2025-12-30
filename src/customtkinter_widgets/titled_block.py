@@ -7,7 +7,7 @@ class TitledBlock(ct.CTkFrame):
         title_font = ct.CTkFont('Arial', 15, 'bold')
 
         self.edit_frame = ct.CTkFrame(self, fg_color='transparent')
-        self.edit_frame.grid(row=1, column=0, stick="wesn")
+        self.edit_frame.grid(row=1, column=0, padx=5, pady=5, stick="wesn")
 
         ct.CTkLabel(self, text=title,
             font=title_font).grid(row=0, column=0)

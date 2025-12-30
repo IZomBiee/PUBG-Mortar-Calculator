@@ -1,6 +1,6 @@
 import customtkinter as ct
-from pubg_mortar_calculator.ui.widgets import *
-from .titled_block import TitledBlock
+from src.customtkinter_widgets import *
+from src.customtkinter_widgets import TitledBlock
 
 class CalculationDataBlock(TitledBlock):
     def __init__(self, master, title: str, fields: list[str], *args, **kwargs):

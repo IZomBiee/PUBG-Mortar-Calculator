@@ -9,8 +9,8 @@ if TYPE_CHECKING:
 
 from .utils import imgpr, paths, take_game_screenshot
 from .detectors import GridDetector,\
-MapDetector, MarkDetector, GridDetector,\
-HeightDetector
+MapDetector, MarkDetector
+from .elevation_tools import ElevationTools
 from .sample_manager import SampleManager, Sample
 from .dictor_manager import DictorManager
 
@@ -26,9 +26,13 @@ class AppLogic():
         self.last_minimap_box = None
 
         self.last_elevation_image: np.ndarray|None = None
-        self.last_corrected_distance = 0
+        self.last_elevated_distance = 0
+        self.last_mortar_elevated_distance = 0
         self.last_elevation = 0.0
         self.last_elevation_mark_position = None
+
+        with open(paths.mortar_distances(), 'r') as file:
+            self.mortar_distances = [float(i) for i in file.readlines()]
 
         print("Load grid detector...")
         self.grid_detector = GridDetector()
@@ -106,11 +110,15 @@ class AppLogic():
         self.last_elevation_image = take_game_screenshot()
         self.process_elevation_image()
         if self.is_dictor():
-            self.dictor_manager.add(f'{self.last_corrected_distance}')
+            self.dictor_manager.add(f'{self.last_mortar_elevated_distance}')
         if self.last_elevation != 0:
             if self.app_ui.general_settings_block.add_to_test_samples_checkbox.get():
-                if self.last_map_image is not None and self.last_player_position is not None\
-            and self.last_mark_position is not None and self.last_elevation_mark_position is not None:
+                if all(x is not None for x in (
+                        self.last_map_image,
+                        self.last_player_position,
+                        self.last_mark_position,
+                        self.last_elevation_mark_position
+                    )):
                     self.sample_loader.add(Sample(self.last_map_image,
                                         self.last_elevation_image,
                                         self.last_player_position,
@@ -120,7 +128,6 @@ class AppLogic():
                                         self.last_elevation,
                                         self.get_color(),
                                         self.last_minimap_box))
-        cv2.imwrite(paths.elevation_preview(), self.last_elevation_image)
 
     def process_map_image(self):
         if self.last_map_image is None: return
@@ -166,8 +173,10 @@ class AppLogic():
 
         if player_pos is not None and mark_pos is not None and \
             grid_gap != 0:
-            distance = round(self.grid_detector.get_distance(
-                player_pos, mark_pos, grid_gap))
+            distance = self.grid_detector.get_distance(
+                player_pos, mark_pos, grid_gap)
+            if distance > 700:
+                distance = 0
         else: distance = 0
 
         if self.app_ui.grid_detector_block.show_processed_image_checkbox.get():
@@ -212,11 +221,11 @@ class AppLogic():
 
         if mark_position is None or self.last_distance == 0: elevation = 0
         elif self.last_distance is not None:
-            elevation = HeightDetector.get_elevation(
+            elevation = ElevationTools.get_elevation(
                 center[1], mark_position[1], 90, self.last_distance)
 
-        corrected_distance = round(HeightDetector.get_correct_distance(
-            elevation, self.last_distance))
+        elevated_distance = ElevationTools.get_elevated_distance(
+            self.last_distance, elevation)
         
         if self.app_ui.elevation_detector_block.draw_processed_checkbox.get():
             processed_image = cv2.cvtColor(hsv_mask_image, cv2.COLOR_GRAY2BGR)
@@ -229,26 +238,29 @@ class AppLogic():
                 cv2.circle(processed_image, mark_position, 2, (0, 255, 0), 5)
 
         self.set_elevation_data(elevation_mark_point=mark_position,
-            elevation=round(elevation),
-            corrected_distance=corrected_distance)
+            elevation=elevation,
+            elevated_distance=elevated_distance)
         
         self.app_ui.elevation_image.set_cv2(
             processed_image[cut_y:processed_image.shape[0]])
 
     def set_elevation_data(self,
         elevation_mark_point:tuple[int, int]|None=None,
-        elevation:int=0,
-        corrected_distance:int=0):
-        self.last_corrected_distance = corrected_distance
+        elevation:float=0,
+        elevated_distance:float=0):
+        self.last_elevated_distance = elevated_distance
+        self.last_mortar_elevated_distance = self.calculate_mortar_distance(elevated_distance)
         self.last_elevation = elevation
         self.last_elevation_mark_position = elevation_mark_point
 
         self.app_ui.elevation_data_block.set_value(
             'Mark Pos', str(elevation_mark_point))
         self.app_ui.elevation_data_block.set_value(
-            'Elevation', str(elevation)+"m")
+            'Elevation', str(round(elevation, 1))+"m")
         self.app_ui.elevation_data_block.set_value(
-            'Elevated Distance', str(corrected_distance)+"m")
+            'Elevated Distance', str(round(elevated_distance, 1))+"m")
+        self.app_ui.elevation_data_block.set_value(
+            'Mortar Elev. Dist.', str(self.last_mortar_elevated_distance)+"m")
 
     def set_map_data(self, grid_gap:int=0,
         player_pos:tuple[int, int]|None=None,
@@ -265,7 +277,16 @@ class AppLogic():
         self.app_ui.map_data_block.set_value('Grid Gap', str(grid_gap)+"px")
         self.app_ui.map_data_block.set_value('Mark Pos', str(mark_pos))
         self.app_ui.map_data_block.set_value('Player Pos', str(player_pos))
-        self.app_ui.map_data_block.set_value('Distance', str(distance)+"m")
+        self.app_ui.map_data_block.set_value('Distance', str(round(distance, 1))+"m")
+
+    def calculate_mortar_distance(self, distance: float) -> float | int:
+        differences = []
+        for mortar_distance in self.mortar_distances:
+            differences.append(abs(mortar_distance-distance))
+        distance = self.mortar_distances[differences.index(min(differences))]
+        if distance == int(distance):
+            distance = int(distance)
+        return distance
 
     def get_color(self) -> str:
         return self.app_ui.map_detector_block.color_combobox.get()

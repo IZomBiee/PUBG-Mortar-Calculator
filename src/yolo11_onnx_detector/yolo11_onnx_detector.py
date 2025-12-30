@@ -43,57 +43,70 @@ class Yolo11OnnxDetector:
         return outputs
 
     def __post_process_outputs(self, raw_outputs: np.ndarray) -> List[Detection]:
-        boxes, confidences, class_ids = [], [], []
+        # Convert to numpy array just in case
+        outputs = np.asarray(raw_outputs)
 
-        for output in raw_outputs:
-            x_center, y_center, w, h = map(float, output[:4])
-            half_w, half_h = w / 2, h / 2
-            x0, y0, x1, y1 = x_center - half_w, y_center - half_h, x_center + half_w, y_center + half_h
+        # Split into boxes and class confidence parts
+        xywh = outputs[:, :4]
+        class_scores = outputs[:, 4:]
 
-            confidences_arr = output[4:]
-            confidence = float(np.max(confidences_arr))
-            class_nr = int(np.argmax(confidences_arr))
+        # Compute max confidence + class index for all rows in one go
+        class_ids = np.argmax(class_scores, axis=1)
+        confidences = np.max(class_scores, axis=1)
 
-            if confidence > self.confidence:
-                boxes.append([int(x0),
-                              int(y0),
-                              int(x1 - x0),
-                              int(y1 - y0)])  # x, y, w, h for NMS
-                confidences.append(confidence)
-                class_ids.append(class_nr)
+        # Apply confidence threshold
+        mask = confidences > self.confidence
+        xywh = xywh[mask]
+        confidences = confidences[mask]
+        class_ids = class_ids[mask]
 
-        indices = cv2.dnn.NMSBoxes(boxes, confidences, self.confidence, self.iou_threshold)
+        if len(xywh) == 0:
+            return []
+
+        # Convert [x_center, y_center, w, h] → [x, y, w, h]
+        xywh[:, :2] -= xywh[:, 2:] / 2  # x0, y0
+        boxes = np.concatenate([xywh[:, :2], xywh[:, 2:]], axis=1)  # shape (N,4)
+
+        # Convert to int boxes for NMS
+        boxes_int = boxes.astype(int).tolist()
+        confidences_list = confidences.tolist()
+
+        # Perform NMS
+        indices = cv2.dnn.NMSBoxes(boxes_int, confidences_list, self.confidence, self.iou_threshold)
 
         detections = []
         if len(indices) > 0:
-            for i in indices.flatten():  # type: ignore
+            indices = indices.flatten()
+            for i in indices:
+                x, y, w, h = boxes_int[i]
                 if self.last_original_image_size is not None:
-                    boxes[i][0] -= self.last_letterbox_offset[0]
-                    boxes[i][1] -= self.last_letterbox_offset[1]
-                    boxes[i][0] /= self.last_letterbox_multiplier[0]
-                    boxes[i][1] /= self.last_letterbox_multiplier[1]
-                    boxes[i][2] /= self.last_letterbox_multiplier[0]
-                    boxes[i][3] /= self.last_letterbox_multiplier[1]
-                    normalized_box = [boxes[i][0]/self.last_original_image_size[0],
-                                      boxes[i][1]/self.last_original_image_size[1],
-                                      (boxes[i][2]/self.last_original_image_size[0])+(boxes[i][0]/self.last_original_image_size[0]),
-                                      (boxes[i][3]/self.last_original_image_size[1])+(boxes[i][1]/self.last_original_image_size[1])]
+                    x -= self.last_letterbox_offset[0]
+                    y -= self.last_letterbox_offset[1]
+                    x /= self.last_letterbox_multiplier[0]
+                    y /= self.last_letterbox_multiplier[1]
+                    w /= self.last_letterbox_multiplier[0]
+                    h /= self.last_letterbox_multiplier[1]
+                    normalized_box = [
+                        x / self.last_original_image_size[0],
+                        y / self.last_original_image_size[1],
+                        (x + w) / self.last_original_image_size[0],
+                        (y + h) / self.last_original_image_size[1],
+                    ]
                 else:
-                    normalized_box = [boxes[i][0]/self.width,
-                    boxes[i][1]/self.height,
-                    boxes[i][2]/self.width,
-                    boxes[i][3]/self.height] 
+                    normalized_box = [
+                        x / self.width,
+                        y / self.height,
+                        (x + w) / self.width,
+                        (y + h) / self.height,
+                    ]
 
                 class_name = self.classes[class_ids[i]] if 0 <= class_ids[i] < len(self.classes) else None
                 detections.append(Detection(
-                    box=[int(boxes[i][0]),
-                         int(boxes[i][1]),
-                         int(boxes[i][0]+boxes[i][2]),
-                         int(boxes[i][1]+boxes[i][3])],
+                    box=[int(x), int(y), int(x + w), int(y + h)],
                     normalized_box=normalized_box,
-                    confidence=confidences[i],
+                    confidence=float(confidences[i]),
                     class_name=class_name,
-                    class_nr=class_ids[i]
+                    class_nr=int(class_ids[i])
                 ))
         return detections
 

@@ -1,6 +1,6 @@
 import customtkinter as ct
 
-from .widgets import *
+from src.customtkinter_widgets import *
 from .blocks import *
 from ..app_logic import AppLogic 
 
@@ -31,7 +31,7 @@ class App(ct.CTk, AppLogic):
 
         self.elevation_data_block = CalculationDataBlock(
             self.left_frame, "Elevation Data",
-            ['Mark Pos', 'Elevation', 'Elevated Distance'])
+            ['Mark Pos', 'Elevation', 'Elevated Distance', 'Mortar Elev. Dist.'])
         self.elevation_data_block.grid(row=1, column=1)
 
         # Center Frame

@@ -1,6 +1,5 @@
-
-from pubg_mortar_calculator.ui.widgets import *
-from .titled_block import TitledBlock
+from src.customtkinter_widgets import *
+from src.customtkinter_widgets import TitledBlock
 
 class GridDetectorBlock(TitledBlock):
     def __init__(self, master, on_slider_update, *args, **kwargs):

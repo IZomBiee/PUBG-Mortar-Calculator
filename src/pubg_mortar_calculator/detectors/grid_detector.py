@@ -65,7 +65,7 @@ class GridDetector:
             x2, y2, x3, y3 = self.vertical_lines[i+1]
             gap = int(abs(x0-x2))
             vertical_gaps.append(gap)
-        
+
         gaps = horizontal_gaps.copy()
         gaps.extend(vertical_gaps)
 
