@@ -3,7 +3,7 @@ from src.customtkinter_widgets import *
 from src.customtkinter_widgets import TitledBlock
 
 class ElevationDetectorBlock(TitledBlock):
-    def __init__(self, master, on_update, on_image_load,*args, **kwargs):
+    def __init__(self, master, on_update, on_image_load, *args, **kwargs):
         super().__init__(master, "Elevation Detector", *args, **kwargs)
         grid = self.get_grid()
 
@@ -20,8 +20,14 @@ class ElevationDetectorBlock(TitledBlock):
             saving_id='elevation_draw_processed_checkbox'
             ).grid(row=0, column=1, padx=5, pady=5, sticky="ne")
         
+        self.fov_slider = Slider(grid, "FOV",
+            "elevation_fov_slider", 80, 103, 103, on_update, False)
+        self.fov_slider.grid(
+                row=1, column=0, padx=5, pady=5, sticky="ne",columnspan=2
+            )
+        
         self.load_example_button = ct.CTkButton(
             grid, text='Load Elevation Image',
             command=on_image_load)
-        self.load_example_button.grid(row=1, column=0,
+        self.load_example_button.grid(row=2, column=0,
             columnspan=2, padx=5, pady=5, sticky="nwse")

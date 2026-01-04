@@ -4,10 +4,11 @@ from customtkinter import CTkFrame, CTkLabel, CTkSlider
 class Slider(CTkFrame):
     def __init__(self,
         master, title:str, saving_id:str="", from_:int=0, to:int=100, default:int=0,
-        command=None, *args, **kwargs):
+        command=None, return_value: bool = False,*args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.saving_id = saving_id
         self.command = command
+        self.return_value = return_value
 
         self.min, self.max = from_, to
 
@@ -43,4 +44,7 @@ class Slider(CTkFrame):
         if self.saving_id != "":
             SL().set(self.saving_id, value)
         if self.command is not None:
-            self.command(value)
+            if self.return_value:
+                self.command(value)
+            else:
+                self.command()

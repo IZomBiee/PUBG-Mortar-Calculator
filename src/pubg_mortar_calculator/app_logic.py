@@ -222,7 +222,9 @@ class AppLogic():
         if mark_position is None or self.last_distance == 0: elevation = 0
         elif self.last_distance is not None:
             elevation = ElevationTools.get_elevation(
-                center[1], mark_position[1], 90, self.last_distance)
+                center[1], mark_position[1],
+                self.app_ui.elevation_detector_block.fov_slider.get(),
+                self.last_distance)
 
         elevated_distance = ElevationTools.get_elevated_distance(
             self.last_distance, elevation)
