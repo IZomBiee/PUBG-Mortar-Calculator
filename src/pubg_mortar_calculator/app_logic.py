@@ -211,8 +211,8 @@ class AppLogic():
             processed_image, (0, 0), (processed_image.shape[1], cut_y))
         
         center = imgpr.get_center_point(processed_image)
-        processed_image = imgpr.cut_x_line(
-            processed_image, center[0], 0.02)[0]
+        processed_image, (x0, x1) = imgpr.cut_x_line(
+            processed_image, center[0], 0.02)
         cutted_center = imgpr.get_center_point(processed_image)
 
         hsv_mask_image = self.mark_detector.get_hsv_mask(processed_image)
@@ -238,6 +238,9 @@ class AppLogic():
                 cv2.arrowedLine(processed_image, cutted_center, mark_position,
                                 (0, 255, 0), 3)
                 cv2.circle(processed_image, mark_position, 2, (0, 255, 0), 5)
+
+        if mark_position is not None:
+            mark_position = (mark_position[0]+x0, mark_position[1])
 
         self.set_elevation_data(elevation_mark_point=mark_position,
             elevation=elevation,
