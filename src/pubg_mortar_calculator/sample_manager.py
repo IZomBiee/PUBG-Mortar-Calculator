@@ -16,7 +16,6 @@ class Sample:
     map_mark_position:tuple[int, int]
     elevation_mark_position:tuple[int, int]
     grid_gap:int
-    elevation:float
     color:str
     map_box:list[int]|None=field(default=None)
     name: str|None=field(default=None)
@@ -25,7 +24,8 @@ class Sample:
     def save_to_folder(self, path:str):
         if os.path.exists(path):
             shutil.rmtree(path)
-        os.mkdir(path)
+
+        os.makedirs(path, exist_ok=True)
         data = {}
 
         cv2.imwrite(os.path.join(path, 'map.png'), self.map_image)
@@ -34,7 +34,6 @@ class Sample:
         data['map_mark_position'] = self.map_mark_position
         data['elevation_mark_position'] = self.elevation_mark_position
         data['grid_gap'] = self.grid_gap
-        data['elevation'] = self.elevation
         data['color'] = self.color
         data['map_box'] = self.map_box
         data['verified'] = self.verified
@@ -57,7 +56,6 @@ class Sample:
             self.map_mark_position == other.map_mark_position and
             self.elevation_mark_position == other.elevation_mark_position and
             self.grid_gap == other.grid_gap and
-            self.elevation == other.elevation and
             self.color == other.color and
             self.map_box == other.map_box
         )
@@ -83,7 +81,6 @@ class Sample:
             data['mark_position'] if data.get('map_mark_position') is None else data['map_mark_position'],
             data['elevation_mark_position'],
             data['grid_gap'],
-            data['elevation'],
             'yellow' if data.get('color') is None else data['color'],
             Sample.__parse_map_box(data),
             Path(path).name,
@@ -95,27 +92,57 @@ class SampleManager:
         self.count = len(os.listdir(paths.test_samples()))
     
     def add(self, sample:Sample):
-        file_name = datetime.now().strftime("%d-%m-%Y_%H-%M-%S-%f")
-        path = os.path.join(paths.test_samples(), file_name)
+        folder_name = datetime.now().strftime("%d-%m-%Y")
+        file_name = datetime.now().strftime("%H-%M-%S")
+        path = os.path.join(paths.test_samples(), folder_name, file_name)
         sample.save_to_folder(path)
         self.count += 1
 
     def delete(self, name:str) -> Sample:
-        for path in os.listdir(paths.test_samples()):
-            if path == name:
-                sample = Sample.load_from_folder(paths.test_samples() + path)
-                shutil.rmtree(paths.test_samples() + path)
-                return sample
+        for day in os.listdir(paths.test_samples()):
+            day_path = os.path.join(paths.test_samples(), day)
+            if not os.path.isdir(day_path):
+                continue
+
+            for sample_name in os.listdir(day_path):
+                if sample_name == name:
+                    sample_path = os.path.join(day_path, sample_name)
+                    sample = Sample.load_from_folder(sample_path)
+                    shutil.rmtree(sample_path)
+                    self.count -= 1
+                    return sample
+                
         raise IndexError(f"No sample {name} was found")
+    
+    def _iter_samples(self):
+            for day in os.listdir(paths.test_samples()):
+                day_path = os.path.join(paths.test_samples(), day)
+                if not os.path.isdir(day_path):
+                    continue
+
+                for sample_name in os.listdir(day_path):
+                    yield Sample.load_from_folder(
+                        os.path.join(day_path, sample_name)
+                    )
 
     def __len__(self) -> int:
         return self.count
     
     def __iter__(self):
-        return iter((Sample.load_from_folder(paths.test_samples()+"\\"+path) for path in os.listdir(paths.test_samples())))
+        return iter(self._iter_samples())
 
-    def __getitem__(self, index:int):
-        return Sample.load_from_folder(paths.test_samples() +"\\"+ os.listdir(paths.test_samples())[index])
+
+    def __getitem__(self, index: int):
+        all_samples = []
+        for day in os.listdir(paths.test_samples()):
+            day_path = os.path.join(paths.test_samples(), day)
+            if not os.path.isdir(day_path):
+                continue
+
+            for sample_name in os.listdir(day_path):
+                all_samples.append(os.path.join(day_path, sample_name))
+
+        return Sample.load_from_folder(all_samples[index])
     
 if __name__ == '__main__':
     sample_manager = SampleManager()
