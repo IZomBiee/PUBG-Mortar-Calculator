@@ -44,7 +44,7 @@ class MapDetectorBlock(TitledBlock):
 
         self.max_radius_slider = Slider(
             grid, "Mark Max Radius", 'map_detection_max_radius_slider', 5, 50,
-            default=30, command=lambda value: on_update())
+            default=30, command=lambda: on_update())
         self.max_radius_slider.grid(row=3, column=0, columnspan=2)
         
         self.load_example_button = ct.CTkButton(
