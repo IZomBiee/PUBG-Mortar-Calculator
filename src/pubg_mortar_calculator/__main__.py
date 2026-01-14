@@ -16,6 +16,9 @@ def main():
                 elif keyboard.is_pressed(app.get_elevation_key()):
                     app.calculate_elevation_in_combat()
                     time.sleep(0.5)
+                elif keyboard.is_pressed(app.get_all_in_one_key()):
+                    app.calculate_map_in_combat(False)
+                    app.calculate_elevation_in_combat()
             except ValueError: time.sleep(1)
             time.sleep(0.01)
 

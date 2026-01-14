@@ -16,7 +16,7 @@ class GeneralSettingsBlock(TitledBlock):
             ).grid(row=1, column=0, padx=5, pady=5)
 
         self.map_hotkey_entry = Entry(
-            grid, text='pageup',
+            grid, text='alt+1',
             saving_id='general_settings_calculation_hotkey_entry')
         self.map_hotkey_entry.grid(row=1, column=1, padx=5, pady=5)
 
@@ -24,7 +24,16 @@ class GeneralSettingsBlock(TitledBlock):
             text='Elevation Hotkey:  ').grid(row=2, column=0, padx=5, pady=5)
 
         self.elevation_hotkey_entry = Entry(
-            grid, 'pagedown',
+            grid, 'alt+2',
             'Elevation Hotkey',
             saving_id='elevation_hotkey_entry'
             ).grid(row=2, column=1, padx=5, pady=5)
+        
+        ct.CTkLabel(grid,
+        text='All in One Hotkey:  ').grid(row=3, column=0, padx=5, pady=5)
+
+        self.all_in_one_hotkey_entry = Entry(
+            grid, 'alt+3',
+            'All in One Hotkey',
+            saving_id='all_in_one_hotkey_entry'
+            ).grid(row=3, column=1, padx=5, pady=5)

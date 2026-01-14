@@ -16,12 +16,12 @@ class App(ct.CTk, AppLogic):
         self.left_frame.grid(row=0, column=0, padx=5, pady=5)
 
         self.map_image = Image(self.left_frame,
-            (384, 216),
+            (500, 290),
             save_aspect_ratio=True).grid(
             row=0, column=0, columnspan=2, padx=5, pady=5)
         
         self.elevation_image = Image(self.left_frame,
-            (100, 384), save_aspect_ratio=True
+            (60, 450), save_aspect_ratio=True
             ).grid(row=0, column=3, rowspan=2, padx=5, pady=5)
         
         self.map_data_block = CalculationDataBlock(
@@ -72,3 +72,6 @@ class App(ct.CTk, AppLogic):
     
     def get_elevation_key(self) -> str:
         return self.general_settings_block.elevation_hotkey_entry.get()
+        
+    def get_all_in_one_key(self) -> str:
+        return self.general_settings_block.all_in_one_hotkey_entry.get()

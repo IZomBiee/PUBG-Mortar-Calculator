@@ -99,10 +99,10 @@ class AppLogic():
             else:
                 return None
 
-    def calculate_map_in_combat(self):
+    def calculate_map_in_combat(self, dictor: bool = True):
         self.last_map_image = take_game_screenshot()
         self.process_map_image()
-        if self.is_dictor():
+        if self.is_dictor() and dictor:
             self.dictor_manager.add(f'{self.last_distance}')
         cv2.imwrite(paths.map_preview(), self.last_map_image)
     
@@ -175,8 +175,6 @@ class AppLogic():
             grid_gap != 0:
             distance = self.grid_detector.get_distance(
                 player_pos, mark_pos, grid_gap)
-            if distance > 700:
-                distance = 0
         else: distance = 0
 
         if self.app_ui.grid_detector_block.show_processed_image_checkbox.get():
@@ -211,7 +209,7 @@ class AppLogic():
             processed_image, (0, 0), (processed_image.shape[1], cut_y))
         
         center = imgpr.get_center_point(processed_image)
-        processed_image, (x0, x1) = imgpr.cut_x_line(
+        processed_image, (x0, _) = imgpr.cut_x_line(
             processed_image, center[0], 0.02)
         cutted_center = imgpr.get_center_point(processed_image)
 
@@ -254,7 +252,13 @@ class AppLogic():
         elevation:float=0,
         elevated_distance:float=0):
         self.last_elevated_distance = elevated_distance
-        self.last_mortar_elevated_distance = self.calculate_mortar_distance(elevated_distance)
+
+        if elevated_distance > 705:
+            self.last_mortar_elevated_distance = "OUT OF RANGE"
+        elif elevated_distance < 116:
+            self.last_mortar_elevated_distance = "TOO CLOSE"
+        else: self.last_mortar_elevated_distance = F"{self.calculate_mortar_distance(elevated_distance)}m"
+
         self.last_elevation = elevation
         self.last_elevation_mark_position = elevation_mark_point
 
@@ -265,7 +269,7 @@ class AppLogic():
         self.app_ui.elevation_data_block.set_value(
             'Elevated Distance', str(round(elevated_distance, 1))+"m")
         self.app_ui.elevation_data_block.set_value(
-            'Mortar Elev. Dist.', str(self.last_mortar_elevated_distance)+"m")
+            'Mortar Elev. Dist.', self.last_mortar_elevated_distance)
 
     def set_map_data(self, grid_gap:int=0,
         player_pos:tuple[int, int]|None=None,
