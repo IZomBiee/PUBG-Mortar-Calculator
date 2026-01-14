@@ -15,12 +15,14 @@ class DictorSettingsBlock(TitledBlock):
         
         self.volume_slider = Slider(grid,
             "Volume", "dictor_settings_volume_slider", 0, 100, 50,
-            command=lambda volume:setattr(DictorManager(), 'volume', volume)
+            command=lambda volume:setattr(DictorManager(), 'volume', volume),
+            return_value=True
             )
         self.volume_slider.grid(row=1, column=0)
         
         self.rate_slider = Slider(grid,
             "Rate", "dictor_settings_rate_slider", 50, 300, 150,
-            command=lambda rate:setattr(DictorManager(), 'rate', rate)
+            command=lambda rate:setattr(DictorManager(), 'rate', rate),
+            return_value=True
             )
         self.rate_slider.grid(row=2, column=0)
