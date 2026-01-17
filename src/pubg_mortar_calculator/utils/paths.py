@@ -23,8 +23,8 @@ def map_preview() -> str:
 def elevation_preview() -> str:
     return os.path.join(assets(), 'elevation_preview.png')
 
-def test_samples() -> str:
-    path = os.path.join(project(), 'test_samples')
+def debug_files() -> str:
+    path = os.path.join(project(), 'debug_files')
     if not os.path.exists(path):
         os.mkdir(path)
     return path

@@ -2,62 +2,64 @@ import cv2
 import os
 import numpy as np
 import tkinter
+import shutil
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .ui.app import App
 
 from .utils import imgpr, paths, take_game_screenshot
+from datetime import datetime
 from .detectors import GridDetector,\
 MapDetector, MarkDetector
 from .elevation_tools import ElevationTools
-from .sample_manager import SampleManager, Sample
 from .dictor_manager import DictorManager
+from .logger import get_logger
+
+LOGGER = get_logger()
 
 class AppLogic():
     def __init__(self, app_ui: "App"):
         self.app_ui: "App" = app_ui
 
         self.last_map_image: np.ndarray | None = None
-        self.last_distance = 0
-        self.last_grid_gap = 0
-        self.last_player_position = None
-        self.last_mark_position = None
-        self.last_minimap_box = None
+        self.last_distance: float = 0.0
+        self.last_grid_gap: int = 0
+        self.last_player_position: None | tuple[int, int] = None
+        self.last_mark_position: None | tuple[int, int] = None
+        self.last_minimap_box: None | list[int] = None
 
         self.last_elevation_image: np.ndarray|None = None
-        self.last_elevated_distance = 0
-        self.last_mortar_elevated_distance = 0
-        self.last_elevation = 0.0
-        self.last_elevation_mark_position = None
+        self.last_elevated_distance: float = 0.0
+        self.last_mortar_elevated_distance: int | str = 0
+        self.last_elevation: float = 0.0
+        self.last_elevation_mark_position: None | tuple[int, int] = None
 
         with open(paths.mortar_distances(), 'r') as file:
-            self.mortar_distances = [float(i) for i in file.readlines()]
+            self.mortar_distances = [int(i) for i in file.readlines()]
 
-        print("Load grid detector...")
+        LOGGER.debug("Load grid detector...")
         self.grid_detector = GridDetector()
-        print("Load mark detector...")
+        LOGGER.debug("Load mark detector...")
         self.mark_detector = MarkDetector()
-        print("Load sample loader...")
-        self.sample_loader = SampleManager()
-        print("Load map detector...")
+        LOGGER.debug("Load map detector...")
         if os.path.exists(paths.map_detection_model()):
             self.map_detector = MapDetector()
         else:
-            print(f"Can't find minimap detection model at "+
+            LOGGER.warning(f"Can't find minimap detection model at "+
                   paths.map_detection_model())
             self.map_detector = None
             self.app_ui.map_detector_block.minimap_detection.\
             checkbox.configure(state=tkinter.DISABLED)
             self.app_ui.map_detector_block.minimap_detection.set(False)
         
-        print("Starting dictor manager...")
+        LOGGER.debug("Starting dictor manager...")
         self.dictor_manager = DictorManager(
             self.app_ui.dictor_settings_block.rate_slider.get(),
             self.app_ui.dictor_settings_block.volume_slider.get())
         self.dictor_manager.start()
 
-        print("Loading preview...")
+        LOGGER.debug("Loading preview...")
         self.__initialize_preview_images()
     
     def load_map_image(self, path: str | None = None) -> np.ndarray | None:
@@ -105,29 +107,21 @@ class AppLogic():
         if self.is_dictor() and dictor:
             self.dictor_manager.add(f'{self.last_distance}')
         cv2.imwrite(paths.map_preview(), self.last_map_image)
+        if self.app_ui.general_settings_block.debug_mode_checkbox.get():
+            saving_path = f"{paths.debug_files()}\\{datetime.now().strftime("%Y-%m-%d_%H-%M-%S_map")}.png"
+            LOGGER.info(f"Map preview was saved in {saving_path}")
+            shutil.copy2(paths.map_preview(), saving_path)
     
     def calculate_elevation_in_combat(self):
         self.last_elevation_image = take_game_screenshot()
         self.process_elevation_image()
         if self.is_dictor():
-            self.dictor_manager.add(f'{self.last_mortar_elevated_distance}')
-        if self.last_elevation != 0:
-            if self.app_ui.general_settings_block.add_to_test_samples_checkbox.get():
-                if all(x is not None for x in (
-                        self.last_map_image,
-                        self.last_player_position,
-                        self.last_mark_position,
-                        self.last_elevation_mark_position
-                    )):
-                    self.sample_loader.add(Sample(self.last_map_image,
-                                        self.last_elevation_image,
-                                        self.last_player_position,
-                                        self.last_mark_position,
-                                        self.last_elevation_mark_position,
-                                        self.last_grid_gap,
-                                        self.last_elevation,
-                                        self.get_color(),
-                                        self.last_minimap_box))
+            self.dictor_manager.add(str(self.last_mortar_elevated_distance))
+        cv2.imwrite(paths.elevation_preview(), self.last_elevation_image)
+        if self.app_ui.general_settings_block.debug_mode_checkbox.get():
+            saving_path = f"{paths.debug_files()}\\{datetime.now().strftime("%Y-%m-%d_%H-%M-%S_elevation")}.png"
+            LOGGER.info(f"Elevation preview was saved in {saving_path}")
+            shutil.copy2(paths.elevation_preview(), saving_path)
 
     def process_map_image(self):
         if self.last_map_image is None: return
@@ -193,9 +187,10 @@ class AppLogic():
         and self.app_ui.map_detector_block.zoom_to_points_checkbox.get():
             processed_image = imgpr.cut_to_points(processed_image,
                 mark_pos, player_pos)[0]
+        
+        LOGGER.info(f"Map calculation [Distance: {distance} Grid gap: {grid_gap} Player pos: {player_pos} Mark pos: {mark_pos}]")
 
         self.app_ui.map_image.set_cv2(processed_image)
-        self.process_elevation_image()
         self.set_map_data(grid_gap=grid_gap, player_pos=player_pos,
                                     mark_pos=mark_pos, distance=distance)
 
@@ -243,7 +238,9 @@ class AppLogic():
         self.set_elevation_data(elevation_mark_point=mark_position,
             elevation=elevation,
             elevated_distance=elevated_distance)
-        
+
+        LOGGER.info(f"Elevation calculation [Mortar Distance: {self.last_mortar_elevated_distance} Elevated Distance: {elevated_distance} Elevation: {elevation} Mark pos: {mark_position}]")
+
         self.app_ui.elevation_image.set_cv2(
             processed_image[cut_y:processed_image.shape[0]])
 
@@ -253,11 +250,9 @@ class AppLogic():
         elevated_distance:float=0):
         self.last_elevated_distance = elevated_distance
 
-        if elevated_distance > 705:
-            self.last_mortar_elevated_distance = "OUT OF RANGE"
-        elif elevated_distance < 116:
-            self.last_mortar_elevated_distance = "TOO CLOSE"
-        else: self.last_mortar_elevated_distance = F"{self.calculate_mortar_distance(elevated_distance)}m"
+        if elevated_distance > 705: self.last_mortar_elevated_distance = "Too Far!"
+        elif elevated_distance < 116:  self.last_mortar_elevated_distance = "Too Close!"
+        else: self.last_mortar_elevated_distance = self.calculate_mortar_distance(elevated_distance)
 
         self.last_elevation = elevation
         self.last_elevation_mark_position = elevation_mark_point
@@ -269,7 +264,7 @@ class AppLogic():
         self.app_ui.elevation_data_block.set_value(
             'Elevated Distance', str(round(elevated_distance, 1))+"m")
         self.app_ui.elevation_data_block.set_value(
-            'Mortar Elev. Dist.', self.last_mortar_elevated_distance)
+            'Mortar Elev. Dist.', f"{self.last_mortar_elevated_distance}{"" if isinstance(self.last_mortar_elevated_distance, str) else "m"}")
 
     def set_map_data(self, grid_gap:int=0,
         player_pos:tuple[int, int]|None=None,
@@ -288,13 +283,11 @@ class AppLogic():
         self.app_ui.map_data_block.set_value('Player Pos', str(player_pos))
         self.app_ui.map_data_block.set_value('Distance', str(round(distance, 1))+"m")
 
-    def calculate_mortar_distance(self, distance: float) -> float | int:
+    def calculate_mortar_distance(self, distance: float) -> int:
         differences = []
         for mortar_distance in self.mortar_distances:
             differences.append(abs(mortar_distance-distance))
         distance = self.mortar_distances[differences.index(min(differences))]
-        if distance == int(distance):
-            distance = int(distance)
         return distance
 
     def get_color(self) -> str:

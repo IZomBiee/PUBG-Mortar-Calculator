@@ -6,6 +6,9 @@ def main():
 
     from .ui.app import App
     from .settings_loader import SettingsLoader
+    from .logger import get_logger
+
+    LOGGER = get_logger()
 
     def listen_for_keys(app: App):
         while True:
@@ -24,21 +27,22 @@ def main():
 
     def on_closing():
         settings_loader.save()
-        exit("Goodbye!")
+        LOGGER.info("Goodbye!")
+        exit()
 
     settings_loader = SettingsLoader()
 
     customtkinter.set_appearance_mode("System")
     customtkinter.set_default_color_theme("blue")
-    print("Loading app...")
+    LOGGER.info(f"{'='*15} PUBG-Mortar-Calculator {'='*15}")
     app = App()
     app.protocol("WM_DELETE_WINDOW", on_closing)
 
-    print("Starting keyboard listeners...")
+    LOGGER.debug("Starting keyboard listeners...")
     t=threading.Thread(target=listen_for_keys, args=(app,), daemon=True)
     t.start()
 
-    print("Starting program...")
+    LOGGER.debug("Starting program...")
     app.mainloop()
 
 if __name__ == '__main__':

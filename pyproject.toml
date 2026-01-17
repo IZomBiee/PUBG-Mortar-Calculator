@@ -1,13 +1,12 @@
 [tool.poetry]
 name = "pubg_mortar_calculator"
-version = "3.2.6"
+version = "3.3.0"
 description = "A tool to calculate the range of a shot for mortar."
 authors = ["IZomBie <patrik009009@gmail.com>"]
 license = "You can use everything."
 readme = "README.md"
 packages = [{ include = "pubg_mortar_calculator", from = "src" },
-            { include = "yolo11_onnx_detector", from = "src" },
-            { include = "sample_checker", from = "src" }]
+            { include = "yolo11_onnx_detector", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.13"
@@ -42,4 +41,3 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.scripts]
 pubg_mortar_calculator = "pubg_mortar_calculator.__main__:main"
 yolo11_onnx_detector = "yolo11_onnx_detector.__main__:main"
-sample_checker = "sample_checker.__main__:main"

@@ -7,9 +7,9 @@ class GeneralSettingsBlock(TitledBlock):
         super().__init__(master, "General Settings", *args, **kwargs)
         grid = self.get_grid()
 
-        self.add_to_test_samples_checkbox = Checkbox(
-            grid, text="Add To Test Samples",
-            saving_id='general_settings_add_to_test_samples_checkbox'
+        self.debug_mode_checkbox = Checkbox(
+            grid, text="Debug Mode",
+            saving_id='general_settings_debug_mode_checkbox'
             ).grid(row=0, column=0, columnspan=2, padx=5, pady=5)
 
         ct.CTkLabel(grid, text='Calculation Hotkey:'
