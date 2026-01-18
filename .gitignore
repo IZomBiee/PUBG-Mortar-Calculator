@@ -5,4 +5,4 @@ __pycache__
 *.png
 *.json
 *.log
-debug_images\
+debug_files\*

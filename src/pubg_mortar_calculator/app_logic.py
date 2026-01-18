@@ -159,6 +159,8 @@ class AppLogic():
                 (int(width*0.13), height))
             imgpr.replace_area_with_black(processed_image, (int(width*0.75),
                 int(height*0.8)), (width, height))
+            imgpr.replace_area_with_black(processed_image, (int(width*0.8),
+                0), (width, int(height*0.25)))
 
         hsv_mask = self.mark_detector.get_hsv_mask(processed_image,
                                                    self.get_color())
