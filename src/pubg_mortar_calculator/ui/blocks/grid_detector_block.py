@@ -40,7 +40,7 @@ class GridDetectorBlock(TitledBlock):
             default=40,command=on_update)
         self.line_gap_slider.grid(row=4, column=0, columnspan=2)
 
-        self.gap_threshold_slider = Slider(
-            grid, "Gap Threshold", 'grid_detection_gap_threshold_slider', 0, 50,
-            default=30,command=on_update)
-        self.gap_threshold_slider.grid(row=5, column=0, columnspan=2)
+        self.line_merge_threshold_slider = Slider(
+            grid, "Merge Threshold", 'grid_detection_merge_threshold_slider', 0, 50,
+            default=10,command=on_update)
+        self.line_merge_threshold_slider.grid(row=5, column=0, columnspan=2)

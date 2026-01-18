@@ -1,8 +1,8 @@
 __pycache__
-tests/test_samples/*
 .vscode
 .idea
 *.pt
 *.png
 *.json
-test_samples/
+*.log
+debug_images\

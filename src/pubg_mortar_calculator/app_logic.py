@@ -144,10 +144,11 @@ class AppLogic():
 
         self.grid_detector.detect_lines(canny_image,
             self.app_ui.grid_detector_block.line_threshold_slider.get()/100,
-            self.app_ui.grid_detector_block.line_gap_slider.get()/100)
+            self.app_ui.grid_detector_block.line_gap_slider.get()/100,
+            self.app_ui.grid_detector_block.line_merge_threshold_slider.get()
+            )
         
-        grid_gap = self.grid_detector.calculate_grid_gap(
-            self.app_ui.grid_detector_block.gap_threshold_slider.get())
+        grid_gap = self.grid_detector.calculate_grid_gap()
 
         # Avoiding danger zones for mark detection
         height, width = processed_image.shape[:2]

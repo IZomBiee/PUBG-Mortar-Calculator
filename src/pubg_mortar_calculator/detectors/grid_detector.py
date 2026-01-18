@@ -13,7 +13,7 @@ class GridDetector:
         self.grid_gap = 0
     
     def detect_lines(self, canny_frame:np.ndarray,
-                     line_threshold: float, max_line_gap: float) -> None:
+                     line_threshold: float, max_line_gap: float, line_merge_theshold: int) -> None:
         normalized_canny_frame = self._normalize_frame(canny_frame)
         
         side_size = normalized_canny_frame.shape[0]
@@ -33,7 +33,8 @@ class GridDetector:
                                     round(line[1]*self.__normalize_multiplier[1]),
                                     round(line[2]*self.__normalize_multiplier[0]),
                                     round(line[3]*self.__normalize_multiplier[1])])
-        self.horizontal_lines, self.vertical_lines = self._separate_lines(processed_lines)
+        self.horizontal_lines, self.vertical_lines = self._separate_and_merge_lines(processed_lines,
+                                                                                    line_merge_theshold)
 
     def draw_lines(self, frame:np.ndarray,
                    vertical_lines_color=(255, 0, 0),
@@ -50,7 +51,7 @@ class GridDetector:
             cv2.line(frame, (x0, y0),
                      (x1, y1), horizontal_lines_color, trickness)
           
-    def calculate_grid_gap(self, gap_threshold: int) -> int:
+    def calculate_grid_gap(self) -> int:
         horizontal_gaps = []
         vertical_gaps = []
 
@@ -59,7 +60,7 @@ class GridDetector:
             x2, y2, x3, y3 = self.horizontal_lines[i+1]
             gap = int(abs(y0-y2))
             horizontal_gaps.append(gap)
-
+        
         for i in range(0, len(self.vertical_lines)-1):
             x0, y0, x1, y1 = self.vertical_lines[i]
             x2, y2, x3, y3 = self.vertical_lines[i+1]
@@ -68,9 +69,6 @@ class GridDetector:
 
         gaps = horizontal_gaps.copy()
         gaps.extend(vertical_gaps)
-
-        gaps = list(filter(lambda gap: gap>gap_threshold, gaps))
-
         if len(gaps):
             mode_gap = round(self.mode(gaps))
         else: mode_gap = 0
@@ -92,7 +90,7 @@ class GridDetector:
         canny_frame = cv2.Canny(gray_frame, threshold1,
                                 threshold2, apertureSize=aperture_size)
         return canny_frame
-
+    
     @staticmethod
     def mode(data):
         frequency = Counter(data)
@@ -106,22 +104,60 @@ class GridDetector:
         delta_y = abs(first_point[0] - second_point[0])/grid_gap*100
         delta_x = abs(first_point[1] - second_point[1])/grid_gap*100
         return math.sqrt(delta_x**2+delta_y**2)
-    
+
     @staticmethod
-    def _separate_lines(lines:list[list[int]]) -> tuple[list, list]:
+    def _separate_and_merge_lines(lines: list[list[int]], threshold: int) -> tuple[list, list]:
         horizontal_lines = []
         vertical_lines = []
 
         for line in lines:
             x0, y0, x1, y1 = line
-            delta_x = x1-x0
-            delta_y = y1-y0
-            if abs(delta_x) <= 5:
+            if abs(x1 - x0) < abs(y1 - y0):
                 vertical_lines.append(line)
-            elif abs(delta_y) <= 5:
+            else:
                 horizontal_lines.append(line)
 
-        horizontal_lines = sorted(horizontal_lines, key=lambda x:x[1])
-        vertical_lines = sorted(vertical_lines, key=lambda x:x[0])
+        merged_horizontal_lines = GridDetector._merge_lines(horizontal_lines, index_to_merge=1, threshold=threshold)
+        merged_vertical_lines = GridDetector._merge_lines(vertical_lines, index_to_merge=0, threshold=threshold)
 
-        return (horizontal_lines, vertical_lines)
+        return merged_horizontal_lines, merged_vertical_lines
+
+    @staticmethod
+    def _merge_lines(lines: list[list[int]], index_to_merge: int, threshold: int) -> list[list[int]]:
+        if not lines:
+            return []
+
+        lines.sort(key=lambda x: x[index_to_merge])
+
+        merged_lines = []
+        current_cluster = [lines[0]]
+
+        for current_line in lines[1:]:
+            last_line = current_cluster[-1]
+            
+            dist = abs(current_line[index_to_merge] - last_line[index_to_merge])
+            
+            if dist < threshold:
+                current_cluster.append(current_line)
+            else:
+                merged_lines.append(GridDetector._average_cluster(current_cluster, index_to_merge))
+                current_cluster = [current_line]
+
+        if current_cluster:
+            merged_lines.append(GridDetector._average_cluster(current_cluster, index_to_merge))
+
+        return merged_lines
+
+    @staticmethod
+    def _average_cluster(cluster: list[list[int]], index_to_merge: int) -> list[int]:
+        avg_pos = int(sum(l[index_to_merge] for l in cluster) / len(cluster))
+
+        if index_to_merge == 1:
+            min_x = min(min(l[0], l[2]) for l in cluster)
+            max_x = max(max(l[0], l[2]) for l in cluster)
+            return [min_x, avg_pos, max_x, avg_pos]
+            
+        else:
+            min_y = min(min(l[1], l[3]) for l in cluster)
+            max_y = max(max(l[1], l[3]) for l in cluster)
+            return [avg_pos, min_y, avg_pos, max_y]
