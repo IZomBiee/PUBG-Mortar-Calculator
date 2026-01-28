@@ -15,7 +15,7 @@ class DictorSettingsBlock(TitledBlock):
         
         self.volume_slider = Slider(grid,
             "Volume", "dictor_settings_volume_slider", 0, 100, 50,
-            command=lambda volume:setattr(DictorManager(), 'volume', volume),
+            command=lambda volume:setattr(DictorManager(), 'volume', volume/100),
             return_value=True
             )
         self.volume_slider.grid(row=1, column=0)

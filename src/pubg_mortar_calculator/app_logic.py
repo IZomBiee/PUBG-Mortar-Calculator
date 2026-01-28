@@ -56,7 +56,7 @@ class AppLogic():
         LOGGER.debug("Starting dictor manager...")
         self.dictor_manager = DictorManager(
             self.app_ui.dictor_settings_block.rate_slider.get(),
-            self.app_ui.dictor_settings_block.volume_slider.get())
+            self.app_ui.dictor_settings_block.volume_slider.get()/100)
         self.dictor_manager.start()
 
         LOGGER.debug("Loading preview...")

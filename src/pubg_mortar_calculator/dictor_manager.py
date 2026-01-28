@@ -26,7 +26,7 @@ class DictorManager:
             time.sleep(0.01)
     
     @staticmethod
-    def text_to_speech(text, rate, volume, voice_id=None, ):
+    def text_to_speech(text, rate:int, volume:float, voice_id=None, ):
         engine = pyttsx3.init()
 
         engine.setProperty('rate', rate)

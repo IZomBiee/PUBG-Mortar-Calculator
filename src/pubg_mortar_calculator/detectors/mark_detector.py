@@ -12,7 +12,7 @@ class MarkDetector:
         self.mark_position = None
 
     def get_hsv_mask(self, bgr_frame:np.ndarray, color:str|None=None,
-                     bluring_size: int = 19,
+                     bluring_size: int = 5,
                      bluring_threshold: int = 15) -> np.ndarray:
         hsv_frame = cv2.cvtColor(bgr_frame, cv2.COLOR_BGR2HSV)
 
