@@ -23,16 +23,16 @@ class AppLogic():
         self.app_ui: "App" = app_ui
 
         self.last_map_image: np.ndarray | None = None
-        self.last_distance: float = 0.0
-        self.last_grid_gap: int = 0
+        self.last_distance: float | None = None
+        self.last_grid_gap: int | None = None
         self.last_player_position: None | tuple[int, int] = None
         self.last_mark_position: None | tuple[int, int] = None
         self.last_minimap_box: None | list[int] = None
 
         self.last_elevation_image: np.ndarray|None = None
-        self.last_elevated_distance: float = 0.0
-        self.last_mortar_elevated_distance: int | str = 0
-        self.last_elevation: float = 0.0
+        self.last_elevated_distance: float | None = None
+        self.last_mortar_elevated_distance: int | None | str = None
+        self.last_elevation: float | None = None
         self.last_elevation_mark_position: None | tuple[int, int] = None
 
         with open(paths.mortar_distances(), 'r') as file:
@@ -169,10 +169,10 @@ class AppLogic():
             self.app_ui.map_detector_block.max_radius_slider.get())
 
         if player_pos is not None and mark_pos is not None and \
-            grid_gap != 0:
+            grid_gap is not None:
             distance = self.grid_detector.get_distance(
                 player_pos, mark_pos, grid_gap)
-        else: distance = 0
+        else: distance = None
 
         if self.app_ui.grid_detector_block.show_processed_image_checkbox.get():
             processed_image = cv2.cvtColor(canny_image, cv2.COLOR_GRAY2BGR)
@@ -215,16 +215,19 @@ class AppLogic():
         mark_position = self.mark_detector.get_mark_positions(
             hsv_mask_image, self.app_ui.map_detector_block.max_radius_slider.get())[0]
 
-        if mark_position is None or self.last_distance == 0: elevation = 0
+        if mark_position is None or self.last_distance is None: elevation = None
         elif self.last_distance is not None:
             elevation = ElevationTools.get_elevation(
                 center[1], mark_position[1],
                 self.app_ui.elevation_detector_block.fov_slider.get(),
                 self.last_distance)
 
-        elevated_distance = ElevationTools.get_elevated_distance(
-            self.last_distance, elevation)
-        
+        if self.last_distance is not None and elevation is not None:
+            elevated_distance = ElevationTools.get_elevated_distance(
+                self.last_distance, elevation)
+            if elevated_distance == 0: elevated_distance = None
+        else: elevated_distance = None
+
         if self.app_ui.elevation_detector_block.draw_processed_checkbox.get():
             processed_image = cv2.cvtColor(hsv_mask_image, cv2.COLOR_GRAY2BGR)
         
@@ -249,12 +252,13 @@ class AppLogic():
 
     def set_elevation_data(self,
         elevation_mark_point:tuple[int, int]|None=None,
-        elevation:float=0,
-        elevated_distance:float=0):
+        elevation:float|None=0,
+        elevated_distance:float|None=0):
         self.last_elevated_distance = elevated_distance
 
-        if elevated_distance > 705: self.last_mortar_elevated_distance = "Too Far!"
-        elif elevated_distance < 116:  self.last_mortar_elevated_distance = "Too Close!"
+        if elevated_distance is None:
+            self.last_mortar_elevated_distance = "Too far!"
+        elif elevated_distance < 120: self.last_mortar_elevated_distance = "Too close!"
         else: self.last_mortar_elevated_distance = self.calculate_mortar_distance(elevated_distance)
 
         self.last_elevation = elevation
@@ -262,19 +266,30 @@ class AppLogic():
 
         self.app_ui.elevation_data_block.set_value(
             'Mark Pos', str(elevation_mark_point))
+        if elevation is not None:
+            self.app_ui.elevation_data_block.set_value(
+                'Elevation', str(round(elevation, 1))+"m")
+        else:
+            self.app_ui.elevation_data_block.set_value(
+                'Elevation', str(elevation))
+        if elevated_distance is not None:
+            self.app_ui.elevation_data_block.set_value(
+                'Elevated Distance', str(round(elevated_distance, 1))+"m")
+        else:
+            self.app_ui.elevation_data_block.set_value(
+                'Elevated Distance', str(elevated_distance))
+            
         self.app_ui.elevation_data_block.set_value(
-            'Elevation', str(round(elevation, 1))+"m")
-        self.app_ui.elevation_data_block.set_value(
-            'Elevated Distance', str(round(elevated_distance, 1))+"m")
-        self.app_ui.elevation_data_block.set_value(
-            'Mortar Elev. Dist.', f"{self.last_mortar_elevated_distance}{"" if isinstance(self.last_mortar_elevated_distance, str) else "m"}")
+            'Mortar Elev. Dist.', f"{self.last_mortar_elevated_distance}{"m" if isinstance(self.last_mortar_elevated_distance, int) else "  "}")
 
     def set_map_data(self, grid_gap:int=0,
         player_pos:tuple[int, int]|None=None,
         mark_pos:tuple[int, int]|None=None,
-        distance:float=0):
+        distance:float|None=None):
         if self.last_distance != distance:
-            self.last_distance=round(distance)
+            if distance is not None:
+                self.last_distance=round(distance)
+            else: self.last_distance = distance
             self.process_elevation_image()
         
         self.last_grid_gap = grid_gap
@@ -284,7 +299,10 @@ class AppLogic():
         self.app_ui.map_data_block.set_value('Grid Gap', str(grid_gap)+"px")
         self.app_ui.map_data_block.set_value('Mark Pos', str(mark_pos))
         self.app_ui.map_data_block.set_value('Player Pos', str(player_pos))
-        self.app_ui.map_data_block.set_value('Distance', str(round(distance, 1))+"m")
+        if distance is not None:
+            self.app_ui.map_data_block.set_value('Distance', str(round(distance, 1))+"m")
+        else:
+            self.app_ui.map_data_block.set_value('Distance', str(distance))
 
     def calculate_mortar_distance(self, distance: float) -> int:
         differences = []

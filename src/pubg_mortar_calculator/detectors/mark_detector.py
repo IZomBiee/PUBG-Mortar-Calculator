@@ -80,7 +80,7 @@ class MarkDetector:
 
     @staticmethod
     def _find_contours(mask:np.ndarray) -> list:
-            contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
             

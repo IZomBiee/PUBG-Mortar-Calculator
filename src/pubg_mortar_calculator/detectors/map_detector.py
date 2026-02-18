@@ -7,7 +7,7 @@ from src.yolo11_onnx_detector import Yolo11OnnxDetector
 class MapDetector():
     def __init__(self) -> None:
         self.detector = Yolo11OnnxDetector(
-            paths.map_detection_model(), ['map'], 0.8, 0.5)
+            paths.map_detection_model(), ['map'], 0.2, 0.2)
     
     def detect(self, image:np.ndarray) -> list[int] | None:
         detections = self.detector.detect(image)

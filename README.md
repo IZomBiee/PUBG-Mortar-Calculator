@@ -5,9 +5,12 @@ A tool to calculate the range of a shot with mortar in PUBG. This app provides a
 ## Features
 
 - Calculate the range of a mortar shot.
-- Support simple elevation calculation,
+- Support elevation calculation.
 - Works with multiple monitors.
 - Minimap detection using YOLO.
+
+## Preview
+
 
 ## Installation
 
