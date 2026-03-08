@@ -51,7 +51,7 @@ class GridDetector:
             cv2.line(frame, (x0, y0),
                      (x1, y1), horizontal_lines_color, trickness)
           
-    def calculate_grid_gap(self) -> int:
+    def calculate_grid_gap(self) -> int | None:
         horizontal_gaps = []
         vertical_gaps = []
 
@@ -71,7 +71,8 @@ class GridDetector:
         gaps.extend(vertical_gaps)
         if len(gaps):
             mode_gap = round(self.mode(gaps))
-        else: mode_gap = 0
+        else:
+            mode_gap = None
 
         return mode_gap
     

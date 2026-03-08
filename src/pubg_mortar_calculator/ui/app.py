@@ -3,6 +3,7 @@ import customtkinter as ct
 from src.customtkinter_widgets import *
 from .blocks import *
 from ..app_logic import AppLogic 
+from src.app_overlay import Stop, AppOverlay
 
 class App(ct.CTk, AppLogic):
     def __init__(self):
@@ -43,10 +44,14 @@ class App(ct.CTk, AppLogic):
         self.grid_detector_block.grid(row=0, column=0)
 
         self.map_detector_block = MapDetectorBlock(
-            self.center_frame,  self.process_map_image, self.load_map_image
+            self.center_frame, self.process_map_image, self.load_map_image
         )
         self.map_detector_block.grid(row=1, column=0)
-        
+
+        self.overlay_settings_block = OverlaySettingsBlock(self.center_frame,
+            self._update_overlay) 
+        self.overlay_settings_block.grid(row=2, column=0)
+
         # Right Frame
         self.right_frame = ct.CTkFrame(self, fg_color='transparent')
         self.right_frame.grid(row=0, column=2)

@@ -15,6 +15,7 @@ MapDetector, MarkDetector
 from .elevation_tools import ElevationTools
 from .dictor_manager import DictorManager
 from .logger import get_logger
+from src.app_overlay import *
 
 LOGGER = get_logger()
 
@@ -58,6 +59,9 @@ class AppLogic():
             self.app_ui.dictor_settings_block.rate_slider.get(),
             self.app_ui.dictor_settings_block.volume_slider.get()/100)
         self.dictor_manager.start()
+
+        self.overlay: AppOverlay | None = None
+        self._update_overlay()
 
         LOGGER.debug("Loading preview...")
         self.__initialize_preview_images()
@@ -106,6 +110,13 @@ class AppLogic():
         self.process_map_image()
         if self.is_dictor() and dictor:
             self.dictor_manager.add(f'{self.last_distance}')
+
+        if self.overlay is not None and self.last_minimap_box is not None:
+            self.overlay.add_command(Clear())
+            scale = self.app_ui._get_window_scaling()
+            x0, y0, x1, y1 = list(map(lambda x: int(x/scale),self.last_minimap_box))
+            self.overlay.add_command(CreateRect(x0, y0, x1, y1))
+
         cv2.imwrite(paths.map_preview(), self.last_map_image)
         if self.app_ui.general_settings_block.debug_mode_checkbox.get():
             saving_path = f"{paths.debug_files()}\\{datetime.now().strftime("%Y-%m-%d_%H-%M-%S_map")}.png"
@@ -282,7 +293,7 @@ class AppLogic():
         self.app_ui.elevation_data_block.set_value(
             'Mortar Elev. Dist.', f"{self.last_mortar_elevated_distance}{"m" if isinstance(self.last_mortar_elevated_distance, int) else "  "}")
 
-    def set_map_data(self, grid_gap:int=0,
+    def set_map_data(self, grid_gap:int|None=None,
         player_pos:tuple[int, int]|None=None,
         mark_pos:tuple[int, int]|None=None,
         distance:float|None=None):
@@ -323,3 +334,11 @@ class AppLogic():
         
         if os.path.exists(paths.elevation_preview()):
             self.load_elevation_image(paths.elevation_preview())
+    
+    def _update_overlay(self):
+        if self.app_ui.overlay_settings_block.enabled_checkbox.get():
+            LOGGER.debug("Starting overlay process...")
+            self.overlay = AppOverlay("PUBG:")
+        elif self.overlay is not None:
+            self.overlay.add_command(Stop())
+            self.overlay = None

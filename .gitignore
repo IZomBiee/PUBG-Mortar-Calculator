@@ -6,3 +6,4 @@ __pycache__
 *.json
 *.log
 debug_files\*
+.VSCodeCounter

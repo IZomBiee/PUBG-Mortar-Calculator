@@ -4,3 +4,4 @@ from .calculation_data_block import CalculationDataBlock
 from .dictor_settings_block import DictorSettingsBlock
 from .general_settings_block import GeneralSettingsBlock
 from .elevation_detector_block import ElevationDetectorBlock
+from .overlay_settings_block import OverlaySettingsBlock

@@ -30,11 +30,13 @@ def main():
         LOGGER.info("Goodbye!")
         exit()
 
+    LOGGER.info(f"{'='*15} PUBG-Mortar-Calculator {'='*15}")
+
+    LOGGER.info("Loading settings...")
     settings_loader = SettingsLoader()
 
     customtkinter.set_appearance_mode("System")
     customtkinter.set_default_color_theme("blue")
-    LOGGER.info(f"{'='*15} PUBG-Mortar-Calculator {'='*15}")
     app = App()
     app.protocol("WM_DELETE_WINDOW", on_closing)
 

@@ -17,7 +17,7 @@ def get_logger():
     logger.setLevel(level)
 
     console_formatter = logging.Formatter(
-        fmt='[%(asctime)s] - %(message)s',
+        fmt='[%(asctime)s.%(msecs)03d] - %(message)s',
         datefmt='%H:%M:%S'
     )
 
