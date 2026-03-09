@@ -1,12 +1,16 @@
 def main():
-    import customtkinter
-    import keyboard
     import threading
     import time
 
-    from .ui.app import App
-    from .settings_loader import SettingsLoader
+    import customtkinter
+    import keyboard
+
+    from src.app_overlay import Clear
+
     from .logger import get_logger
+    from .settings_loader import SettingsLoader
+    from .ui.app import App
+    from .utils.screenshot import take_game_screenshot
 
     LOGGER = get_logger()
 
@@ -14,15 +18,25 @@ def main():
         while True:
             try:
                 if keyboard.is_pressed(app.get_calculation_key()):
-                    app.calculate_map_in_combat()
+                    if app.overlay is not None:
+                        app.overlay.add_command(Clear())
+                    time.sleep(0.1)
+                    app.set_map_image(take_game_screenshot())
                     time.sleep(0.5)
                 elif keyboard.is_pressed(app.get_elevation_key()):
-                    app.calculate_elevation_in_combat()
+                    app.set_elevation_image(take_game_screenshot())
                     time.sleep(0.5)
                 elif keyboard.is_pressed(app.get_all_in_one_key()):
-                    app.calculate_map_in_combat(False)
-                    app.calculate_elevation_in_combat()
-            except ValueError: time.sleep(1)
+                    if app.overlay is not None:
+                        app.overlay.add_command(Clear())
+                    time.sleep(0.1)
+
+                    screenshot = take_game_screenshot()
+                    app.set_map_image(screenshot, False)
+                    app.set_elevation_image(screenshot)
+
+            except ValueError:
+                time.sleep(1)
             time.sleep(0.01)
 
     def on_closing():
@@ -30,7 +44,7 @@ def main():
         LOGGER.info("Goodbye!")
         exit()
 
-    LOGGER.info(f"{'='*15} PUBG-Mortar-Calculator {'='*15}")
+    LOGGER.info(f"{'=' * 15} PUBG-Mortar-Calculator {'=' * 15}")
 
     LOGGER.info("Loading settings...")
     settings_loader = SettingsLoader()
@@ -41,11 +55,12 @@ def main():
     app.protocol("WM_DELETE_WINDOW", on_closing)
 
     LOGGER.debug("Starting keyboard listeners...")
-    t=threading.Thread(target=listen_for_keys, args=(app,), daemon=True)
+    t = threading.Thread(target=listen_for_keys, args=(app,), daemon=True)
     t.start()
 
     LOGGER.debug("Starting program...")
     app.mainloop()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

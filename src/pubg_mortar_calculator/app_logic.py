@@ -1,344 +1,449 @@
-import cv2
 import os
-import numpy as np
-import tkinter
 import shutil
-
+import tkinter
 from typing import TYPE_CHECKING
+
+import cv2
+import numpy as np
+import pygetwindow
+
 if TYPE_CHECKING:
     from .ui.app import App
 
-from .utils import imgpr, paths, take_game_screenshot
+from dataclasses import dataclass
 from datetime import datetime
-from .detectors import GridDetector,\
-MapDetector, MarkDetector
-from .elevation_tools import ElevationTools
-from .dictor_manager import DictorManager
-from .logger import get_logger
+
+from src import app_overlay
 from src.app_overlay import *
+
+from .detectors import GridDetector, MapDetector, MarkDetector
+from .dictor_manager import DictorManager
+from .elevation_tools import ElevationTools
+from .logger import get_logger
+from .utils import imgpr, paths
 
 LOGGER = get_logger()
 
-class AppLogic():
+
+@dataclass
+class MapData:
+    distance: float | None = None
+    grid_gap: int | None = None
+    player_position: tuple[int, int] | None = None
+    mark_position: tuple[int, int] | None = None
+    box: list[int] | None = None
+
+
+@dataclass
+class ElevationData:
+    elevation: float | None = None
+    mark_position: tuple[int, int] | None = None
+    center_position: tuple[int, int] | None = None
+    elevated_distance: float | None = None
+    mortar_elevated_distance: int | str | None = None
+
+
+class AppLogic:
     def __init__(self, app_ui: "App"):
         self.app_ui: "App" = app_ui
 
-        self.last_map_image: np.ndarray | None = None
-        self.last_distance: float | None = None
-        self.last_grid_gap: int | None = None
-        self.last_player_position: None | tuple[int, int] = None
-        self.last_mark_position: None | tuple[int, int] = None
-        self.last_minimap_box: None | list[int] = None
+        self.map_image: np.ndarray | None = None
+        self.map_data = MapData()
 
-        self.last_elevation_image: np.ndarray|None = None
-        self.last_elevated_distance: float | None = None
-        self.last_mortar_elevated_distance: int | None | str = None
-        self.last_elevation: float | None = None
-        self.last_elevation_mark_position: None | tuple[int, int] = None
+        self.elevation_image: np.ndarray | None = None
+        self.elevation_data = ElevationData()
 
-        with open(paths.mortar_distances(), 'r') as file:
+        with open(paths.mortar_distances(), "r") as file:
             self.mortar_distances = [int(i) for i in file.readlines()]
 
-        LOGGER.debug("Load grid detector...")
         self.grid_detector = GridDetector()
-        LOGGER.debug("Load mark detector...")
         self.mark_detector = MarkDetector()
-        LOGGER.debug("Load map detector...")
-        if os.path.exists(paths.map_detection_model()):
-            self.map_detector = MapDetector()
-        else:
-            LOGGER.warning(f"Can't find minimap detection model at "+
-                  paths.map_detection_model())
-            self.map_detector = None
-            self.app_ui.map_detector_block.minimap_detection.\
-            checkbox.configure(state=tkinter.DISABLED)
-            self.app_ui.map_detector_block.minimap_detection.set(False)
-        
-        LOGGER.debug("Starting dictor manager...")
+
+        self.overlay = None
+
+        self._load_map_detector()
+
         self.dictor_manager = DictorManager(
             self.app_ui.dictor_settings_block.rate_slider.get(),
-            self.app_ui.dictor_settings_block.volume_slider.get()/100)
+            self.app_ui.dictor_settings_block.volume_slider.get() / 100,
+        )
         self.dictor_manager.start()
 
-        self.overlay: AppOverlay | None = None
-        self._update_overlay()
+        self._load_saved_images()
 
-        LOGGER.debug("Loading preview...")
-        self.__initialize_preview_images()
-    
-    def load_map_image(self, path: str | None = None) -> np.ndarray | None:
-        if path is None:
-            path = paths.get_image()
-            if path == '':
-                return None
-            else:
-                self.last_map_image = cv2.imread(path)
-                cv2.imwrite(paths.map_preview(), self.last_map_image)
-                self.process_map_image()
-                return self.last_map_image
-        else:
-            if os.path.exists(path):
-                self.last_map_image = cv2.imread(path)
-                self.process_map_image()
-                return self.last_map_image
-            else:
-                return None
-    
-    def load_elevation_image(self, path: str | None = None) -> np.ndarray | None:
-        if path is None:
-            path = paths.get_image()
-            if path == '':
-                return None
-            else:
-                self.last_elevation_image = cv2.imread(path)
-                self.process_elevation_image()
-                cv2.imwrite(paths.elevation_preview(),
-                            self.last_elevation_image)
+        self.process_map_image(False)
+        self.process_elevation_image(False)
 
-                return self.last_elevation_image
-        else:
-            if os.path.exists(path):
-                self.last_elevation_image = cv2.imread(path)
-                self.process_elevation_image()
+        self._initialize_overlay()
 
-                return self.last_elevation_image
-            else:
-                return None
+    def process_map_image(self, combat: bool = False):
+        if self.map_image is None:
+            return
 
-    def calculate_map_in_combat(self, dictor: bool = True):
-        self.last_map_image = take_game_screenshot()
-        self.process_map_image()
-        if self.is_dictor() and dictor:
-            self.dictor_manager.add(f'{self.last_distance}')
+        processed_image = self.map_image.copy()
 
-        if self.overlay is not None and self.last_minimap_box is not None:
-            self.overlay.add_command(Clear())
-            scale = self.app_ui._get_window_scaling()
-            x0, y0, x1, y1 = list(map(lambda x: int(x/scale),self.last_minimap_box))
-            self.overlay.add_command(CreateRect(x0, y0, x1, y1))
-
-        cv2.imwrite(paths.map_preview(), self.last_map_image)
-        if self.app_ui.general_settings_block.debug_mode_checkbox.get():
-            saving_path = f"{paths.debug_files()}\\{datetime.now().strftime("%Y-%m-%d_%H-%M-%S_map")}.png"
-            LOGGER.info(f"Map preview was saved in {saving_path}")
-            shutil.copy2(paths.map_preview(), saving_path)
-    
-    def calculate_elevation_in_combat(self):
-        self.last_elevation_image = take_game_screenshot()
-        self.process_elevation_image()
-        if self.is_dictor():
-            self.dictor_manager.add(str(self.last_mortar_elevated_distance))
-        cv2.imwrite(paths.elevation_preview(), self.last_elevation_image)
-        if self.app_ui.general_settings_block.debug_mode_checkbox.get():
-            saving_path = f"{paths.debug_files()}\\{datetime.now().strftime("%Y-%m-%d_%H-%M-%S_elevation")}.png"
-            LOGGER.info(f"Elevation preview was saved in {saving_path}")
-            shutil.copy2(paths.elevation_preview(), saving_path)
-
-    def process_map_image(self):
-        if self.last_map_image is None: return
-            
-        processed_image = self.last_map_image.copy()
-
-        if self.app_ui.map_detector_block.minimap_detection.get()\
-        and self.map_detector is not None:
-            self.last_minimap_box = self.map_detector.detect(processed_image)
-            if self.last_minimap_box is not None:
-                x0, y0, x1, y1 = self.last_minimap_box
+        if (
+            self.app_ui.map_detector_block.minimap_detection.get()
+            and self.map_detector is not None
+        ):
+            self.map_data.box = self.map_detector.detect(processed_image)
+            if self.map_data.box is not None:
+                x0, y0, x1, y1 = self.map_data.box
                 processed_image = imgpr.cut_to_points(
-                    processed_image, (x0, y0), (x1, y1), 0)[0]
+                    processed_image, (x0, y0), (x1, y1), 0
+                )[0]
         else:
-            self.last_minimap_box = None
+            self.map_data.box = None
 
-        canny_image = self.grid_detector.get_canny_frame(processed_image,
+        canny_image = self.grid_detector.get_canny_frame(
+            processed_image,
             self.app_ui.grid_detector_block.canny1_threshold_slider.get(),
-            self.app_ui.grid_detector_block.canny2_threshold_slider.get())
+            self.app_ui.grid_detector_block.canny2_threshold_slider.get(),
+        )
 
-        self.grid_detector.detect_lines(canny_image,
-            self.app_ui.grid_detector_block.line_threshold_slider.get()/100,
-            self.app_ui.grid_detector_block.line_gap_slider.get()/100,
-            self.app_ui.grid_detector_block.line_merge_threshold_slider.get()
+        lines = self.grid_detector.get_normalized_lines(
+            canny_image,
+            self.app_ui.grid_detector_block.line_threshold_slider.get() / 100,
+            self.app_ui.grid_detector_block.line_gap_slider.get() / 100,
+            self.app_ui.grid_detector_block.line_merge_threshold_slider.get(),
+        )
+
+        self.map_data.grid_gap = self.grid_detector.calculate_grid_gap(*lines)
+
+        if self.map_data.box is None:
+            self.mark_detector.remove_danger_zones(processed_image)
+
+        hsv_mask = self.mark_detector.get_hsv_mask(
+            processed_image, self.app_ui.map_detector_block.color_combobox.get()
+        )
+
+        self.map_data.player_position, self.map_data.mark_position = (
+            self.mark_detector.get_mark_positions(
+                hsv_mask, self.app_ui.map_detector_block.max_radius_slider.get()
             )
-        
-        grid_gap = self.grid_detector.calculate_grid_gap()
+        )
 
-        # Avoiding danger zones for mark detection
-        height, width = processed_image.shape[:2]
-
-        if not self.app_ui.map_detector_block.minimap_detection.get()\
-        or self.last_minimap_box is None:
-            imgpr.replace_area_with_black(processed_image, (0, int(height*0.83)),
-                (int(width*0.13), height))
-            imgpr.replace_area_with_black(processed_image, (int(width*0.75),
-                int(height*0.8)), (width, height))
-            imgpr.replace_area_with_black(processed_image, (int(width*0.8),
-                0), (width, int(height*0.25)))
-
-        hsv_mask = self.mark_detector.get_hsv_mask(processed_image,
-                                                   self.get_color())
-
-        player_pos, mark_pos = self.mark_detector.get_mark_positions(hsv_mask,
-            self.app_ui.map_detector_block.max_radius_slider.get())
-
-        if player_pos is not None and mark_pos is not None and \
-            grid_gap is not None:
-            distance = self.grid_detector.get_distance(
-                player_pos, mark_pos, grid_gap)
-        else: distance = None
+        if (
+            self.map_data.player_position is not None
+            and self.map_data.mark_position is not None
+            and self.map_data.grid_gap is not None
+        ):
+            self.map_data.distance = self.grid_detector.get_distance(
+                self.map_data.player_position,
+                self.map_data.mark_position,
+                self.map_data.grid_gap,
+            )
+        else:
+            self.map_data.distance = None
 
         if self.app_ui.grid_detector_block.show_processed_image_checkbox.get():
             processed_image = cv2.cvtColor(canny_image, cv2.COLOR_GRAY2BGR)
 
         elif self.app_ui.map_detector_block.show_processed_image_checkbox.get():
             processed_image = cv2.cvtColor(hsv_mask, cv2.COLOR_GRAY2BGR)
-        
+
         if self.app_ui.grid_detector_block.draw_grid_lines_checkbox.get():
-            self.grid_detector.draw_lines(processed_image)
+            self.grid_detector.draw_lines(processed_image, *lines)
 
         if self.app_ui.map_detector_block.draw_checkbox.get():
-            self.mark_detector.draw_marks(processed_image)
+            self.mark_detector.draw_marks(
+                processed_image,
+                self.map_data.player_position,
+                self.map_data.mark_position,
+            )
 
-        if mark_pos is not None and player_pos is not None \
-        and self.app_ui.map_detector_block.zoom_to_points_checkbox.get():
-            processed_image = imgpr.cut_to_points(processed_image,
-                mark_pos, player_pos)[0]
-        
-        LOGGER.info(f"Map calculation [Distance: {distance} Grid gap: {grid_gap} Player pos: {player_pos} Mark pos: {mark_pos}]")
+        if (
+            self.map_data.mark_position is not None
+            and self.map_data.player_position is not None
+            and self.app_ui.map_detector_block.zoom_to_points_checkbox.get()
+        ):
+            processed_image = imgpr.cut_to_points(
+                processed_image,
+                self.map_data.mark_position,
+                self.map_data.player_position,
+            )[0]
 
-        self.app_ui.map_image.set_cv2(processed_image)
-        self.set_map_data(grid_gap=grid_gap, player_pos=player_pos,
-                                    mark_pos=mark_pos, distance=distance)
+        LOGGER.info(
+            f"Map calculation [Distance: {self.map_data.distance} Grid gap: {self.map_data.grid_gap}"
+            + f" Player pos: {self.map_data.mark_position} Mark pos: {self.map_data.player_position}]"
+            + f" Combat: {combat}"
+        )
 
-    def process_elevation_image(self):
-        if self.last_elevation_image is None: return
+        if self.app_ui.dictor_settings_block.dictor_checkbox.get() and combat:
+            self.dictor_manager.add(self.map_data.distance)
 
-        processed_image = self.last_elevation_image.copy()
+        self._calculate_elevation_data()
+        self._update_elevation_data()
 
-        cut_y = int(processed_image.shape[0]*0.2)
+        self._draw_data_in_overlay()
+
+        self.app_ui.map_image_preview.set_cv2(processed_image)
+        self._update_map_data()
+
+    def process_elevation_image(self, combat: bool = False):
+        if self.elevation_image is None:
+            return
+
+        processed_image = self.elevation_image.copy()
+
+        cut_y = int(processed_image.shape[0] * 0.2)
         imgpr.replace_area_with_black(
-            processed_image, (0, 0), (processed_image.shape[1], cut_y))
-        
-        center = imgpr.get_center_point(processed_image)
+            processed_image, (0, 0), (processed_image.shape[1], cut_y)
+        )
+
+        self.elevation_data.center_position = imgpr.get_center_point(processed_image)
         processed_image, (x0, _) = imgpr.cut_x_line(
-            processed_image, center[0], 0.02)
+            processed_image, self.elevation_data.center_position[0], 0.02
+        )
         cutted_center = imgpr.get_center_point(processed_image)
 
-        hsv_mask_image = self.mark_detector.get_hsv_mask(processed_image)
-        mark_position = self.mark_detector.get_mark_positions(
-            hsv_mask_image, self.app_ui.map_detector_block.max_radius_slider.get())[0]
+        hsv_mask_image = self.mark_detector.get_hsv_mask(
+            processed_image, self.app_ui.map_detector_block.color_combobox.get()
+        )
 
-        if mark_position is None or self.last_distance is None: elevation = None
-        elif self.last_distance is not None:
-            elevation = ElevationTools.get_elevation(
-                center[1], mark_position[1],
-                self.app_ui.elevation_detector_block.fov_slider.get(),
-                self.last_distance)
+        self.elevation_data.mark_position = self.mark_detector.get_mark_positions(
+            hsv_mask_image, self.app_ui.map_detector_block.max_radius_slider.get()
+        )[0]
 
-        if self.last_distance is not None and elevation is not None:
-            elevated_distance = ElevationTools.get_elevated_distance(
-                self.last_distance, elevation)
-            if elevated_distance == 0: elevated_distance = None
-        else: elevated_distance = None
+        self._calculate_elevation_data()
 
         if self.app_ui.elevation_detector_block.draw_processed_checkbox.get():
             processed_image = cv2.cvtColor(hsv_mask_image, cv2.COLOR_GRAY2BGR)
-        
+
+        self._draw_data_in_overlay()
+
         if self.app_ui.elevation_detector_block.draw_points_checkbox.get():
             cv2.circle(processed_image, cutted_center, 2, (0, 255, 0), 5)
-            if mark_position is not None:
-                cv2.arrowedLine(processed_image, cutted_center, mark_position,
-                                (0, 255, 0), 3)
-                cv2.circle(processed_image, mark_position, 2, (0, 255, 0), 5)
+            if self.elevation_data.mark_position is not None:
+                cv2.arrowedLine(
+                    processed_image,
+                    cutted_center,
+                    self.elevation_data.mark_position,
+                    (0, 255, 0),
+                    3,
+                )
+                cv2.circle(
+                    processed_image,
+                    self.elevation_data.mark_position,
+                    2,
+                    (0, 255, 0),
+                    5,
+                )
 
-        if mark_position is not None:
-            mark_position = (mark_position[0]+x0, mark_position[1])
+        self._update_elevation_data()
 
-        self.set_elevation_data(elevation_mark_point=mark_position,
-            elevation=elevation,
-            elevated_distance=elevated_distance)
+        LOGGER.info(
+            f"Elevation calculation [Mortar Distance: {self.elevation_data.mortar_elevated_distance}"
+            + f" Elevated Distance: {self.elevation_data.mortar_elevated_distance}"
+            + f" Elevation: {self.elevation_data.elevation} Mark pos: {self.elevation_data.mark_position}]"
+            + f" Combat: {combat}"
+        )
 
-        LOGGER.info(f"Elevation calculation [Mortar Distance: {self.last_mortar_elevated_distance} Elevated Distance: {elevated_distance} Elevation: {elevation} Mark pos: {mark_position}]")
+        if self.app_ui.dictor_settings_block.dictor_checkbox.get() and combat:
+            self.dictor_manager.add(self.elevation_data.mortar_elevated_distance)
 
-        self.app_ui.elevation_image.set_cv2(
-            processed_image[cut_y:processed_image.shape[0]])
+        self.app_ui.elevation_image_preview.set_cv2(
+            processed_image[cut_y : processed_image.shape[0]]
+        )
 
-    def set_elevation_data(self,
-        elevation_mark_point:tuple[int, int]|None=None,
-        elevation:float|None=0,
-        elevated_distance:float|None=0):
-        self.last_elevated_distance = elevated_distance
+    def set_map_image(self, image: np.ndarray, combat: bool = True):
+        self.map_image = image
+        self.process_map_image(combat)
+        self._save_map_image()
 
-        if elevated_distance is None:
-            self.last_mortar_elevated_distance = "Too far!"
-        elif elevated_distance < 120: self.last_mortar_elevated_distance = "Too close!"
-        else: self.last_mortar_elevated_distance = self.calculate_mortar_distance(elevated_distance)
+    def set_elevation_image(self, image: np.ndarray, combat: bool = True):
+        self.elevation_image = image
+        self.process_elevation_image(combat)
+        self._save_elevation_image()
 
-        self.last_elevation = elevation
-        self.last_elevation_mark_position = elevation_mark_point
+    def _calculate_elevation_data(self):
+        if self.elevation_data.mark_position is None or self.map_data.distance is None:
+            self.elevation_data.elevation = None
+        elif (
+            self.elevation_data.center_position is not None
+            and self.map_data.distance is not None
+        ):
+            self.elevation_data.elevation = ElevationTools.get_elevation(
+                self.elevation_data.center_position[1],
+                self.elevation_data.mark_position[1],
+                self.app_ui.elevation_detector_block.fov_slider.get(),
+                self.map_data.distance,
+            )
 
+        if (
+            self.elevation_data.elevation is not None
+            and self.map_data.distance is not None
+        ):
+            self.elevation_data.elevated_distance = (
+                ElevationTools.get_elevated_distance(
+                    self.map_data.distance, self.elevation_data.elevation
+                )
+            )
+            if self.elevation_data.elevated_distance == 0:
+                self.elevation_data.elevated_distance = None
+        else:
+            self.elevation_data.elevated_distance = None
+
+        if self.elevation_data.elevated_distance is None:
+            self.elevation_data.mortar_elevated_distance = None
+        elif self.elevation_data.elevated_distance < 120:
+            self.elevation_data.mortar_elevated_distance = "Too close"
+        elif self.elevation_data.elevated_distance > 705:
+            self.elevation_data.mortar_elevated_distance = "Too far"
+        else:
+            self.elevation_data.mortar_elevated_distance = (
+                ElevationTools.calculate_mortar_distance(
+                    self.elevation_data.elevated_distance, self.mortar_distances
+                )
+            )
+
+    def _save_map_image(self):
+        if self.map_image is None:
+            return
+        cv2.imwrite(paths.map_preview(), self.map_image)
+        if self.app_ui.general_settings_block.debug_mode_checkbox.get():
+            saving_path = f"{paths.debug_files()}\\{datetime.now().strftime('%Y-%m-%d_%H-%M-%S_map')}.png"
+            LOGGER.info(f"Map preview was saved in {saving_path}")
+            shutil.copy2(paths.map_preview(), saving_path)
+
+    def _save_elevation_image(self):
+        if self.elevation_image is None:
+            return
+        cv2.imwrite(paths.elevation_preview(), self.elevation_image)
+        if self.app_ui.general_settings_block.debug_mode_checkbox.get():
+            saving_path = f"{paths.debug_files()}\\{datetime.now().strftime('%Y-%m-%d_%H-%M-%S_elevation')}.png"
+            LOGGER.info(f"Elevation preview was saved in {saving_path}")
+            shutil.copy2(paths.elevation_preview(), saving_path)
+
+    def _update_elevation_data(self):
         self.app_ui.elevation_data_block.set_value(
-            'Mark Pos', str(elevation_mark_point))
-        if elevation is not None:
+            "Mark Pos", str(self.elevation_data.mark_position)
+        )
+
+        if self.elevation_data.elevation is not None:
             self.app_ui.elevation_data_block.set_value(
-                'Elevation', str(round(elevation, 1))+"m")
+                "Elevation", str(round(self.elevation_data.elevation, 1)) + "m"
+            )
+        else:
+            self.app_ui.elevation_data_block.set_value("Elevation", "None")
+
+        if self.elevation_data.elevated_distance is not None:
+            self.app_ui.elevation_data_block.set_value(
+                "Elevated Distance",
+                str(round(self.elevation_data.elevated_distance, 1)) + "m",
+            )
+        else:
+            self.app_ui.elevation_data_block.set_value("Elevated Distance", "None")
+
+        if isinstance(self.elevation_data.mortar_elevated_distance, int):
+            self.app_ui.elevation_data_block.set_value(
+                "Mortar Elev. Dist.",
+                f"{self.elevation_data.mortar_elevated_distance} m",
+            )
         else:
             self.app_ui.elevation_data_block.set_value(
-                'Elevation', str(elevation))
-        if elevated_distance is not None:
-            self.app_ui.elevation_data_block.set_value(
-                'Elevated Distance', str(round(elevated_distance, 1))+"m")
+                "Mortar Elev. Dist.",
+                str(self.elevation_data.mortar_elevated_distance),
+            )
+
+    def _update_map_data(self):
+        if self.map_data.grid_gap is not None:
+            self.app_ui.map_data_block.set_value(
+                "Grid Gap", str(self.map_data.grid_gap) + "px"
+            )
         else:
-            self.app_ui.elevation_data_block.set_value(
-                'Elevated Distance', str(elevated_distance))
-            
-        self.app_ui.elevation_data_block.set_value(
-            'Mortar Elev. Dist.', f"{self.last_mortar_elevated_distance}{"m" if isinstance(self.last_mortar_elevated_distance, int) else "  "}")
+            self.app_ui.map_data_block.set_value("Grid Gap", "None")
 
-    def set_map_data(self, grid_gap:int|None=None,
-        player_pos:tuple[int, int]|None=None,
-        mark_pos:tuple[int, int]|None=None,
-        distance:float|None=None):
-        if self.last_distance != distance:
-            if distance is not None:
-                self.last_distance=round(distance)
-            else: self.last_distance = distance
-            self.process_elevation_image()
-        
-        self.last_grid_gap = grid_gap
-        self.last_player_position = player_pos
-        self.last_mark_position = mark_pos
-
-        self.app_ui.map_data_block.set_value('Grid Gap', str(grid_gap)+"px")
-        self.app_ui.map_data_block.set_value('Mark Pos', str(mark_pos))
-        self.app_ui.map_data_block.set_value('Player Pos', str(player_pos))
-        if distance is not None:
-            self.app_ui.map_data_block.set_value('Distance', str(round(distance, 1))+"m")
+        self.app_ui.map_data_block.set_value(
+            "Mark Pos", str(self.map_data.mark_position)
+        )
+        self.app_ui.map_data_block.set_value(
+            "Player Pos", str(self.map_data.player_position)
+        )
+        if self.map_data.distance is not None:
+            self.app_ui.map_data_block.set_value(
+                "Distance", str(round(self.map_data.distance, 1)) + "m"
+            )
         else:
-            self.app_ui.map_data_block.set_value('Distance', str(distance))
+            self.app_ui.map_data_block.set_value("Distance", "None")
 
-    def calculate_mortar_distance(self, distance: float) -> int:
-        differences = []
-        for mortar_distance in self.mortar_distances:
-            differences.append(abs(mortar_distance-distance))
-        distance = self.mortar_distances[differences.index(min(differences))]
-        return distance
-
-    def get_color(self) -> str:
-        return self.app_ui.map_detector_block.color_combobox.get()
-
-    def is_dictor(self) -> bool:
-        return self.app_ui.dictor_settings_block.dictor_checkbox.get()
-    
-    def __initialize_preview_images(self):
+    def _load_saved_images(self):
         if os.path.exists(paths.map_preview()):
-            self.load_map_image(paths.map_preview())
-        
+            self.map_image = cv2.imread(paths.map_preview())
         if os.path.exists(paths.elevation_preview()):
-            self.load_elevation_image(paths.elevation_preview())
-    
-    def _update_overlay(self):
+            self.elevation_image = cv2.imread(paths.elevation_preview())
+
+    def _draw_data_in_overlay(self):
+        if self.overlay is None:
+            return
+
+        self.overlay.add_command(Clear())
+
+        if self.app_ui.overlay_settings_block.draw_borders_checkbox.get():
+            self.overlay.add_command(DrawBorders())
+
+        def fmt(val, precision=".1f"):
+            return "None" if val is None else f"{val:{precision}}"
+
+        text_to_display = [
+            f"Distance: {fmt(self.map_data.distance)}",
+            f"Mortar Distance: {self.elevation_data.mortar_elevated_distance}",
+            f"Elevation: {fmt(self.elevation_data.elevation)}",
+            f"Grid gap: {self.map_data.grid_gap}",
+        ]
+
+        y = 30
+        for text in text_to_display:
+            self.overlay.add_command(CreateText(text, 20, y, "red", 20))
+            y += 30
+
+        if self.map_data.box is not None:
+            x0, y0, x1, y1 = self.map_data.box
+            scale = self.app_ui.overlay_settings_block.scale_slider.get() / 100
+
+            self.overlay.add_command(
+                CreateRect(
+                    int(x0 / scale), int(y0 / scale), int(x1 / scale), int(y1 / scale)
+                )
+            )
+
+    def _initialize_overlay(self):
         if self.app_ui.overlay_settings_block.enabled_checkbox.get():
-            LOGGER.debug("Starting overlay process...")
-            self.overlay = AppOverlay("PUBG:")
+            if self.overlay is None:
+                LOGGER.info("Starting overlay process...")
+
+                self.overlay = app_overlay.AppOverlay("")
+
+            self._draw_data_in_overlay()
+
+            self.overlay.add_command(
+                ChangeApp(self.app_ui.overlay_settings_block.title_entry.get())
+            )
+
+            windows = pygetwindow.getAllWindows()
+            window = None
+            for window in windows:
+                if (
+                    window is not None
+                    and self.app_ui.overlay_settings_block.title_entry.get()
+                    in window.title
+                ):
+                    window = window
+
         elif self.overlay is not None:
-            self.overlay.add_command(Stop())
+            LOGGER.info("Stoping overlay process...")
+            self.overlay.add_command(app_overlay.Stop())
             self.overlay = None
+
+    def _load_map_detector(self):
+        if os.path.exists(paths.map_detection_model()):
+            self.map_detector = MapDetector()
+        else:
+            LOGGER.warning(
+                "Can't find minimap detection model at " + paths.map_detection_model()
+            )
+            self.map_detector = None
+            self.app_ui.map_detector_block.minimap_detection.checkbox.configure(
+                state=tkinter.DISABLED
+            )
+            self.app_ui.map_detector_block.minimap_detection.set(False)
