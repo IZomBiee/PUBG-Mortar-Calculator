@@ -25,6 +25,7 @@ pygetwindow = "^0.0.9"
 pip = "^25.2"
 tqdm = "^4.67.1"
 onnxruntime = "^1.23.2"
+pytest = "^9.0.2"
 
 [[tool.poetry.source]]
 name = "pytorch-cu128"
