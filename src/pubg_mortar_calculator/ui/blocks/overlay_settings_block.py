@@ -1,41 +1,28 @@
 import customtkinter as ct
 
-from src.customtkinter_widgets import *
-from src.customtkinter_widgets import TitledBlock
+from src.customtkinter_widgets import Checkbox, Slider
 
 
-class OverlaySettingsBlock(TitledBlock):
+class OverlaySettingsBlock(ct.CTkFrame):
     def __init__(self, master, on_overlay_change, *args, **kwargs):
-        super().__init__(master, "Overlay Settings", *args, **kwargs)
-        grid = self.get_grid()
-
-        grid.grid_columnconfigure((0, 1), weight=1)
+        super().__init__(master, fg_color="transparent", *args, **kwargs)
 
         self.enabled_checkbox = Checkbox(
-            grid,
+            self,
             text="Enabled",
             saving_id="overlay_settings_enabled_checkbox",
             command=on_overlay_change,
         ).grid(row=0, column=0, padx=5, pady=5)
 
         self.draw_borders_checkbox = Checkbox(
-            grid,
+            self,
             text="Draw Borders",
             saving_id="overlay_settings_draw_borders_checkbox",
             command=on_overlay_change,
         ).grid(row=0, column=1, padx=5, pady=5)
 
-        ct.CTkLabel(grid, text="App Title:").grid(row=1, column=0)
-
-        self.title_entry = Entry(
-            grid,
-            text="PUBG:",
-            saving_id="overlay_settings_title_entry",
-            command=on_overlay_change,
-        ).grid(row=1, column=1, padx=5, pady=5)
-
         self.scale_slider = Slider(
-            grid,
+            self,
             "Scale",
             "overlay_settings_scale_slider",
             50,

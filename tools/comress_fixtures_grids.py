@@ -17,7 +17,7 @@ def compress_and_rename():
         return
 
     # Look for all png, jpg, and jpeg files
-    valid_extensions = ("*.png", "*.jpg", "*.jpeg")
+    valid_extensions = "*.png"
     files = []
     for ext in valid_extensions:
         files.extend(FIXTURE_DIR.glob(ext))

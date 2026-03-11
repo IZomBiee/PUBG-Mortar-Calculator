@@ -417,7 +417,7 @@ class AppLogic:
             self._draw_data_in_overlay()
 
             self.overlay.add_command(
-                ChangeApp(self.app_ui.overlay_settings_block.title_entry.get())
+                ChangeApp(self.app_ui.general_settings_block.title_entry.get())
             )
 
             windows = pygetwindow.getAllWindows()
@@ -425,7 +425,7 @@ class AppLogic:
             for window in windows:
                 if (
                     window is not None
-                    and self.app_ui.overlay_settings_block.title_entry.get()
+                    and self.app_ui.general_settings_block.title_entry.get()
                     in window.title
                 ):
                     window = window

@@ -21,17 +21,27 @@ def main():
                     if app.overlay is not None:
                         app.overlay.add_command(Clear())
                     time.sleep(0.1)
-                    app.set_map_image(take_game_screenshot())
+                    app.set_map_image(
+                        take_game_screenshot(
+                            app.app_ui.general_settings_block.title_entry.get()
+                        )
+                    )
                     time.sleep(0.5)
                 elif keyboard.is_pressed(app.get_elevation_key()):
-                    app.set_elevation_image(take_game_screenshot())
+                    app.set_elevation_image(
+                        take_game_screenshot(
+                            app.app_ui.general_settings_block.title_entry.get()
+                        )
+                    )
                     time.sleep(0.5)
                 elif keyboard.is_pressed(app.get_all_in_one_key()):
                     if app.overlay is not None:
                         app.overlay.add_command(Clear())
                     time.sleep(0.1)
 
-                    screenshot = take_game_screenshot()
+                    screenshot = take_game_screenshot(
+                        app.app_ui.general_settings_block.title_entry.get()
+                    )
                     app.set_map_image(screenshot, False)
                     app.set_elevation_image(screenshot)
 

@@ -21,7 +21,6 @@ class App(ct.CTk, AppLogic):
         ct.CTk.__init__(self)
         self.title("PUBG-Mortar-Calculator")
         self.resizable(False, False)
-        self.columnconfigure([0, 1, 2], weight=1)
 
         # Left Frame
         self.left_frame = ct.CTkFrame(self)
@@ -49,14 +48,42 @@ class App(ct.CTk, AppLogic):
         )
         self.elevation_data_block.grid(row=1, column=1)
 
-        # Center Frame
-        self.center_frame = ct.CTkFrame(self, fg_color="transparent")
-        self.center_frame.grid(row=0, column=1)
+        # Right Frame
+        self.right_frame = ct.CTkFrame(self, fg_color="transparent")
+        self.right_frame.grid(row=0, column=1)
+
+        self.tabview = ct.CTkTabview(self.right_frame)
+        self.tabview.add("General")
+        self.tabview.add("Grid")
+        self.tabview.add("Map")
+        self.tabview.add("Elevation")
+        self.tabview.add("Dictor")
+        self.tabview.add("Overlay")
+        self.tabview.pack(fill="both", expand=True, padx=10, pady=10)
+
+        def on_elev():
+            path = utils.paths.get_image()
+            if path != "":
+                self.elevation_image = cv2.imread(path)
+                self.process_elevation_image()
+
+        self.general_settings_block = GeneralSettingsBlock(
+            self.tabview.tab("General"), self._initialize_overlay
+        )
+        self.general_settings_block.pack(fill="both", expand=True, padx=5, pady=5)
+
+        self.dictor_settings_block = DictorSettingsBlock(self.tabview.tab("Dictor"))
+        self.dictor_settings_block.pack(fill="both", expand=True, padx=5, pady=5)
+
+        self.elevation_detector_block = ElevationDetectorBlock(
+            self.tabview.tab("Elevation"), self.process_elevation_image, on_elev
+        )
+        self.elevation_detector_block.pack(fill="both", expand=True, padx=5, pady=5)
 
         self.grid_detector_block = GridDetectorBlock(
-            self.center_frame, self.process_map_image
+            self.tabview.tab("Grid"), self.process_map_image
         )
-        self.grid_detector_block.grid(row=0, column=0)
+        self.grid_detector_block.pack(fill="both", expand=True, padx=5, pady=5)
 
         def on_map():
             path = utils.paths.get_image()
@@ -65,35 +92,15 @@ class App(ct.CTk, AppLogic):
                 self.process_map_image()
 
         self.map_detector_block = MapDetectorBlock(
-            self.center_frame, self.process_map_image, on_map
+            self.tabview.tab("Map"), self.process_map_image, on_map
         )
-        self.map_detector_block.grid(row=1, column=0)
+        self.map_detector_block.pack(fill="both", expand=True, padx=5, pady=5)
 
         self.overlay_settings_block = OverlaySettingsBlock(
-            self.center_frame, self._initialize_overlay
+            self.tabview.tab("Overlay"), self._initialize_overlay
         )
-        self.overlay_settings_block.grid(row=2, column=0)
+        self.overlay_settings_block.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Right Frame
-        self.right_frame = ct.CTkFrame(self, fg_color="transparent")
-        self.right_frame.grid(row=0, column=2)
-
-        self.dictor_settings_block = DictorSettingsBlock(self.right_frame)
-        self.dictor_settings_block.grid(row=0, column=0)
-
-        def on_elev():
-            path = utils.paths.get_image()
-            if path != "":
-                self.elevation_image = cv2.imread(path)
-                self.process_elevation_image()
-
-        self.general_settings_block = GeneralSettingsBlock(self.right_frame)
-        self.general_settings_block.grid(row=1, column=0)
-
-        self.elevation_detector_block = ElevationDetectorBlock(
-            self.right_frame, self.process_elevation_image, on_elev
-        )
-        self.elevation_detector_block.grid(row=2, column=0)
         self.app_ui = self
         AppLogic.__init__(self, self.app_ui)
 
