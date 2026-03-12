@@ -34,8 +34,8 @@ class MarkDetector:
     def get_hsv_mask(
         bgr_frame: np.ndarray,
         color: str,
-        bluring_size: int = 5,
-        bluring_threshold: int = 15,
+        bluring_size: int = 3,
+        bluring_threshold: int = 30,
     ) -> np.ndarray:
         hsv_frame = cv2.cvtColor(bgr_frame, cv2.COLOR_BGR2HSV)
 
@@ -83,8 +83,8 @@ class MarkDetector:
                 hsv_min = (23, 137, 163)
                 hsv_max = (36, 255, 240)
             case "blue":
-                hsv_min = (67, 70, 106)
-                hsv_max = (110, 210, 231)
+                hsv_min = (67, 28, 22)
+                hsv_max = (165, 233, 255)
             case "green":
                 hsv_min = (49, 101, 111)
                 hsv_max = (80, 195, 219)

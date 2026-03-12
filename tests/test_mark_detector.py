@@ -6,6 +6,7 @@ import pytest
 
 # Adjust this import to match your project structure
 from src.pubg_mortar_calculator.detectors import MarkDetector
+from src.pubg_mortar_calculator.settings_loader import SettingsLoader as SL
 
 FIXTURE_DIR = Path("tests/fixtures/marks")
 
@@ -54,7 +55,11 @@ def test_mark_detection(color, exp_px, exp_py, exp_mx, exp_my, image_path, scena
     image = cv2.imread(image_path)
     assert image is not None, f"Failed to load image for {scenario}"
 
-    max_radius = 18  # Adjust key to match your SL
+    settings = SL()
+
+    max_radius = settings.get(
+        "map_detection_max_radius_slider"
+    )  # Adjust key to match your SL
 
     # 1. Clean up the image (modifies in-place)
     MarkDetector.remove_danger_zones(image)

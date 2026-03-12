@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from src import app_overlay
-from src.app_overlay import *
+from src.app_overlay import ChangeApp, Clear, CreateRect, CreateText, DrawBorders
 
 from .detectors import GridDetector, MapDetector, MarkDetector
 from .dictor_manager import DictorManager
