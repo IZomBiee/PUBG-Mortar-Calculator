@@ -4,9 +4,9 @@ A tool to calculate the range of a shot for mortar in PUBG.
 
 ## Features
 
-- [X] Quick calculation of planar distance between marks using map
-- [X] Quick calculation of firing range of a mortar
-- [X] Quick calculation of planar distance between marks using mini-map
+- [X] Calculation of planar distance between marks using map
+- [X] Calculation of planar distance between marks using mini-map
+- [X] Calculation of elevation realative to mark
 - [X] GUI
 - [X] Overlay
 - [X] Dictor
