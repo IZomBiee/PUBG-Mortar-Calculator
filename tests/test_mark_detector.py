@@ -39,7 +39,7 @@ def load_mark_images():
     return test_cases
 
 
-def points_match(p1, p2, tolerance=8):
+def points_match(p1, p2, tolerance=5):
     """Returns True if point 1 and point 2 are within the tolerance distance."""
     # Handle cases where the detector returned None but we expected coordinates
     if p1 is None or p2 is None:

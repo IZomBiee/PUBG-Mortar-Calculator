@@ -4,9 +4,9 @@ A tool to calculate the range of a shot for mortar in PUBG.
 
 ## Features
 
-- [X] Quick calculation of planar distance between marks
+- [X] Quick calculation of planar distance between marks using map
 - [X] Quick calculation of firing range of a mortar
-- [X] Quick сalculation of planar distance using mini-map
+- [X] Quick calculation of planar distance between marks using mini-map
 - [X] GUI
 - [X] Overlay
 - [X] Dictor
@@ -41,10 +41,10 @@ poetry run pubg_mortar_calculator
 3. Enable visualization of grid and marks.
 4. Play with settings!
 
-## Things to know
-- The minimap detection is not ideal so it can detect something different or not detect anything. It will be improved in feature but it mostly work fine. So if you have time use full map which is more precise and stable.
-- The mark detection system using dump algorithm, it detect circle with the max radious in range. Because of that it can detect something different but with precise tunning it work in most cases.
-- Don't work with HDR or other things that change color like color blind mode or gpu driver tweaks.
-- The bot is not designed for fullscreen mode, better use borderless, which doesn't impact performance. But if you will - overlay will not work and if image is stretcht grid detection will give incorect results.
-- If debug mode enabled than all calculation results and images can be checked in last.log and loaded in program if needed to check what cause problem.
-- If you use it, please write what is wrong and what can be improved. I will try to fix it.
+## Revised Technical Notes
+- **Minimap Detection**: The minimap detection is not yet perfect; it may occasionally fail to detect objects or produce false positives. While this will be improved in a future update, it generally works well. For better accuracy and stability, use the full map when possible.
+- **Marker Detection System**: The marker detection uses a basic (dumb) algorithm that detects the circle with the largest radius in a given range. Because of this, it may occasionally misidentify objects. However, with precise tuning, it is reliable in most cases.
+- **Display Settings**: The bot is incompatible with HDR or any settings that alter colors, such as colorblind modes or GPU driver color tweaks.
+- **Window Mode**: The bot is not designed for Fullscreen mode; please use Borderless, which does not impact performance. In Fullscreen, the overlay will not function, and if the image is stretched, grid detection will produce incorrect results.
+- **Debug Mode**: If Debug Mode is enabled, all calculation results and images are saved to ```last.log```. These can be reloaded into the program to help diagnose the cause of any issues.
+- **Feedback**: If you use this tool, please report any bugs or suggest improvements. I will do my best to address them.
