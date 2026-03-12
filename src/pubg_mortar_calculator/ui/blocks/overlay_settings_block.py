@@ -6,6 +6,7 @@ from src.customtkinter_widgets import Checkbox, Slider
 class OverlaySettingsBlock(ct.CTkFrame):
     def __init__(self, master, on_overlay_change, *args, **kwargs):
         super().__init__(master, fg_color="transparent", *args, **kwargs)
+        self.columnconfigure([0, 1], weight=1)
 
         self.enabled_checkbox = Checkbox(
             self,

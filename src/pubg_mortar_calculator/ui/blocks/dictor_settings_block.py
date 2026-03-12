@@ -15,10 +15,7 @@ class DictorSettingsBlock(ct.CTkFrame):
             text="Dictor",
             saving_id="general_settings_dictor_checkbox",
             default=True,
-        ).grid(
-            row=0,
-            column=0,
-        )
+        ).grid(row=0, column=0)
 
         self.volume_slider = Slider(
             self,
