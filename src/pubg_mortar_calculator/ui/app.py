@@ -64,7 +64,7 @@ class App(ct.CTk, AppLogic):
         def on_elev():
             path = utils.paths.get_image()
             if path != "":
-                self.set_elevation_image(cv2.imread(path))
+                self.set_elevation_image(cv2.imread(path), False)
 
         self.general_settings_block = GeneralSettingsBlock(
             self.tabview.tab("General"), self._initialize_overlay
@@ -87,7 +87,7 @@ class App(ct.CTk, AppLogic):
         def on_map():
             path = utils.paths.get_image()
             if path != "":
-                self.set_map_image(cv2.imread(path))
+                self.set_map_image(cv2.imread(path), False)
 
         self.map_detector_block = MapDetectorBlock(
             self.tabview.tab("Map"), self.process_map_image, on_map
