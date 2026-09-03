@@ -11,9 +11,8 @@ from pubg_mortar_calculator.detectors import hsv_mark_detector
 from pubg_mortar_calculator.detectors.yolo_mark_detector import YoloMarkDetector
 from tools.mark_model.make_dataset import Annotation, get_annotations_from_file
 
-FIXTURE_DIR = Path(r"A:\Datasets\PUBG\original")
+FIXTURE_DIR = Path(r"tests/fixtures")
 MAX_DELTA = 10
-
 
 def load_test_images():
     test_cases = []
@@ -103,7 +102,7 @@ def test_yolo_detection(annotations, image_path):
         true_mark = annotation_to_mark(true_annotation)
         assert true_mark.color != "", f"Image: {image_path} | No true color loaded"
 
-        mask = hsv_mark_detector.get_hsv_mask(image, true_mark.color, 19, 1)
+        mask = hsv_mark_detector.get_roi_hsv_mask(image, true_mark.color)
         roi = hsv_mark_detector.get_all_positions(mask)
 
         samples = detector.make_samples(image, roi)

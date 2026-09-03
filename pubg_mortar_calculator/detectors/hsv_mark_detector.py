@@ -79,8 +79,8 @@ def remove_danger_zones(image: np.ndarray):
 def get_hsv_mask(
     bgr_image: np.ndarray,
     color: str,
-    bluring_size: int,
-    bluring_threshold: int,
+    bluring_size: int = 3,
+    bluring_threshold: int = 30,
 ) -> np.ndarray:
     hsv_frame = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV)
 
@@ -89,6 +89,22 @@ def get_hsv_mask(
     mask = cv2.GaussianBlur(mask, (bluring_size, bluring_size), 7)
 
     _, mask = cv2.threshold(mask, bluring_threshold, 255, cv2.THRESH_BINARY)
+
+    return mask
+
+
+def get_roi_hsv_mask(
+    bgr_image: np.ndarray,
+    color: str,
+    bluring_size: int = 49,
+) -> np.ndarray:
+    hsv_frame = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV)
+
+    mask = cv2.inRange(hsv_frame, *__color_to_hsv_range(color))
+
+    mask = cv2.GaussianBlur(mask, (bluring_size, bluring_size), 7)
+
+    _, mask = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
 
     return mask
 

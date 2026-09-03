@@ -59,7 +59,7 @@ class MapProcessor:
             hsv_mark_detector.remove_danger_zones(processed)
         if not mark_settings.use_yolo or yolo_detector is None:
             hsv_mask = hsv_mark_detector.get_hsv_mask(
-                processed, mark_settings.color, 3, 30
+                processed, mark_settings.color
             )
             map_data.player_position, map_data.mark_position = (
                 hsv_mark_detector.get_mark_positions(
@@ -67,8 +67,8 @@ class MapProcessor:
                 )
             )
         else:
-            hsv_mask = hsv_mark_detector.get_hsv_mask(
-                processed, mark_settings.color, 19, 1
+            hsv_mask = hsv_mark_detector.get_roi_hsv_mask(
+                processed, mark_settings.color,
             )
             positions = hsv_mark_detector.get_all_positions(hsv_mask)
             samples = yolo_detector.make_samples(processed, positions)

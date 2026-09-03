@@ -255,7 +255,7 @@ class YoloOnnxDetector:
         scale = min(target_w / w, target_h / h)
         new_w, new_h = int(round(w * scale)), int(round(h * scale))
 
-        resized_img = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+        resized_img = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
         padded_img = np.full((target_h, target_w, 3), fill_value, dtype=image.dtype)
         top = (target_h - new_h) // 2

@@ -71,7 +71,6 @@ class YoloMarkDetector:
                 continue
             delta_x = abs(unique_detection.box[0] - detection.box[0])
             delta_y = abs(unique_detection.box[1] - detection.box[1])
-            print(delta_x, delta_y)
 
             if delta_x + delta_y < theshold:
                 return True
@@ -110,13 +109,13 @@ class YoloMarkDetector:
 
 def main():
     image = cv2.imread(
-        r"A:\Datasets\PUBG\original\large_minimap_basic_1428_591_1888_1050.jpg"
+        r"tests\fixtures\desert_map_green_636_495_1226_481.jpg"
     )
     if image is None:
         exit("No image found")
 
     hsv_mark_detector.remove_danger_zones(image)
-    mask = hsv_mark_detector.get_hsv_mask(image, "blue", 49, 1)
+    mask = hsv_mark_detector.get_roi_hsv_mask(image, "green")
     contours = hsv_mark_detector._find_contours(mask)
     positions = hsv_mark_detector.get_all_positions(mask)
     yolo_detector = YoloMarkDetector()
@@ -128,7 +127,7 @@ def main():
 
     detections = yolo_detector._get_unique_detections(samples)
 
-    player, mark = yolo_detector.get_player_and_mark_pos(samples, "blue")
+    player, mark = yolo_detector.get_player_and_mark_pos(samples, "green")
     for d in detections:
         cv2.circle(image, d.center_position(), random.randint(10, 40), (0, 0, 255), 2)
     if player is not None:
