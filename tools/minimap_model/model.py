@@ -1,9 +1,5 @@
-from pathlib import Path
-
 import torch.nn as nn
 import torchvision.models as models
-from dataset import MinimapDataset
-
 
 class MinimapModel(nn.Module):
     def __init__(self, num_classes=3, pretrained=True):
@@ -16,15 +12,3 @@ class MinimapModel(nn.Module):
 
     def forward(self, x):
         return self.model(x)
-
-
-if __name__ == "__main__":
-    model = MinimapModel()
-
-    dataset = MinimapDataset(Path(r"C:\Users\patri\Desktop\dataset"), False)
-
-    image, label = dataset[0]
-
-    image = image.unsqueeze(0)
-
-    print(model(image))

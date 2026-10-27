@@ -2,13 +2,11 @@ import os
 from pathlib import Path
 from typing import Any, Tuple
 
-import cv2
 import matplotlib.pyplot as plt
-import torch
-import torchvision
 from PIL import Image, ImageOps
 from torch.utils.data import Dataset
-
+from torchvision import transforms
+from tools.minimap_model import shared
 
 class MinimapDataset(Dataset):
     def __init__(self, dataset_path: Path, train: bool = True, transform=None):
@@ -75,9 +73,9 @@ class SquarePad:
 
 if __name__ == "__main__":
     dataset = MinimapDataset(
-        Path(r"C:\Users\patri\Desktop\dataset"),
+        shared.DATASET_PATH,
         True,
-        transform=torchvision.transforms.Resize(224),
+        transform=transforms.ToTensor()
     )
 
     classes = ["No Minimap", "Small Minimap", "Large Minimap"]

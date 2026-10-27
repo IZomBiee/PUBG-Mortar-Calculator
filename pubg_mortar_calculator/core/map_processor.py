@@ -5,12 +5,14 @@ import numpy as np
 
 from pubg_mortar_calculator.logger import get_logger
 
+from ..utils import imgpr
+
 from ..detectors import (
     GridDetector,
     MinimapDetector,
     MinimapType,
     YoloMarkDetector,
-    hsv_mark_detector,
+    hsv_mark_detector
 )
 from ..utils import imgpr
 from .models import GridSettings, MapData, MarkSettings, MinimapSettings
@@ -61,6 +63,7 @@ class MapProcessor:
             hsv_mask = hsv_mark_detector.get_hsv_mask(
                 processed, mark_settings.color
             )
+
             map_data.player_position, map_data.mark_position = (
                 hsv_mark_detector.get_mark_positions(
                     hsv_mask, mark_settings.min_radius, mark_settings.max_radius

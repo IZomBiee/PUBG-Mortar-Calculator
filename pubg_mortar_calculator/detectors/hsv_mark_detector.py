@@ -79,8 +79,8 @@ def remove_danger_zones(image: np.ndarray):
 def get_hsv_mask(
     bgr_image: np.ndarray,
     color: str,
-    bluring_size: int = 3,
-    bluring_threshold: int = 30,
+    bluring_size: int = 9,
+    bluring_threshold: int = 10,
 ) -> np.ndarray:
     hsv_frame = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV)
 
@@ -112,14 +112,14 @@ def get_roi_hsv_mask(
 def __color_to_hsv_range(color: str) -> tuple[np.ndarray, np.ndarray]:
     match color:
         case "orange":
-            hsv_min = (10, 106, 123)
-            hsv_max = (13, 238, 231)
+            hsv_min = (0, 180, 117)
+            hsv_max = (33, 255, 231)
         case "yellow":
             hsv_min = (23, 137, 163)
             hsv_max = (36, 255, 240)
         case "blue":
-            hsv_min = (73, 65, 156)
-            hsv_max = (117, 203, 224)
+            hsv_min = (73, 65, 120)
+            hsv_max = (117, 255, 255)
         case "green":
             hsv_min = (49, 101, 111)
             hsv_max = (80, 195, 219)

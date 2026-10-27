@@ -1,53 +1,28 @@
 from pathlib import Path
 
 import torch
-import torchvision
-import torchvision.models as models
-from dataset import MinimapDataset, SquarePad
-from matplotlib import pyplot
-from model import MinimapModel
+from tools.minimap_model.dataset import MinimapDataset
+from tools.minimap_model.model import MinimapModel
 from torch import nn
 from torch.utils.data import DataLoader
-from torchvision import transforms
+from tools.minimap_model import shared
 
 model = MinimapModel().to("cuda")
-optimizer = torch.optim.Adam(model.parameters(), lr=0.0003)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 loss_function = nn.CrossEntropyLoss().to("cuda")
 
-transform = torchvision.transforms.Compose(
-    [
-        SquarePad(),
-        transforms.Resize((224, 224)),
-        transforms.ColorJitter(brightness=0.1, contrast=0.1),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomVerticalFlip(p=0.5),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ]
-)
-
 train_dataset = MinimapDataset(
-    Path(r"C:\Users\patri\Desktop\dataset"), transform=transform
+    shared.DATASET_PATH, transform=shared.TRAIN_TRANSFORM
 )
-train_dataloader = DataLoader(train_dataset, 8, shuffle=True)
-
-transform = torchvision.transforms.Compose(
-    [
-        SquarePad(),
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ]
-)
-
+train_dataloader = DataLoader(train_dataset, shared.BATCH_SIZE, shuffle=True)
 
 val_dataset = MinimapDataset(
-    Path(r"C:\Users\patri\Desktop\dataset"), False, transform=transform
+    shared.DATASET_PATH, False, transform=shared.VAL_TRANSFORM
 )
-val_dataloader = DataLoader(val_dataset, 8)
+val_dataloader = DataLoader(val_dataset, shared.BATCH_SIZE)
 best_val_loss = float("inf")
 
-for epoch in range(21):
+for epoch in range(shared.EPOCH_COUNT):
     model.train()
     total_train_loss = 0.0
 
@@ -66,35 +41,35 @@ for epoch in range(21):
 
     avg_train_loss = total_train_loss / len(train_dataloader)
 
-    if epoch % 5 == 0:
-        model.eval()
-        total_val_loss = 0.0
-        correct = 0
-        total = 0
 
-        with torch.inference_mode():
-            for val_images, val_labels in val_dataloader:
-                val_images = val_images.to("cuda").float()
-                val_labels = val_labels.to("cuda")
+    model.eval()
+    total_val_loss = 0.0
+    correct = 0
+    total = 0
 
-                val_preds = model(val_images)
-                val_loss = loss_function(val_preds, val_labels)
-                total_val_loss += val_loss.item()
+    with torch.inference_mode():
+        for val_images, val_labels in val_dataloader:
+            val_images = val_images.to("cuda").float()
+            val_labels = val_labels.to("cuda")
 
-                predicted_classes = torch.argmax(val_preds, dim=1)
-                correct += (predicted_classes == val_labels).sum().item()
-                total += val_labels.size(0)
+            val_preds = model(val_images)
+            val_loss = loss_function(val_preds, val_labels)
+            total_val_loss += val_loss.item()
 
-        avg_val_loss = total_val_loss / len(val_dataloader)
-        accuracy = (correct / total) * 100
+            predicted_classes = torch.argmax(val_preds, dim=1)
+            correct += (predicted_classes == val_labels).sum().item()
+            total += val_labels.size(0)
 
-        if avg_val_loss < best_val_loss:
-            best_val_loss = avg_val_loss
-            torch.save(model.state_dict(), Path("tools\\minimap_model\\best.pth"))
+    avg_val_loss = total_val_loss / len(val_dataloader)
+    accuracy = (correct / total) * 100
 
-        print(
-            f"Epoch: {epoch:03d} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | Val Acc: {accuracy:.2f}%"
-        )
+    if avg_val_loss < best_val_loss:
+        best_val_loss = avg_val_loss
+        torch.save(model.state_dict(), Path("tools\\minimap_model\\best.pth"))
+
+    print(
+        f"Epoch: {epoch:03d} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | Val Acc: {accuracy:.2f}%"
+    )
 
 model.eval()
 print("\n--- Final Predictions Sample ---")

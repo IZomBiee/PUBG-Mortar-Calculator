@@ -708,7 +708,7 @@ wheels = [
 
 [[package]]
 name = "pubg-mortar-calculator"
-version = "4.6.3"
+version = "4.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "customtkinter" },

@@ -1,6 +1,6 @@
 [project]
 name = "pubg_mortar_calculator"
-version = "4.6.4"
+version = "4.7.0"
 description = "A tool to calculate the range of a shot for mortar."
 authors = [{ name = "IZomBie", email = "patrik009009@gmail.com" }]
 license = { text = "You can use everything." }
