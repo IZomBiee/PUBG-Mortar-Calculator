@@ -1,58 +1,74 @@
-import re
 from pathlib import Path
 
 import cv2
+import numpy as np
 
 ROOT_DIR = Path(__file__).parent.parent
 FIXTURE_DIR = ROOT_DIR / "tests" / "fixtures"
 
-MAX_DIMENSION = 19200
-JPEG_QUALITY = 70  # 0 to 100 (lower = smaller file size, but more blurry)
 
-
-def compress_and_rename():
+def compress_fixtures():
     if not FIXTURE_DIR.exists():
         print(f"Directory not found: {FIXTURE_DIR}")
         return
 
-    files = []
-    files.extend(FIXTURE_DIR.glob("*.png"))
+    files = sorted(FIXTURE_DIR.glob("*.png"))
+    if not files:
+        print("No .png files found in fixtures directory.")
+        return
+
+    total_orig_size = 0
+    total_webp_size = 0
+
+    print(f"Processing {len(files)} files...\n")
 
     for img_path in files:
-        match = re.search(r"^(.*)_(\d+)\.(png)$", img_path.name, re.IGNORECASE)
-
-        if not match:
-            print(f"Skipping '{img_path.name}' -> Doesn't match format 'name_GAP.ext'")
-            continue
-
-        prefix = match.group(1)
-        old_gap = float(match.group(2))
-
         img = cv2.imread(str(img_path))
         if img is None:
             print(f"Skipping '{img_path.name}' -> Could not read file")
             continue
 
-        h, w = img.shape[:2]
-        scale = 1.0
+        orig_bytes = img_path.stat().st_size
+        total_orig_size += orig_bytes
 
-        if w > MAX_DIMENSION or h > MAX_DIMENSION:
-            scale = MAX_DIMENSION / max(w, h)
-            new_w, new_h = int(w * scale), int(h * scale)
-            img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        new_filepath = img_path.with_suffix(".webp")
 
-        new_gap = int(round(old_gap * scale))
+        encode_params = [
+            cv2.IMWRITE_WEBP_QUALITY, 101,
+        ]
 
-        new_filename = f"{prefix}_{new_gap}.jpg"
-        new_filepath = FIXTURE_DIR / new_filename
+        success = cv2.imwrite(str(new_filepath), img, encode_params)
+        if not success:
+            print(f"Failed to encode '{new_filepath.name}'")
+            continue
 
-        cv2.imwrite(str(new_filepath), img, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
+        verified_img = cv2.imread(str(new_filepath))
+        if verified_img is None or not np.array_equal(img, verified_img):
+            new_filepath.unlink(missing_ok=True)
+            print(f"Error: Lossless verification failed for '{img_path.name}'! Original kept.")
+            continue
 
-        if img_path != new_filepath:
-            img_path.unlink()
+        webp_bytes = new_filepath.stat().st_size
+        total_webp_size += webp_bytes
 
-        print(f"Processed: '{img_path.name}' -> '{new_filename}' (Scale: {scale:.2f})")
+        img_path.unlink()
+
+        saved_pct = (1 - webp_bytes / orig_bytes) * 100
+        print(
+            f"Processed: '{img_path.name}' -> '{new_filepath.name}' | "
+            f"{orig_bytes / (1024 * 1024):.2f}MB -> {webp_bytes / (1024 * 1024):.2f}MB "
+            f"(-{saved_pct:.1f}%)"
+        )
+
+    print("-" * 50)
+    print(
+        f"Total: {total_orig_size / (1024 * 1024):.2f} MB -> "
+        f"{total_webp_size / (1024 * 1024):.2f} MB"
+    )
+    if total_orig_size > 0:
+        overall_saved = (1 - total_webp_size / total_orig_size) * 100
+        print(f"Overall reduction: -{overall_saved:.1f}%")
 
 
 if __name__ == "__main__":
-    compress_and_rename()
+    compress_fixtures()

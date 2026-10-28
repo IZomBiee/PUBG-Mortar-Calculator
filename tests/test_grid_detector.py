@@ -7,20 +7,23 @@ import pytest
 
 from pubg_mortar_calculator.core.settings_loader import SettingsLoader as SL
 from pubg_mortar_calculator.detectors import GridDetector
-from tools.mark_model.make_dataset import get_annotations_from_file
+from tools.yolo_mark_model.make_syn_dataset import get_annotations_from_file
 
 FIXTURE_DIR = Path(r"tests/fixtures")
 MAX_ERROR = 0.05
 
 def load_test_images():
     test_cases = []
-    for image_path in FIXTURE_DIR.glob("*.jpg"):
-        annotations_path = image_path.with_suffix(".txt")
-        if annotations_path.exists():
-            annotations = get_annotations_from_file(annotations_path)
-        else:
-            annotations = []
-        test_cases.append((annotations, image_path))
+
+    for image_path in FIXTURE_DIR.iterdir():
+        if image_path.suffix.lower() in (".webp", ".jpg", ".png"):
+            annotations_path = image_path.with_suffix(".txt")
+            if annotations_path.exists():
+                annotations = get_annotations_from_file(annotations_path)
+            else:
+                annotations = []
+
+            test_cases.append((annotations, image_path))
 
     return test_cases
 

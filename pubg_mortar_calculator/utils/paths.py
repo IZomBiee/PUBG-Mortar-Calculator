@@ -40,10 +40,6 @@ def map_detection_model() -> Path:
     return assets() / "map_model.onnx"
 
 
-def airdrop_detection_model() -> Path:
-    return assets() / "airdrop_model.onnx"
-
-
 def mark_detection_model() -> Path:
     return assets() / "mark_model.onnx"
 
@@ -52,9 +48,11 @@ def get_image() -> Path | None:
     image_path = filedialog.askopenfilename(
         title="Select a File",
         filetypes=[
-            ("Image Files", "*.png;*.jpg"),
+            ("Image Files", "*.png;*.jpg;*.webp;*.jpeg"),
             ("PNG Files", "*.png"),
             ("JPG Files", "*.jpg"),
+            ("JPEG Files", "*.jpeg"),
+            ("WEBP Files", "*.webp"),
         ],
     )
     return Path(image_path) if image_path else None

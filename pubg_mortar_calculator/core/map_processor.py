@@ -74,7 +74,9 @@ class MapProcessor:
                 processed, mark_settings.color,
             )
             positions = hsv_mark_detector.get_all_positions(hsv_mask)
-            samples = yolo_detector.make_samples(processed, positions)
+
+            samples = yolo_detector.make_samples(processed, positions, (image.shape[1], image.shape[0]))
+
             map_data.player_position, map_data.mark_position = (
                 yolo_detector.get_player_and_mark_pos(samples, mark_settings.color)
             )
@@ -89,9 +91,13 @@ class MapProcessor:
         elif mark_settings.show_processed and hsv_mask is not None:
             processed = cv2.cvtColor(hsv_mask, cv2.COLOR_GRAY2BGR)
             if mark_settings.use_yolo:
-                for (x, y), image in samples:
+                for (x, y, s_w, s_h), image in samples:
                     h, w = image.shape[:2]
-                    cv2.rectangle(processed, (x, y), (x + w, y + h), (0, 0, 255), 3)
+                    scale_x = s_w/w
+                    scale_y = s_h/h
+
+                    cv2.rectangle(processed, (x, y), (x + int(w * scale_x),
+                        y + int(h * scale_y)), (0, 0, 255), 3)
 
         if grid_settings.draw_lines:
             self.grid_detector.draw_lines(processed, *lines)

@@ -7,11 +7,10 @@ import cv2
 DATASET_PATH = Path(r"A:\Datasets\PUBG\original")
 OUTPUT_PATH = Path(__file__).resolve().parents[0] / "mark_dataset"
 OUTPUT_PATH.mkdir(exist_ok=True)
-MARGINS = [3, 5, 7]
+MARGINS = [1.5]
 CLASSE_IDS = [1, 2, 3, 4, 5, 6, 7, 8]
-OFFSET_FACTOR = 0.2
-MIN_CLEARITY = 0.6
-
+OFFSET_FACTOR = 0.4
+MIN_CLEARITY = 0.5
 
 @dataclass
 class Annotation:

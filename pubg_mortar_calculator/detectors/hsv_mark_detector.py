@@ -96,7 +96,7 @@ def get_hsv_mask(
 def get_roi_hsv_mask(
     bgr_image: np.ndarray,
     color: str,
-    bluring_size: int = 49,
+    bluring_size: int = 41,
 ) -> np.ndarray:
     hsv_frame = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV)
 
@@ -112,8 +112,10 @@ def get_roi_hsv_mask(
 def __color_to_hsv_range(color: str) -> tuple[np.ndarray, np.ndarray]:
     match color:
         case "orange":
-            hsv_min = (0, 180, 117)
-            hsv_max = (33, 255, 231)
+            # hsv_min = (10, 106, 123)
+            # hsv_max = (13, 238, 231)
+            hsv_min = (10, 106, 123)
+            hsv_max = (13, 238, 231)
         case "yellow":
             hsv_min = (23, 137, 163)
             hsv_max = (36, 255, 240)
