@@ -2,14 +2,10 @@ import cv2
 import numpy as np
 
 from pubg_mortar_calculator.core.app_overlay import *
-
-from ..detectors import MinimapDetector, YoloMarkDetector
-from ..logger import get_logger
-from ..utils import paths
-from .dictor_manager import DictorManager
-from .elevation_processor import ElevationProcessor
-from .map_processor import MapProcessor
-from .models import (
+from pubg_mortar_calculator.core.dictor_manager import DictorManager
+from pubg_mortar_calculator.core.elevation_processor import ElevationProcessor
+from pubg_mortar_calculator.core.map_processor import MapProcessor
+from pubg_mortar_calculator.core.models import (
     DictorSettings,
     ElevationData,
     ElevationSettings,
@@ -20,7 +16,11 @@ from .models import (
     MinimapSettings,
     OverlaySettings,
 )
-from .storage import ImageStorage
+from pubg_mortar_calculator.detectors import MinimapDetector, YoloMarkDetector
+from pubg_mortar_calculator.logger import get_logger
+from pubg_mortar_calculator.utils import paths
+
+from pubg_mortar_calculator.core.storage import ImageStorage
 
 LOGGER = get_logger()
 

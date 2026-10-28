@@ -14,3 +14,7 @@ temp
 .*
 *dataset
 *.data
+*.tmp
+dist
+build
+*.spec

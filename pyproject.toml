@@ -1,6 +1,6 @@
 [project]
 name = "pubg_mortar_calculator"
-version = "4.8.0"
+version = "4.8.1"
 description = "A tool to calculate the range of a shot for mortar."
 authors = [{ name = "IZomBie", email = "patrik009009@gmail.com" }]
 license = { text = "You can use everything." }
@@ -32,6 +32,7 @@ build-backend = "hatchling.build"
 dev = [
     "matplotlib>=3.11.1",
     "onnxscript>=0.7.1",
+    "pyinstaller>=6.22.3",
     "torch>=2.13.0",
     "torchvision>=0.28.0",
 ]

@@ -1,24 +1,21 @@
 from pathlib import Path
 
 import torch
-from tools.minimap_model.dataset import MinimapDataset
-from tools.minimap_model.model import MinimapModel
 from torch import nn
 from torch.utils.data import DataLoader
+
 from tools.minimap_model import shared
+from tools.minimap_model.dataset import MinimapDataset
+from tools.minimap_model.model import MinimapModel
 
 model = MinimapModel().to("cuda")
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 loss_function = nn.CrossEntropyLoss().to("cuda")
 
-train_dataset = MinimapDataset(
-    shared.DATASET_PATH, transform=shared.TRAIN_TRANSFORM
-)
+train_dataset = MinimapDataset(shared.DATASET_PATH, transform=shared.TRAIN_TRANSFORM)
 train_dataloader = DataLoader(train_dataset, shared.BATCH_SIZE, shuffle=True)
 
-val_dataset = MinimapDataset(
-    shared.DATASET_PATH, False, transform=shared.VAL_TRANSFORM
-)
+val_dataset = MinimapDataset(shared.DATASET_PATH, False, transform=shared.VAL_TRANSFORM)
 val_dataloader = DataLoader(val_dataset, shared.BATCH_SIZE)
 best_val_loss = float("inf")
 
@@ -40,7 +37,6 @@ for epoch in range(shared.EPOCH_COUNT):
         total_train_loss += loss.item()
 
     avg_train_loss = total_train_loss / len(train_dataloader)
-
 
     model.eval()
     total_val_loss = 0.0

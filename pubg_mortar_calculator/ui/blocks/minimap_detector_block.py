@@ -1,6 +1,6 @@
 import customtkinter as ct
 
-from pubg_mortar_calculator.customtkinter_widgets import Checkbox, Combobox, Slider
+from pubg_mortar_calculator.customtkinter_widgets import Checkbox, Slider
 
 
 class MinimapDetectorBlock(ct.CTkFrame):

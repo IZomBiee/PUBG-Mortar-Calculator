@@ -1,6 +1,6 @@
 import json
 
-from ..utils import paths, singleton
+from pubg_mortar_calculator.utils import paths, singleton
 
 
 @singleton

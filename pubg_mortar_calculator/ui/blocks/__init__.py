@@ -1,8 +1,10 @@
-from .calculation_data_block import CalculationDataBlock
-from .dictor_settings_block import DictorSettingsBlock
-from .elevation_detector_block import ElevationDetectorBlock
-from .general_settings_block import GeneralSettingsBlock
-from .grid_detector_block import GridDetectorBlock
-from .mark_detector_block import MarkDetectorBlock
-from .minimap_detector_block import MinimapDetectorBlock
-from .overlay_settings_block import OverlaySettingsBlock
+from pubg_mortar_calculator.ui.blocks.calculation_data_block import CalculationDataBlock
+from pubg_mortar_calculator.ui.blocks.dictor_settings_block import DictorSettingsBlock
+from pubg_mortar_calculator.ui.blocks.elevation_detector_block import (
+    ElevationDetectorBlock,
+)
+from pubg_mortar_calculator.ui.blocks.general_settings_block import GeneralSettingsBlock
+from pubg_mortar_calculator.ui.blocks.grid_detector_block import GridDetectorBlock
+from pubg_mortar_calculator.ui.blocks.mark_detector_block import MarkDetectorBlock
+from pubg_mortar_calculator.ui.blocks.minimap_detector_block import MinimapDetectorBlock
+from pubg_mortar_calculator.ui.blocks.overlay_settings_block import OverlaySettingsBlock

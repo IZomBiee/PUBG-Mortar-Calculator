@@ -1,12 +1,11 @@
 import shutil
 from datetime import datetime
-from pathlib import Path
 
 import cv2
 import numpy as np
 
-from ..logger import get_logger
-from ..utils import paths
+from pubg_mortar_calculator.logger import get_logger
+from pubg_mortar_calculator.utils import paths
 
 LOGGER = get_logger()
 

@@ -1,14 +1,14 @@
 from pathlib import Path
+
 import onnx
 import torch
-from tools.minimap_model.model import MinimapModel
 from onnxruntime.quantization import (
     QuantType,
     quantize_dynamic,
 )
 
 from tools.minimap_model import shared
-
+from tools.minimap_model.model import MinimapModel
 
 model = MinimapModel(num_classes=3, pretrained=False)
 model.load_state_dict(
@@ -60,4 +60,6 @@ external_data_file = Path(f"{int8_onnx_path}.data")
 if external_data_file.exists():
     external_data_file.unlink()
 
-print(f"Quantized model generated: {int8_onnx_path.stat().st_size / (1024 * 1024):.2f} MB")
+print(
+    f"Quantized model generated: {int8_onnx_path.stat().st_size / (1024 * 1024):.2f} MB"
+)

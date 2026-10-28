@@ -3,6 +3,7 @@ import random
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
+
 import cv2
 
 DATASET_PATH = Path(r"A:\Datasets\PUBG\original")
@@ -53,7 +54,9 @@ def write_annotations(path: Path, annotations: list[Annotation]):
             file.write(f"{ann.id} {ann.x:.6f} {ann.y:.6f} {ann.w:.6f} {ann.h:.6f}\n")
 
 
-def calculate_crop_dimensions(image_w: int, image_h: int, target_size: int = TARGET_SIZE) -> tuple[int, int]:
+def calculate_crop_dimensions(
+    image_w: int, image_h: int, target_size: int = TARGET_SIZE
+) -> tuple[int, int]:
     scale_y = image_h / BASE_HEIGHT
     aspect = image_w / image_h
     aspect_ratio_factor = aspect / BASE_ASPECT
@@ -116,7 +119,11 @@ def evaluate_bbox_overlap(
 
 
 def generate_dataset():
-    files = [f for f in DATASET_PATH.iterdir() if f.suffix.lower() in {".png", ".jpg", ".jpeg"}]
+    files = [
+        f
+        for f in DATASET_PATH.iterdir()
+        if f.suffix.lower() in {".png", ".jpg", ".jpeg"}
+    ]
 
     for file in files:
         classes_txt = file.parent / "classes.txt"
@@ -146,14 +153,18 @@ def generate_dataset():
 
             patch = image[y0 : y0 + crop_h, x0 : x0 + crop_w]
             resized_patch = cv2.resize(
-                patch, 
-                (TARGET_SIZE, TARGET_SIZE), 
-                interpolation=cv2.INTER_AREA if crop_h >= TARGET_SIZE else cv2.INTER_LINEAR
+                patch,
+                (TARGET_SIZE, TARGET_SIZE),
+                interpolation=cv2.INTER_AREA
+                if crop_h >= TARGET_SIZE
+                else cv2.INTER_LINEAR,
             )
 
             crop_annotations = []
             for ann in valid_anns:
-                res = evaluate_bbox_overlap(ann, img_w, img_h, x0, y0, crop_w, crop_h, MIN_CLARITY)
+                res = evaluate_bbox_overlap(
+                    ann, img_w, img_h, x0, y0, crop_w, crop_h, MIN_CLARITY
+                )
                 if res is not None:
                     crop_annotations.append(res)
 
@@ -168,16 +179,23 @@ def generate_dataset():
 
             has_marker = False
             for ann in valid_anns:
-                if evaluate_bbox_overlap(ann, img_w, img_h, bg_x0, bg_y0, crop_w, crop_h, min_clarity=0.1) is not None:
+                if (
+                    evaluate_bbox_overlap(
+                        ann, img_w, img_h, bg_x0, bg_y0, crop_w, crop_h, min_clarity=0.1
+                    )
+                    is not None
+                ):
                     has_marker = True
                     break
 
             if not has_marker:
                 bg_patch = image[bg_y0 : bg_y0 + crop_h, bg_x0 : bg_x0 + crop_w]
                 resized_bg = cv2.resize(
-                    bg_patch, 
-                    (TARGET_SIZE, TARGET_SIZE), 
-                    interpolation=cv2.INTER_AREA if crop_h >= TARGET_SIZE else cv2.INTER_LINEAR
+                    bg_patch,
+                    (TARGET_SIZE, TARGET_SIZE),
+                    interpolation=cv2.INTER_AREA
+                    if crop_h >= TARGET_SIZE
+                    else cv2.INTER_LINEAR,
                 )
                 bg_stem = f"{file.stem}_bg{bg_idx}_{bg_x0}_{bg_y0}"
                 cv2.imwrite(str(OUTPUT_PATH / f"{bg_stem}.png"), resized_bg)

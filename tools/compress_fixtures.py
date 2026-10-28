@@ -34,7 +34,8 @@ def compress_fixtures():
         new_filepath = img_path.with_suffix(".webp")
 
         encode_params = [
-            cv2.IMWRITE_WEBP_QUALITY, 101,
+            cv2.IMWRITE_WEBP_QUALITY,
+            101,
         ]
 
         success = cv2.imwrite(str(new_filepath), img, encode_params)
@@ -45,7 +46,9 @@ def compress_fixtures():
         verified_img = cv2.imread(str(new_filepath))
         if verified_img is None or not np.array_equal(img, verified_img):
             new_filepath.unlink(missing_ok=True)
-            print(f"Error: Lossless verification failed for '{img_path.name}'! Original kept.")
+            print(
+                f"Error: Lossless verification failed for '{img_path.name}'! Original kept."
+            )
             continue
 
         webp_bytes = new_filepath.stat().st_size

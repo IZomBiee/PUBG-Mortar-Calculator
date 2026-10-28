@@ -2,16 +2,18 @@ import math
 import random
 import shutil
 from pathlib import Path
+
 import cv2
+
+from pubg_mortar_calculator.detectors import hsv_mark_detector
+from pubg_mortar_calculator.detectors.yolo_mark_detector import YoloMarkDetector
 
 from .make_syn_dataset import (
     Annotation,
+    check_clarity_and_crop,
     get_annotations_from_file,
     write_annotations,
-    check_clarity_and_crop,
 )
-from pubg_mortar_calculator.detectors import hsv_mark_detector
-from pubg_mortar_calculator.detectors.yolo_mark_detector import YoloMarkDetector
 
 DATASET_PATH = Path(r"A:\Datasets\PUBG\original")
 OUTPUT_PATH = Path(__file__).resolve().parents[0] / "mark_dataset"
@@ -100,7 +102,10 @@ if __name__ == "__main__":
                 crop_y0 = max(0, min(crop_y0, image_height - size))
                 square_crop = image[crop_y0 : crop_y0 + size, crop_x0 : crop_x0 + size]
 
-                if square_crop.shape[0] != square_crop.shape[1] or square_crop.shape[0] == 0:
+                if (
+                    square_crop.shape[0] != square_crop.shape[1]
+                    or square_crop.shape[0] == 0
+                ):
                     continue
 
                 new_annotations = []
@@ -123,7 +128,9 @@ if __name__ == "__main__":
                         new_ann, _ = result
                         new_annotations.append(new_ann)
 
-                candidates.append((crop_x0, crop_y0, size, square_crop, new_annotations))
+                candidates.append(
+                    (crop_x0, crop_y0, size, square_crop, new_annotations)
+                )
 
         candidates.sort(key=lambda c: len(c[4]), reverse=True)
 
@@ -148,8 +155,7 @@ if __name__ == "__main__":
 
         for c_x0, c_y0, _, c_crop, c_anns in positives:
             new_annotation_path = (
-                OUTPUT_PATH
-                / f"{file.with_suffix('').name}^{c_x0}_{c_y0}.txt"
+                OUTPUT_PATH / f"{file.with_suffix('').name}^{c_x0}_{c_y0}.txt"
             )
             new_image_path = new_annotation_path.with_suffix(".png")
             write_annotations(new_annotation_path, c_anns)
@@ -167,8 +173,7 @@ if __name__ == "__main__":
             selected_negatives = random.sample(negatives, allowed_negatives)
             for c_x0, c_y0, _, c_crop, c_anns in selected_negatives:
                 new_annotation_path = (
-                    OUTPUT_PATH
-                    / f"{file.with_suffix('').name}^{c_x0}_{c_y0}.txt"
+                    OUTPUT_PATH / f"{file.with_suffix('').name}^{c_x0}_{c_y0}.txt"
                 )
                 new_image_path = new_annotation_path.with_suffix(".png")
                 write_annotations(new_annotation_path, c_anns)

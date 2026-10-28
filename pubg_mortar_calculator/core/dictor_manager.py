@@ -3,7 +3,7 @@ from threading import Thread
 
 import pyttsx3
 
-from ..utils import singleton
+from pubg_mortar_calculator.utils import singleton
 
 
 @singleton

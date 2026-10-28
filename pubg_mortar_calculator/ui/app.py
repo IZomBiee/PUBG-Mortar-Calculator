@@ -3,14 +3,10 @@ import tkinter
 
 import customtkinter as ct
 
-from pubg_mortar_calculator.customtkinter_widgets import Image
-from pubg_mortar_calculator.logger import get_logger
-from pubg_mortar_calculator.utils import paths, take_screenshot
-
-from ..core.app_logic import AppLogic
-from ..core.app_overlay import *
-from ..core.hotkey_service import HotkeyService
-from ..core.models import (
+from pubg_mortar_calculator.core.app_logic import AppLogic
+from pubg_mortar_calculator.core.app_overlay import *
+from pubg_mortar_calculator.core.hotkey_service import HotkeyService
+from pubg_mortar_calculator.core.models import (
     DictorSettings,
     ElevationSettings,
     GeneralSettings,
@@ -19,7 +15,9 @@ from ..core.models import (
     MinimapSettings,
     OverlaySettings,
 )
-from .blocks import (
+from pubg_mortar_calculator.customtkinter_widgets import Image
+from pubg_mortar_calculator.logger import get_logger
+from pubg_mortar_calculator.ui.blocks import (
     CalculationDataBlock,
     DictorSettingsBlock,
     ElevationDetectorBlock,
@@ -29,6 +27,7 @@ from .blocks import (
     MinimapDetectorBlock,
     OverlaySettingsBlock,
 )
+from pubg_mortar_calculator.utils import paths, take_screenshot
 
 LOGGER = get_logger()
 

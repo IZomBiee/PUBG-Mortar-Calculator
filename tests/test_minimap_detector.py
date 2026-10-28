@@ -12,9 +12,11 @@ from tools.yolo_mark_model.make_syn_dataset import get_annotations_from_file
 
 FIXTURE_DIR = Path(r"tests/fixtures")
 
+
 @pytest.fixture(scope="session")
 def minimap_detector():
     return MinimapDetector()
+
 
 def load_test_images():
     test_cases = []
@@ -30,6 +32,7 @@ def load_test_images():
             test_cases.append((annotations, image_path))
 
     return test_cases
+
 
 @pytest.mark.parametrize("annotations, image_path", load_test_images())
 def test_minimap_detector(minimap_detector, annotations, image_path):

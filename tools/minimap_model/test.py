@@ -4,10 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import onnxruntime as ort
 import torchvision.transforms as transforms
-from PIL import Image
 import torchvision.transforms.functional as F
+from PIL import Image
 
 from tools.minimap_model import shared
+
 
 def test_single_image(image_path: Path):
     onnx_path = Path("tools/minimap_model/best_int8.onnx")
@@ -42,7 +43,5 @@ def test_single_image(image_path: Path):
 
 
 if __name__ == "__main__":
-    test_image_path = Path(
-        r"tests\fixtures\TslGame_bDodaZ2l4Y.webp"
-    )
+    test_image_path = Path(r"tests\fixtures\TslGame_bDodaZ2l4Y.webp")
     test_single_image(test_image_path)

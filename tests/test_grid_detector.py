@@ -12,6 +12,7 @@ from tools.yolo_mark_model.make_syn_dataset import get_annotations_from_file
 FIXTURE_DIR = Path(r"tests/fixtures")
 MAX_ERROR = 0.05
 
+
 def load_test_images():
     test_cases = []
 
@@ -78,7 +79,7 @@ def test_grid_gap(annotations, image_path):
     #     cv2.imshow("A", cv2.resize(image, (800, 800)))
     #     cv2.waitKey(0)
 
-    max_delta = round(((image.shape[0] + image.shape[1])/2)*MAX_ERROR)
+    max_delta = round(((image.shape[0] + image.shape[1]) / 2) * MAX_ERROR)
 
     assert calc_gap == pytest.approx(grid_gap, abs=max_delta), (
         f"Image: {image_path} | "

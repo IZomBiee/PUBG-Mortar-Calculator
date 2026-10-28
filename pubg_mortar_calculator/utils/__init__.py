@@ -1,7 +1,5 @@
-import ctypes
-
-from . import imgpr, paths
-from .screenshot import take_screenshot
+from pubg_mortar_calculator.utils import imgpr, paths
+from pubg_mortar_calculator.utils.screenshot import take_screenshot
 
 
 def singleton(class_):

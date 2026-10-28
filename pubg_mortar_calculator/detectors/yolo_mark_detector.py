@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import cv2
 import numpy as np
 
@@ -6,11 +8,8 @@ from pubg_mortar_calculator.detectors.yolo_onnx_engine import (
     Detection,
     YoloOnnxEngine,
 )
-import matplotlib.patches as patches
-import matplotlib.pyplot as plt
-from matplotlib.patheffects import withStroke
-from ..utils import paths
-from dataclasses import dataclass
+from pubg_mortar_calculator.utils import paths
+
 
 class YoloMarkDetector:
     def __init__(self) -> None:
@@ -18,9 +17,14 @@ class YoloMarkDetector:
         self.base_aspect = 16.0 / 9.0
 
         self.classes = [
-            'yellow_mark', 'yellow_player_mark', 'orange_mark',
-            'orange_player_mark', 'blue_mark', 'blue_player_mark',
-            'green_mark', 'green_player_mark'
+            "yellow_mark",
+            "yellow_player_mark",
+            "orange_mark",
+            "orange_player_mark",
+            "blue_mark",
+            "blue_player_mark",
+            "green_mark",
+            "green_player_mark",
         ]
 
         self.detector = YoloOnnxEngine(
@@ -51,8 +55,8 @@ class YoloMarkDetector:
         unique_detections: list[Detection] = []
 
         for (x, y, w, h), sample in samples:
-            scale_x = w/sample.shape[1]
-            scale_y = h/sample.shape[0]
+            scale_x = w / sample.shape[1]
+            scale_y = h / sample.shape[0]
 
             detections = self._detect(sample)
             for detection in detections:
@@ -62,15 +66,22 @@ class YoloMarkDetector:
                 detection.box[3] = round(y + detection.box[3] * scale_y)
 
                 while True:
-                    unique_detection = self._find_detection_in_list(unique_detections, detection)
+                    unique_detection = self._find_detection_in_list(
+                        unique_detections, detection
+                    )
                     if unique_detection is None:
                         unique_detections.append(detection)
                         break
                     else:
-                        if unique_detection.confidence > detection.confidence or unique_detection is detection:
+                        if (
+                            unique_detection.confidence > detection.confidence
+                            or unique_detection is detection
+                        ):
                             break
                         else:
-                            unique_detections[unique_detections.index(unique_detection)] = detection
+                            unique_detections[
+                                unique_detections.index(unique_detection)
+                            ] = detection
 
         unique_detections.sort(key=lambda det: det.confidence, reverse=True)
 
@@ -83,7 +94,6 @@ class YoloMarkDetector:
     #         category_detections.sort(key=lambda detection: detection.confidence)
     #         if len(category_detections) > 1:
     #             len
-
 
     @staticmethod
     def _find_detection_in_list(
@@ -148,6 +158,13 @@ class YoloMarkDetector:
 
 
 def main():
+    import matplotlib.patches as patches
+
+    import matplotlib.pyplot as plt
+
+    from matplotlib.patheffects import withStroke
+
+
     image_bgr = cv2.imread(r"temp\map_preview.png")
     if image_bgr is None:
         raise FileNotFoundError("No image found!")
@@ -196,7 +213,7 @@ def main():
         ax.text(
             x1,
             y1 - 6,
-            f'{det.class_name} - {round(det.confidence, 2)}',
+            f"{det.class_name} - {round(det.confidence, 2)}",
             fontsize=9,
             fontweight="bold",
             color="white",

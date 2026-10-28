@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from ..utils import imgpr
+from pubg_mortar_calculator.utils import imgpr
 
 
 def get_mark_positions(

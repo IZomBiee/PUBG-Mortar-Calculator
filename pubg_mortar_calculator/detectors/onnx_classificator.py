@@ -1,13 +1,13 @@
+from pathlib import Path
+
 import cv2
 import numpy as np
 import onnxruntime as ort
-from pathlib import Path
+
 
 class ONNXClassificator:
     def __init__(self, path: Path) -> None:
-        self.session = ort.InferenceSession(
-            path, providers=["CPUExecutionProvider"]
-        )
+        self.session = ort.InferenceSession(path, providers=["CPUExecutionProvider"])
         input_tensor = self.session.get_inputs()[0]
         self.input_shape = input_tensor.shape
         self.width, self.height = self.input_shape[-1], self.input_shape[-2]
@@ -32,10 +32,12 @@ class ONNXClassificator:
 
     def _basic_preprocess(self, bgr_image: np.ndarray) -> np.ndarray:
         image = self._letterbox(bgr_image)
-        image = cv2.resize(image, (self.width, self.height), interpolation=cv2.INTER_AREA)
+        image = cv2.resize(
+            image, (self.width, self.height), interpolation=cv2.INTER_AREA
+        )
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    @staticmethod 
+    @staticmethod
     def _normalize(rgb_image: np.ndarray) -> np.ndarray:
         image = rgb_image.astype(np.float32) / 255.0
         mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)

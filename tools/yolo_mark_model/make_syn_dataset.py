@@ -1,7 +1,8 @@
+import random
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-import random
+
 import cv2
 
 DATASET_PATH = Path(r"A:\Datasets\PUBG\original")
@@ -11,6 +12,7 @@ MARGINS = [1.5]
 CLASSE_IDS = [1, 2, 3, 4, 5, 6, 7, 8]
 OFFSET_FACTOR = 0.4
 MIN_CLEARITY = 0.5
+
 
 @dataclass
 class Annotation:
@@ -103,7 +105,7 @@ if __name__ == "__main__":
             continue
 
         print(file)
-        
+
         image = cv2.imread(file)
         if image is None:
             exit(f"Could not read {file} as image")
@@ -127,12 +129,8 @@ if __name__ == "__main__":
             for margin in MARGINS:
                 margin = round(max(w, h) * margin)
 
-                offset_x = round(
-                    margin * random.uniform(-OFFSET_FACTOR, OFFSET_FACTOR)
-                )
-                offset_y = round(
-                    margin * random.uniform(-OFFSET_FACTOR, OFFSET_FACTOR)
-                )
+                offset_x = round(margin * random.uniform(-OFFSET_FACTOR, OFFSET_FACTOR))
+                offset_y = round(margin * random.uniform(-OFFSET_FACTOR, OFFSET_FACTOR))
 
                 image_x0 = max(0, x - margin + offset_x)
                 image_y0 = max(0, y - margin + offset_y)
@@ -170,8 +168,7 @@ if __name__ == "__main__":
                     f"{file.with_suffix('').name}^{margin}_{x}_{y}"
                 )
                 new_annotation_path = (
-                    OUTPUT_PATH
-                    / f"{file.with_suffix('').name}^{margin}_{x}_{y}.txt"
+                    OUTPUT_PATH / f"{file.with_suffix('').name}^{margin}_{x}_{y}.txt"
                 )
                 new_image_path = new_annotation_path.with_suffix(".png")
 

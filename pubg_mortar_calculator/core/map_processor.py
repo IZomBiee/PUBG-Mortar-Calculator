@@ -3,19 +3,21 @@ from typing import Tuple
 import cv2
 import numpy as np
 
-from pubg_mortar_calculator.logger import get_logger
-
-from ..utils import imgpr
-
-from ..detectors import (
+from pubg_mortar_calculator.core.models import (
+    GridSettings,
+    MapData,
+    MarkSettings,
+    MinimapSettings,
+)
+from pubg_mortar_calculator.detectors import (
     GridDetector,
     MinimapDetector,
     MinimapType,
     YoloMarkDetector,
-    hsv_mark_detector
+    hsv_mark_detector,
 )
-from ..utils import imgpr
-from .models import GridSettings, MapData, MarkSettings, MinimapSettings
+from pubg_mortar_calculator.logger import get_logger
+from pubg_mortar_calculator.utils import imgpr
 
 LOGGER = get_logger()
 
@@ -60,9 +62,7 @@ class MapProcessor:
         if map_data.minimap_type == MinimapType.NO_MINIMAP:
             hsv_mark_detector.remove_danger_zones(processed)
         if not mark_settings.use_yolo or yolo_detector is None:
-            hsv_mask = hsv_mark_detector.get_hsv_mask(
-                processed, mark_settings.color
-            )
+            hsv_mask = hsv_mark_detector.get_hsv_mask(processed, mark_settings.color)
 
             map_data.player_position, map_data.mark_position = (
                 hsv_mark_detector.get_mark_positions(
@@ -71,11 +71,14 @@ class MapProcessor:
             )
         else:
             hsv_mask = hsv_mark_detector.get_roi_hsv_mask(
-                processed, mark_settings.color,
+                processed,
+                mark_settings.color,
             )
             positions = hsv_mark_detector.get_all_positions(hsv_mask)
 
-            samples = yolo_detector.make_samples(processed, positions, (image.shape[1], image.shape[0]))
+            samples = yolo_detector.make_samples(
+                processed, positions, (image.shape[1], image.shape[0])
+            )
 
             map_data.player_position, map_data.mark_position = (
                 yolo_detector.get_player_and_mark_pos(samples, mark_settings.color)
@@ -93,11 +96,16 @@ class MapProcessor:
             if mark_settings.use_yolo:
                 for (x, y, s_w, s_h), image in samples:
                     h, w = image.shape[:2]
-                    scale_x = s_w/w
-                    scale_y = s_h/h
+                    scale_x = s_w / w
+                    scale_y = s_h / h
 
-                    cv2.rectangle(processed, (x, y), (x + int(w * scale_x),
-                        y + int(h * scale_y)), (0, 0, 255), 3)
+                    cv2.rectangle(
+                        processed,
+                        (x, y),
+                        (x + int(w * scale_x), y + int(h * scale_y)),
+                        (0, 0, 255),
+                        3,
+                    )
 
         if grid_settings.draw_lines:
             self.grid_detector.draw_lines(processed, *lines)

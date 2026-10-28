@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Tuple, Sequence
+from typing import List, Optional, Sequence, Tuple
 
 import cv2
 import numpy as np
@@ -92,7 +92,12 @@ class YoloOnnxEngine:
         self,
         images: Sequence[np.ndarray],
         use_letterbox: bool,
-    ) -> Tuple[np.ndarray, List[Tuple[int, int]], List[Tuple[int, int]], List[Tuple[float, float]]]:
+    ) -> Tuple[
+        np.ndarray,
+        List[Tuple[int, int]],
+        List[Tuple[int, int]],
+        List[Tuple[float, float]],
+    ]:
         batch_size = len(images)
         tensor = np.empty((batch_size, 3, self.height, self.width), dtype=np.float32)
 
