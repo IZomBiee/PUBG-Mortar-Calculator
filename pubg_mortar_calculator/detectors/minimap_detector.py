@@ -31,11 +31,11 @@ class MinimapDetector(ONNXClassificator):
 
 if __name__ == "__main__":
     from matplotlib import pyplot as plt
-    
+
     detector = MinimapDetector()
 
     image = cv2.imread(paths.map_preview())
-    image = cv2.imread(r"tests\fixtures\TslGame_bDodaZ2l4Y.webp")
+    image = cv2.imread(r"debug_files\2026-10-28_19-59-44_elevation.png")
     if image is None:
         exit(f"Cannot load map preview image from {paths.map_preview()}!")
 

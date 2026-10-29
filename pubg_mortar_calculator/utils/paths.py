@@ -18,8 +18,14 @@ def settings() -> Path:
     return project() / "settings.json"
 
 
+def icon() -> Path:
+    return assets() / "icon.ico"
+
+
 def temp() -> Path:
-    return project() / "temp"
+    path = project() / "temp"
+    path.mkdir(exist_ok=True)
+    return path
 
 
 def map_preview() -> Path:

@@ -1,4 +1,5 @@
 import multiprocessing
+import queue
 import tkinter as tk
 from dataclasses import dataclass
 
@@ -70,11 +71,9 @@ class AppOverlay:
         self.target_delay_millis = int(1 / self.target_fps * 1000)
 
         self._command_queue = multiprocessing.Queue()
-
         self.command_buffer = []
 
         self.show = True
-
         self.width = 100
         self.height = 100
 
@@ -85,8 +84,6 @@ class AppOverlay:
         self.gui_process.start()
 
     def _run_gui(self):
-        self.elements = []
-
         self.root = tk.Tk()
         self.root.title("PUBG Overlay")
         self.root.overrideredirect(True)
@@ -99,8 +96,9 @@ class AppOverlay:
         self.root.withdraw()
 
         self._render_loop()
-
         self.root.mainloop()
+
+        self._command_queue.close()
 
     def _render_loop(self):
         self.cycle += 1
@@ -119,37 +117,39 @@ class AppOverlay:
                     window = win
             self.last_window = window
 
-        while not self._command_queue.empty():
-            command = self._command_queue.get()
+        while True:
+            try:
+                command = self._command_queue.get_nowait()
+            except queue.Empty:
+                break
 
             if isinstance(command, Stop):
-                self._command_queue.close()
-                exit(0)
+                self.root.destroy()
+                return
             elif isinstance(command, Clear):
-                self.command_buffer = []
+                self.command_buffer.clear()
             elif isinstance(command, ChangeApp):
                 self.title = command.new_title
             elif isinstance(command, Show):
                 self.show = True
             elif isinstance(command, Remove):
                 self.show = False
-            self.command_buffer.append(command)
+            else:
+                self.command_buffer.append(command)
 
         self.canvas.delete("all")
         for command in self.command_buffer:
             if isinstance(command, CreateText):
-                if isinstance(command.x, float):
-                    x = command.x * self.width
-                else:
-                    x = command.x
-                if isinstance(command.y, float):
-                    y = command.y * self.height
-                else:
-                    y = command.y
-
-                x = int(x)
-                y = int(y)
-
+                x = int(
+                    command.x * self.width
+                    if isinstance(command.x, float)
+                    else command.x
+                )
+                y = int(
+                    command.y * self.height
+                    if isinstance(command.y, float)
+                    else command.y
+                )
                 self.canvas.create_text(
                     x,
                     y,
@@ -159,30 +159,26 @@ class AppOverlay:
                     font=("Arial", command.font_size, "bold"),
                 )
             elif isinstance(command, CreateRect):
-                if isinstance(command.x0, float):
-                    x0 = command.x0 * self.width
-                else:
-                    x0 = command.x0
-                if isinstance(command.y0, float):
-                    y0 = command.y0 * self.height
-                else:
-                    y0 = command.y0
-
-                if isinstance(command.x1, float):
-                    x1 = command.x1 * self.width
-                else:
-                    x1 = command.x1
-
-                if isinstance(command.y1, float):
-                    y1 = command.y1 * self.height
-                else:
-                    y1 = command.y1
-
-                x0 = int(x0)
-                y0 = int(y0)
-                x1 = int(x1)
-                y1 = int(y1)
-
+                x0 = int(
+                    command.x0 * self.width
+                    if isinstance(command.x0, float)
+                    else command.x0
+                )
+                y0 = int(
+                    command.y0 * self.height
+                    if isinstance(command.y0, float)
+                    else command.y0
+                )
+                x1 = int(
+                    command.x1 * self.width
+                    if isinstance(command.x1, float)
+                    else command.x1
+                )
+                y1 = int(
+                    command.y1 * self.height
+                    if isinstance(command.y1, float)
+                    else command.y1
+                )
                 self.canvas.create_rectangle(
                     x0,
                     y0,
@@ -192,24 +188,21 @@ class AppOverlay:
                     width=command.border_size,
                 )
             elif isinstance(command, CreateCircle):
-                if isinstance(command.x0, float):
-                    x0 = command.x0 * self.width
-                else:
-                    x0 = command.x0
-                if isinstance(command.y0, float):
-                    y0 = command.y0 * self.height
-                else:
-                    y0 = command.y0
-
-                if isinstance(command.radious, float):
-                    radius = command.radious * self.width
-                else:
-                    radius = command.radious
-
-                x0 = int(x0)
-                y0 = int(y0)
-                radius = int(radius)
-
+                x0 = int(
+                    command.x0 * self.width
+                    if isinstance(command.x0, float)
+                    else command.x0
+                )
+                y0 = int(
+                    command.y0 * self.height
+                    if isinstance(command.y0, float)
+                    else command.y0
+                )
+                radius = int(
+                    command.radious * self.width
+                    if isinstance(command.radious, float)
+                    else command.radious
+                )
                 self.canvas.create_oval(
                     x0 - radius,
                     y0 - radius,
@@ -219,30 +212,26 @@ class AppOverlay:
                     width=command.border_size,
                 )
             elif isinstance(command, CreateLine):
-                if isinstance(command.x0, float):
-                    x0 = command.x0 * self.width
-                else:
-                    x0 = command.x0
-                if isinstance(command.y0, float):
-                    y0 = command.y0 * self.height
-                else:
-                    y0 = command.y0
-
-                if isinstance(command.x1, float):
-                    x1 = command.x1 * self.width
-                else:
-                    x1 = command.x1
-
-                if isinstance(command.y1, float):
-                    y1 = command.y1 * self.height
-                else:
-                    y1 = command.y1
-
-                x0 = int(x0)
-                y0 = int(y0)
-                x1 = int(x1)
-                y1 = int(y1)
-
+                x0 = int(
+                    command.x0 * self.width
+                    if isinstance(command.x0, float)
+                    else command.x0
+                )
+                y0 = int(
+                    command.y0 * self.height
+                    if isinstance(command.y0, float)
+                    else command.y0
+                )
+                x1 = int(
+                    command.x1 * self.width
+                    if isinstance(command.x1, float)
+                    else command.x1
+                )
+                y1 = int(
+                    command.y1 * self.height
+                    if isinstance(command.y1, float)
+                    else command.y1
+                )
                 self.canvas.create_line(
                     x0,
                     y0,
@@ -271,24 +260,28 @@ class AppOverlay:
     def add_command(self, command):
         self._command_queue.put(command)
 
+    def stop(self):
+        self._command_queue.put(Stop())
+        self.gui_process.join(timeout=1.0)
+        if self.gui_process.is_alive():
+            self.gui_process.terminate()
+
 
 def main():
     import time
 
     overlay = AppOverlay("D", 10)
-
     time.sleep(1)
 
-    x = 0
-    while True:
+    for x in range(0, 100, 5):
         overlay.add_command(Clear())
-        x += 5
-
         overlay.add_command(CreateText(str(x), x, 50))
         overlay.add_command(CreateRect(x - 5, 0, x + 5, 100))
-
         time.sleep(0.05)
+
+    overlay.stop()
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     main()

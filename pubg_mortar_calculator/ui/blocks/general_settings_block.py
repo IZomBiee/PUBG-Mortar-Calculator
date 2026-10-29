@@ -59,3 +59,12 @@ class GeneralSettingsBlock(ct.CTkFrame):
             saving_id="general_settings_title_entry",
             command=on_overlay_change,
         ).grid(row=4, column=1, padx=5, pady=5, sticky="e")
+
+        ct.CTkLabel(self, text="Monitor ID:").grid(row=5, column=0)
+
+        self.monitor_id_entry = Entry(
+            self,
+            text="0",
+            saving_id="general_settings_monitor_id",
+            command=on_overlay_change,
+        ).grid(row=5, column=1, padx=5, pady=5, sticky="e")

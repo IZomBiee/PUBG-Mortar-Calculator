@@ -1,3 +1,5 @@
+import multiprocessing
+
 from pubg_mortar_calculator.logger import get_logger
 from pubg_mortar_calculator.ui.app import App
 from pubg_mortar_calculator.utils.screenshot import take_screenshot
@@ -16,4 +18,5 @@ def main():
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     main()

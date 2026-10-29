@@ -30,7 +30,7 @@ class MarkDetectorBlock(ct.CTkFrame):
             text="Zoom To Points",
             command=on_update,
             saving_id="mark_detection_zoom_to_points_checkbox",
-            default=True,
+            default=False,
         ).grid(row=1, column=0, padx=5)
 
         self.yolo_checkbox = Checkbox(
@@ -38,18 +38,19 @@ class MarkDetectorBlock(ct.CTkFrame):
             text="Use Yolo",
             command=on_update,
             saving_id="mark_detection_yolo_checkbox",
-            default=False,
+            default=True,
         ).grid(row=1, column=1, padx=5)
 
         ct.CTkLabel(self, text="Mark Color: ").grid(row=2, column=0, padx=5, pady=5)
 
         self.color_combobox = Combobox(
             self,
-            values=["orange", "yellow", "blue", "green"],
+            values=["yellow", "orange", "blue", "green"],
             command=on_update,
             return_value=False,
             saving_id="mark_detection_color_combobox",
         )
+        self.color_combobox.set("yellow")
         self.color_combobox.grid(row=2, column=1, padx=5, pady=5)
 
         self.min_radius_slider = Slider(
@@ -69,7 +70,7 @@ class MarkDetectorBlock(ct.CTkFrame):
             "mark_detection_max_radius_slider",
             5,
             50,
-            default=30,
+            default=25,
             command=lambda: on_update(),
         )
         self.max_radius_slider.grid(row=4, column=0, columnspan=2)

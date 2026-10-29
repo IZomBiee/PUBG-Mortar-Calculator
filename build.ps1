@@ -12,4 +12,5 @@ uv run pyinstaller `
     --exclude-module matplotlib `
     --exclude-module scipy `
     --add-data "assets;assets" `
+    --noconsole `
     pubg_mortar_calculator/__main__.py

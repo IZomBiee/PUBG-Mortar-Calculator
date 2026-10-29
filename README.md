@@ -21,27 +21,34 @@ A tool to calculate the range of a shot for mortar in PUBG.
 ### Ingame Minimap Preview
 ![Ingame Minimap Preview](assets/ingame_minimap_preview.gif)
 
-## Installation
+## Download (For Users)
+
+1. Download the latest `PUBG-Mortar-Calculator-v4.8.2.zip` from the **[Releases](https://github.com/IZomBiee/PUBG-Mortar-Calculator/releases)** tab.
+2. Extract the archive.
+3. Launch `PUBG-Mortar-Calculator.exe`.
+
+---
+
+## Development Setup
+
+If you want to run the project from source or contribute:
 
 1. **Clone the repository:**
-```bash
-git clone https://github.com/IZomBiee/PUBG-Mortar-Calculator.git
-cd PUBG-Mortar-Calculator
-```
+   ```bash
+   git clone [https://github.com/IZomBiee/PUBG-Mortar-Calculator.git](https://github.com/IZomBiee/PUBG-Mortar-Calculator.git)
+   cd PUBG-Mortar-Calculator
+   ```
 
-2. **Install minimap detection model (Optional but recommended):**
-   - Go to the project repository's **Releases** tab and find the latest release labeled `minimap classification model`.
-   - Download `map_model.onnx` and place it into the `assets/` folder.
+2. **Download model weights:**
+   - Go to the latest release on the **[Releases](https://github.com/IZomBiee/PUBG-Mortar-Calculator/releases)** tab.
+   - Download `map_model.onnx` and `mark_model.onnx`.
+   - Place both files directly into the `assets/` folder.
 
-3. **Install mark detection model (Optional but recommended):**
-   - Go to the project repository's **Releases** tab and find the latest release that have `YOLO` in it.
-   - Download `mark_model.onnx` and place it into the `assets/` folder.
-
-4. **Run with uv:**
-```bash
-uv sync
-uv run pubg_mortar_calculator
-```
+3. **Install dependencies and run:**
+   ```bash
+   uv sync
+   uv run pubg_mortar_calculator
+   ```
 
 ## Usage
 
@@ -70,7 +77,7 @@ Training mode is recommended for initial setup. While some settings may require 
 
 ### Display & Window Settings
 - **Display Compatibility**: Incompatible with HDR, colorblind modes, or custom GPU driver color enhancements/vibrance tweaks.
-- **Window Mode**: Not designed for exclusive Fullscreen mode. In Fullscreen, overlays will fail, and stretched aspect ratios will break grid detection. Use Borderless or Windowed mode.
+- **Window Mode**: Not designed for exclusive Fullscreen mode. In Fullscreen, overlays will fail. If Fullscreen is streched elevation calculation will be slightly off and minimap detection could get worse. Use Borderless or Windowed mode.
 
 ### Debugging & Feedback
 - **Debug Mode**: When enabled, all calculation logs and captured frames are saved to `last.log`. These can be reloaded into the program to diagnose detection or calculation failures.

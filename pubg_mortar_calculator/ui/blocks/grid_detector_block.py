@@ -56,7 +56,7 @@ class GridDetectorBlock(ct.CTkFrame):
             "grid_detection_line_threshold_slider",
             20,
             100,
-            default=55,
+            default=47,
             command=on_update,
         )
         self.line_threshold_slider.grid(row=3, column=0, columnspan=2, sticky="e")

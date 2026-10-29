@@ -65,6 +65,7 @@ class GeneralSettings:
     elevation_hotkey: str
     all_in_one_hotkey: str
     app_title: str
+    monitor_id: int
 
 
 @dataclass

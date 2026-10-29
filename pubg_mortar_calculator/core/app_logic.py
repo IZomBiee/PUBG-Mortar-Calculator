@@ -16,11 +16,10 @@ from pubg_mortar_calculator.core.models import (
     MinimapSettings,
     OverlaySettings,
 )
+from pubg_mortar_calculator.core.storage import ImageStorage
 from pubg_mortar_calculator.detectors import MinimapDetector, YoloMarkDetector
 from pubg_mortar_calculator.logger import get_logger
 from pubg_mortar_calculator.utils import paths
-
-from pubg_mortar_calculator.core.storage import ImageStorage
 
 LOGGER = get_logger()
 

@@ -36,6 +36,8 @@ class App(ct.CTk):
     def __init__(self):
         super().__init__()
         self.title("PUBG-Mortar-Calculator")
+
+        self.iconbitmap(paths.icon())
         self.resizable(False, False)
 
         self.logic = AppLogic()
@@ -162,7 +164,9 @@ class App(ct.CTk):
             if self.overlay is not None:
                 self.overlay.add_command(Clear())
                 time.sleep(0.05)
-            self.logic.map_image = take_screenshot()
+            self.logic.map_image = take_screenshot(
+                self._get_general_settings().monitor_id
+            )
 
         if self.logic.map_image is None:
             return
@@ -214,7 +218,9 @@ class App(ct.CTk):
             if self.overlay is not None:
                 self.overlay.add_command(Clear())
                 time.sleep(0.05)
-            self.logic.elevation_image = take_screenshot()
+            self.logic.elevation_image = take_screenshot(
+                self._get_general_settings().monitor_id
+            )
 
         if self.logic.elevation_image is None:
             return
@@ -283,12 +289,18 @@ class App(ct.CTk):
         )
 
     def _get_general_settings(self) -> GeneralSettings:
+        try:
+            monitor_id = int(self.general_settings_block.monitor_id_entry.get())
+        except ValueError:
+            monitor_id = 0
+
         return GeneralSettings(
             debug_mode=self.general_settings_block.debug_mode_checkbox.get(),
             calculation_hotkey=self.general_settings_block.map_hotkey_entry.get(),
             elevation_hotkey=self.general_settings_block.elevation_hotkey_entry.get(),
             all_in_one_hotkey=self.general_settings_block.all_in_one_hotkey_entry.get(),
             app_title=self.general_settings_block.title_entry.get(),
+            monitor_id=monitor_id,
         )
 
     def _get_overlay_settings(self) -> OverlaySettings:
@@ -334,7 +346,7 @@ class App(ct.CTk):
 
     def _initialize_overlay(self):
         if self.overlay is not None:
-            self.overlay.add_command(Stop())
+            self.overlay.stop()
 
         settings = self._get_overlay_settings()
         if settings.enabled:

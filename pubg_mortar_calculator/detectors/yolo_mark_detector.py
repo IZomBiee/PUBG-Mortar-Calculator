@@ -159,11 +159,8 @@ class YoloMarkDetector:
 
 def main():
     import matplotlib.patches as patches
-
     import matplotlib.pyplot as plt
-
     from matplotlib.patheffects import withStroke
-
 
     image_bgr = cv2.imread(r"temp\map_preview.png")
     if image_bgr is None:
