@@ -35,7 +35,7 @@ If you want to run the project from source or contribute:
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/IZomBiee/PUBG-Mortar-Calculator.git](https://github.com/IZomBiee/PUBG-Mortar-Calculator.git)
+   git clone https://github.com/IZomBiee/PUBG-Mortar-Calculator.git
    cd PUBG-Mortar-Calculator
    ```
 
